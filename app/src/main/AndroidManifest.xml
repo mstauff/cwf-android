@@ -27,6 +27,9 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="org.ldscd.callingworkflow.CallingListActivity" />
         </activity>
+        <activity android:name=".SettingsActivity" />
+        <activity android:name=".AboutActivity" />
+        <activity android:name=".CreateCallingActivity"></activity>
     </application>
 
 </manifest>

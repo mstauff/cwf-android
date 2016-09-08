@@ -1,20 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item
-        android:id="@+id/display_option1"
-        android:orderInCategory="1"
-        android:title="item1"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/display_option2"
-        android:orderInCategory="2"
-        android:title="item2"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/display_option3"
-        android:orderInCategory="3"
-        android:title="item3"
-        app:showAsAction="never" />
-
+    <item android:title="@string/list_display_options_view" android:enabled="false" />
+    <group
+        android:checkableBehavior="single">
+        <item
+            android:id="@+id/display_view_organization"
+            android:title="@string/list_display_options_organization" />
+        <item
+            android:id="@+id/display_view_indvidual"
+            android:title="@string/list_display_options_individual" />
+    </group>
+    <item android:title="@string/list_display_options_filter" android:enabled="false" />
+    <group
+        android:paddingLeft="26dp"
+        android:checkableBehavior="all">
+        <item
+            android:id="@+id/display_filter_proposed"
+            android:title="@string/list_display_options_proposed" />
+        <item
+            android:paddingLeft="26dp"
+            android:id="@+id/display_filter_approved"
+            android:title="@string/list_display_options_approved" />
+        <item
+            android:id="@+id/display_filter_extended"
+            android:title="@string/list_display_options_extended" />
+    </group>
 </menu>

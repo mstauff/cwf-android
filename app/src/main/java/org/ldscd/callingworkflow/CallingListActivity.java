@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -42,6 +43,7 @@ public class CallingListActivity extends AppCompatActivity
      * device.
      */
     private boolean mTwoPane;
+    AppCompatActivity activity = this;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,8 +58,8 @@ public class CallingListActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                Intent intent = new Intent(activity, CreateCallingActivity.class);
+                startActivity(intent);
             }
         });
 
@@ -181,15 +183,34 @@ public class CallingListActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.display_option1) {
-            return true;
-        } else if(id == R.id.display_option2) {
-            return true;
-        } else if(id == R.id.display_option3) {
-            return true;
+        if (id == R.id.display_view_organization) {
+            item.setChecked(true);
+        } else if(id == R.id.display_view_indvidual) {
+            item.setChecked(true);
+        } else if(id == R.id.display_filter_proposed) {
+            item.setChecked(!item.isChecked());
+        } else if(id == R.id.display_filter_approved) {
+            item.setChecked(!item.isChecked());
+        } else if(id == R.id.display_filter_extended) {
+            item.setChecked(!item.isChecked());
         }
 
-        return super.onOptionsItemSelected(item);
+        //This section keeps the menu from closing when items are selected
+        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
+        item.setActionView(new View(activity.getApplicationContext()));
+        MenuItemCompat.setOnActionExpandListener(item, new MenuItemCompat.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionExpand(MenuItem item) {
+                return false;
+            }
+
+            @Override
+            public boolean onMenuItemActionCollapse(MenuItem item) {
+                return false;
+            }
+        });
+
+        return false;
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
@@ -198,18 +219,12 @@ public class CallingListActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
+        if (id == R.id.nav_settings) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
+        } else if (id == R.id.nav_about) {
+            Intent intent = new Intent(this, AboutActivity.class);
+            startActivity(intent);
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
