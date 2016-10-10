@@ -1,16 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <string name="app_name">Calling Workflow</string>
     <string name="title_calling_detail">Calling Detail</string>
     <string name="title_create_calling">Create Calling</string>
     <string name="title_settings">Settings</string>
     <string name="title_about">Application Details</string>
-
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="navigation_drawer_callings">Callings</string>
     <string name="navigation_drawer_settings">Settings</string>
     <string name="navigation_drawer_about">About</string>
-
     <string name="list_display_options_view">View By</string>
     <string name="list_display_options_organization">Organization</string>
     <string name="list_display_options_individual">Individual</string>
@@ -18,9 +18,17 @@
     <string name="list_display_options_proposed">Proposed</string>
     <string name="list_display_options_approved">Approved</string>
     <string name="list_display_options_extended">Extended</string>
-
     <string name="setting_header">Settings</string>
     <string name="user_name">User Name</string>
     <string name="password">Password</string>
     <string name="sync">Sync</string>
+
+    <!-- Test Info. -->
+    <string name="cw_heading">File Data</string>
+    <string name="action_settings">setting</string>
+    <string name="CWFileName">cwf-unit-data.json</string>
+    <string name="conflict_instruction">Start app on two devices. Add items to the list on one device then hit the \"Update List\" button. Then  add items on second device and hit \"Update List\" button. Notice the resolved list on second device.</string>
+    <string name="title_activity_base">BaseActivity</string>
+    <string name="hello_world">Hello world!</string>
+
 </resources>
