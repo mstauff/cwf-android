@@ -20,4 +20,7 @@
     <string name="list_display_options_extended">Extended</string>
 
     <string name="setting_header">Settings</string>
+    <string name="user_name">User Name</string>
+    <string name="password">Password</string>
+    <string name="sync">Sync</string>
 </resources>
