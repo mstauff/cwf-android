@@ -29,6 +29,10 @@ public class SettingsActivity extends BaseActivity {
     protected EditText cwFileEditText;
     protected Button updateCWFileButton;
 
+    protected EditText usernameEditText;
+    protected EditText passwordEditText;
+    protected Button authConfirmButton;
+
     // Instance variables used for DriveFile and DriveContents to help initiate file conflicts.
     protected DriveFile cwFile;
     protected DriveContents cwFileContent;
@@ -72,6 +76,23 @@ public class SettingsActivity extends BaseActivity {
                 }
             }
         };
+
+        usernameEditText = (EditText) findViewById(R.id.userText);
+        passwordEditText = (EditText) findViewById(R.id.passwordText);
+        authConfirmButton = (Button) findViewById(R.id.auth_confirm);
+        authConfirmButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String user = usernameEditText.getText().toString();
+                String password = passwordEditText.getText().toString();
+                WebResources wr = WebResources.getInstance(view.getContext().getApplicationContext());
+                if(!user.equals("") && !password.equals("")) {
+                    wr.setCredentialsAndLoadResources(user, password);
+                } else {
+                    wr.loadResources();
+                }
+            }
+        });
     }
 
     @Override

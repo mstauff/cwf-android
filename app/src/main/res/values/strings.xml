@@ -30,5 +30,7 @@
     <string name="conflict_instruction">Start app on two devices. Add items to the list on one device then hit the \"Update List\" button. Then  add items on second device and hit \"Update List\" button. Notice the resolved list on second device.</string>
     <string name="title_activity_base">BaseActivity</string>
     <string name="hello_world">Hello world!</string>
+    <string name="login_heading">LDS User Info</string>
+    <string name="auth_confirm">Connect</string>
 
 </resources>

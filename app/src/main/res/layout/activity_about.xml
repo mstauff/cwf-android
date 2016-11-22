@@ -20,7 +20,7 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:text="@string/user_name"
-                android:id="@+id/user_name_label" android:clickable="false" android:labelFor="@id/userName"/>
+                android:id="@+id/user_name_label" android:clickable="false" android:labelFor="@string/user_name"/>
         <EditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -30,7 +30,7 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:text="@string/password"
-                android:id="@+id/textView3" android:labelFor="@id/password"/>
+                android:id="@+id/textView3" android:labelFor="@string/password"/>
         <EditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
