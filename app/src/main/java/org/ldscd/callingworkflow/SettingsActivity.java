@@ -22,6 +22,8 @@ import org.ldscd.callingworkflow.google.ConflictUtil;
 
 import java.io.*;
 
+import javax.inject.Inject;
+
 /* Google drive api items. */
 public class SettingsActivity extends BaseActivity {
 
@@ -40,9 +42,13 @@ public class SettingsActivity extends BaseActivity {
     // Receiver used to update the EditText once conflicts have been resolved.
     protected BroadcastReceiver broadcastReceiver;
 
+    @Inject
+    WebResources wr;
+
     @Override
     protected void onCreate(Bundle b) {
         super.onCreate(b);
+        ((CWFApplication)getApplication()).getNetComponent().inject(this);
         setContentView(R.layout.activity_settings);
 
         cwFileEditText = (EditText) findViewById(R.id.editText);
@@ -85,7 +91,6 @@ public class SettingsActivity extends BaseActivity {
             public void onClick(View view) {
                 String user = usernameEditText.getText().toString();
                 String password = passwordEditText.getText().toString();
-                WebResources wr = WebResources.getInstance(view.getContext().getApplicationContext());
                 if(!user.equals("") && !password.equals("")) {
                     wr.setCredentialsAndLoadResources(user, password);
                 } else {

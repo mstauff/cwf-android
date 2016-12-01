@@ -28,6 +28,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
+import javax.inject.Inject;
 
 public class WebResources {
     private static final String TAG = "WebResourcesLog";
@@ -36,9 +37,7 @@ public class WebResources {
     private static final String prefUsername = "username";
     private static final String prefPassword = "password";
 
-    private static WebResources mInstance;
-    private RequestQueue mRequestQueue;
-    private static Context mCtx;
+    private RequestQueue requestQueue;
     private SharedPreferences preferences;
 
     private ConfigInfo configInfo = null;
@@ -47,10 +46,9 @@ public class WebResources {
     private char[] sKey = null;
     private byte[] salt = null;
 
-    private WebResources(Context context) {
-        mCtx = context;
-        mRequestQueue = getRequestQueue();
-        preferences = context.getSharedPreferences("CWFWeb", Context.MODE_PRIVATE);
+    public WebResources(Context context, RequestQueue requestQueue, SharedPreferences preferences) {
+        this.requestQueue = requestQueue;
+        this.preferences = preferences;
         String key = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
         sKey = key.toCharArray();
         try {
@@ -60,24 +58,8 @@ public class WebResources {
         }
     }
 
-    public static synchronized WebResources getInstance(Context context) {
-        if (mInstance == null) {
-            mInstance = new WebResources(context);
-        }
-        return mInstance;
-    }
-
-    public RequestQueue getRequestQueue() {
-        if (mRequestQueue == null) {
-            // getApplicationContext() is key, it keeps you from leaking the
-            // Activity or BroadcastReceiver if someone passes one in.
-            mRequestQueue = Volley.newRequestQueue(mCtx.getApplicationContext());
-        }
-        return mRequestQueue;
-    }
-
     public <T> void addToRequestQueue(Request<T> req) {
-        getRequestQueue().add(req);
+        requestQueue.add(req);
     }
 
     public void loadResources() {
@@ -109,6 +91,7 @@ public class WebResources {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         Log.e(TAG, "load config error");
+                        error.printStackTrace();
                     }
                 }
         );
@@ -136,6 +119,7 @@ public class WebResources {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         Log.e(TAG, "auth error");
+                        error.printStackTrace();
                     }
                 }
         );
@@ -164,6 +148,7 @@ public class WebResources {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         Log.e(TAG, "load user error");
+                        error.printStackTrace();
                     }
                 }
         ) {
@@ -193,6 +178,7 @@ public class WebResources {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         Log.e(TAG, "load Orgs list error");
+                        error.printStackTrace();
                     }
                 }
         ) {
@@ -223,6 +209,7 @@ public class WebResources {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         Log.e(TAG, "load ward list error");
+                        error.printStackTrace();
                     }
                 }
         ) {
