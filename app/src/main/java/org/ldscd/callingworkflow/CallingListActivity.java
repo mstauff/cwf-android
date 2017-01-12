@@ -25,6 +25,19 @@ import org.ldscd.callingworkflow.dummy.DummyContent;
 
 import java.util.List;
 
+// Default startup view is a list of Org's
+// Initial login is not yet designed.  Needs google id etc.
+// Post initial launch allow them to startup where left off.(This would require having the org structure.)
+// Need to create a splash screen as a startup.
+// Need to determine location of retrieved and shared data.
+// TODO: Start up activity data sync. all this should start up on a background thread.
+// 1. App Config setup call.
+// 2. Login Information
+// 3. User Information(Permissions, callings to determine permissions)
+// 4. Query church services for org's
+// 5. WardMember List
+// 6. Query google drive for syncing.  Read and cache DriveId's
+
 /**
  * An activity representing a list of Callings. This activity
  * has different presentations for handset and tablet-size devices. On
