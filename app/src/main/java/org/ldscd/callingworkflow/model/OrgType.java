@@ -1,4 +1,4 @@
-package org.ldscd.callingworkflow.dataObjects;
+package org.ldscd.callingworkflow.model;
 
 public class OrgType {
     private int id;

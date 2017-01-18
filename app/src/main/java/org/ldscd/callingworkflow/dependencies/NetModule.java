@@ -6,7 +6,7 @@ import android.content.SharedPreferences;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
 
-import org.ldscd.callingworkflow.WebResources;
+import org.ldscd.callingworkflow.web.WebResources;
 
 import javax.inject.Singleton;
 

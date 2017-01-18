@@ -19,6 +19,7 @@ import com.google.android.gms.drive.query.Query;
 import com.google.android.gms.drive.query.SearchableField;
 import org.ldscd.callingworkflow.google.ConflictResolver;
 import org.ldscd.callingworkflow.google.ConflictUtil;
+import org.ldscd.callingworkflow.web.WebResources;
 
 import java.io.*;
 
@@ -92,9 +93,7 @@ public class SettingsActivity extends BaseActivity {
                 String user = usernameEditText.getText().toString();
                 String password = passwordEditText.getText().toString();
                 if(!user.equals("") && !password.equals("")) {
-                    wr.setCredentialsAndLoadResources(user, password);
-                } else {
-                    wr.loadResources();
+                    wr.setCredentials(user, password);
                 }
             }
         });
