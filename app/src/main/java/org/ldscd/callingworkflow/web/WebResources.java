@@ -5,31 +5,28 @@ import android.content.SharedPreferences;
 import android.provider.Settings;
 import android.util.Base64;
 import android.util.Log;
-
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ldscd.callingworkflow.model.ConfigInfo;
 import org.ldscd.callingworkflow.model.Member;
 import org.ldscd.callingworkflow.model.Org;
 
-import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
+import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-public class WebResources {
+public class WebResources implements IWebResources {
     private static final String TAG = "WebResourcesLog";
     private static final String CONFIG_URL = "http://dev-ldscd.rhcloud.com/cwf/config?env=test";
     private static final String UTF8 = "UTF-8";
@@ -153,6 +150,7 @@ public class WebResources {
         }
     }
 
+    @Override
     public void getUserInfo(final Response.Listener<JSONObject> userCallback) {
         if(userInfo != null) {
             userCallback.onResponse(userInfo);
@@ -205,6 +203,7 @@ public class WebResources {
         }
     }
 
+    @Override
     public void getOrgs(final Response.Listener<List<Org>> orgsCallback) {
         if(orgsInfo != null) {
             orgsCallback.onResponse(orgsInfo);
@@ -243,6 +242,7 @@ public class WebResources {
         }
     }
 
+    @Override
     public void getWardList(final Response.Listener<List<Member>> wardCallback) {
         if(wardMemberList != null) {
             wardCallback.onResponse(wardMemberList);

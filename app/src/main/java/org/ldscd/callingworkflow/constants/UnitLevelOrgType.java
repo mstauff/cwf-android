@@ -1,5 +1,8 @@
 package org.ldscd.callingworkflow.constants;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public enum UnitLevelOrgType {
     Bishopric(1179),
     BranchPresidency(-1),
@@ -17,5 +20,16 @@ public enum UnitLevelOrgType {
     private UnitLevelOrgType(int id) {
         this.id = id;
     }
-    public int getValue() { return id; }
+    int getValue() { return id; }
+    private static final Map<Integer, UnitLevelOrgType> lookup = new HashMap<Integer, UnitLevelOrgType>();
+
+    static {
+        for (UnitLevelOrgType orgType : UnitLevelOrgType.values()) {
+            lookup.put(orgType.getValue(), orgType);
+        }
+    }
+
+    public static UnitLevelOrgType get(int id) {
+        return lookup.get(id);
+    }
 }

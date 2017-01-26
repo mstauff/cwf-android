@@ -67,7 +67,7 @@ public class OrgsListRequest extends Request<List<Org>> {
         return Response.success(orgsList, HttpHeaderParser.parseCacheHeaders(response));
     }
 
-    private List<Org> extractOrgs(JSONArray orgsJson) throws JSONException {
+    public List<Org> extractOrgs(JSONArray orgsJson) throws JSONException {
         List<Org> orgs = new ArrayList<>();
         for(int i=0; i < orgsJson.length(); i++) {
             JSONObject orgJson = orgsJson.getJSONObject(i);

@@ -66,9 +66,18 @@ public class MemberListRequest extends Request<List<Member>> {
 
     @Override
     protected Response<List<Member>> parseNetworkResponse(NetworkResponse response) {
+        List<Member> memberList;
+        try {
+            memberList = getMembers(new String(response.data, HttpHeaderParser.parseCharset(response.headers)));
+        } catch (UnsupportedEncodingException e) {
+            return Response.error(new ParseError(e));
+        }
+        return Response.success(memberList, HttpHeaderParser.parseCacheHeaders(response));
+    }
+
+    public List<Member> getMembers(String jsonString) {
         List<Member> memberList = new ArrayList<>();
         try {
-            String jsonString = new String(response.data, HttpHeaderParser.parseCharset(response.headers));
             JSONObject json = new JSONObject(jsonString);
             JSONArray families = json.getJSONArray(familiesArrayName);
             for(int i=0; i < families.length(); i++) {
@@ -96,14 +105,11 @@ public class MemberListRequest extends Request<List<Member>> {
                     }
                 }
             }
-        } catch (UnsupportedEncodingException e) {
-            return Response.error(new ParseError(e));
         } catch (JSONException e) {
-            return Response.error(new ParseError(e));
+            e.printStackTrace();
         }
-        return Response.success(memberList, HttpHeaderParser.parseCacheHeaders(response));
+        return memberList;
     }
-
     private Member extractMember(JSONObject json, String householdPhone, String householdEmail, String streetAddress) throws JSONException {
         long id = 0;
         if(!json.isNull(idFieldName)){

@@ -9,6 +9,8 @@ import com.google.android.gms.drive.DriveContents;
 import com.google.android.gms.drive.DriveFile;
 import com.google.android.gms.drive.ExecutionOptions;
 import com.google.android.gms.drive.MetadataChangeSet;
+import com.google.android.gms.drive.events.ChangeEvent;
+import com.google.android.gms.drive.events.ChangeListener;
 import com.google.android.gms.drive.events.CompletionEvent;
 
 import android.content.Context;
@@ -31,30 +33,23 @@ public class ConflictResolver implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
 
     private class HandleConflictTask extends AsyncTask<Void, Void, Void> {
-
+        DriveContents currentDriveContents;
         @Override
         protected Void doInBackground(Void... voids) {
-            // Get base contents.
-            InputStream baseInputStream = mConflictedCompletionEvent
-                    .getBaseContentsInputStream();
+           /* // Get base contents.
+            InputStream baseInputStream = mConflictedCompletionEvent.getBaseContentsInputStream();
             String baseStr = ConflictUtil.getStringFromInputStream(baseInputStream);
 
             // Get modified contents.
-            InputStream modifiedInputStream = mConflictedCompletionEvent
-                    .getModifiedContentsInputStream();
-            String modifiedStr = ConflictUtil.getStringFromInputStream(modifiedInputStream);
-
-            // Get modified metadata.
-            MetadataChangeSet modifiedMetadataChangeSet = mConflictedCompletionEvent
-                    .getModifiedMetadataChangeSet();
+            InputStream modifiedInputStream = mConflictedCompletionEvent.getModifiedContentsInputStream();
+            String modifiedStr = ConflictUtil.getStringFromInputStream(modifiedInputStream);*/
 
             // Get current contents.
             DriveId driveId = mConflictedCompletionEvent.getDriveId();
             DriveFile currentFile = driveId.asDriveFile();
-            DriveContentsResult currentDriveContentsResult = currentFile.open(mGoogleApiClient,
-                    DriveFile.MODE_READ_ONLY, null).await();
-            String serverStr;
-            DriveContents currentDriveContents;
+            DriveContentsResult currentDriveContentsResult = currentFile.open(mGoogleApiClient, DriveFile.MODE_READ_ONLY, null).await();
+            currentFile.addChangeListener(mGoogleApiClient, changeListener);
+            /*String serverStr;
             if (currentDriveContentsResult.getStatus().isSuccess()) {
                 currentDriveContents = currentDriveContentsResult.getDriveContents();
                 InputStream serverInputStream = currentDriveContents.getInputStream();
@@ -65,22 +60,20 @@ public class ConflictResolver implements GoogleApiClient.ConnectionCallbacks,
                 Log.d(TAG, "Unable to retrieve current content, snoozing completion event.");
                 mConflictedCompletionEvent.snooze();
                 return null;
-            }
+            }*/
 
             // Resolve conflict.
-            String resolvedItems = ConflictUtil.resolveConflict(baseStr, serverStr,
-                    modifiedStr);
+            String resolvedItems = getResolvedDriveContent(mConflictedCompletionEvent.getDriveId());
 
             // Commit resolved contents.
             // [START reopen_file]
-            DriveContentsResult driveContentsResult = currentDriveContents
-                    .reopenForWrite(mGoogleApiClient).await();
+            DriveContentsResult driveContentsResult = currentDriveContents.reopenForWrite(mGoogleApiClient).await();
             // [END reopen_file]
             if (driveContentsResult.getStatus().isSuccess()) {
                 DriveContents writingDriveContents = driveContentsResult.getDriveContents();
 
                 // Modified MetadataChangeSet is supplied here to be reapplied.
-                writeItems(writingDriveContents, resolvedItems, modifiedMetadataChangeSet);
+                writeItems(writingDriveContents, resolvedItems,  mConflictedCompletionEvent.getModifiedMetadataChangeSet());
             } else {
                 // The contents cannot be reopened at this point, probably due to
                 // connectivity, so by snoozing the event we will get it again later.
@@ -138,7 +131,6 @@ public class ConflictResolver implements GoogleApiClient.ConnectionCallbacks,
                 Log.d(TAG, "Unable to write resolved content, snoozing completion event.");
                 mConflictedCompletionEvent.snooze();
             }
-
         }
 
         /**
@@ -151,12 +143,61 @@ public class ConflictResolver implements GoogleApiClient.ConnectionCallbacks,
             intent.putExtra("conflictResolution", resolution);
             mBroadcaster.sendBroadcast(intent);
         }
+
+        public ChangeListener changeListener = new ChangeListener() {
+            @Override
+            public void onChange(ChangeEvent event) {
+                // Resolve conflict.
+                String resolvedItems =  getResolvedDriveContent(event.getDriveId());
+                MetadataChangeSet modifiedMetadataChangeSet = mConflictedCompletionEvent.getModifiedMetadataChangeSet();
+                DriveContentsResult driveContentsResult = currentDriveContents.reopenForWrite(mGoogleApiClient).await();
+                // [END reopen_file]
+                if (driveContentsResult.getStatus().isSuccess()) {
+                    DriveContents writingDriveContents = driveContentsResult.getDriveContents();
+
+                    // Modified MetadataChangeSet is supplied here to be reapplied.
+                    writeItems(writingDriveContents, resolvedItems, modifiedMetadataChangeSet);
+                } else {
+                    // The contents cannot be reopened at this point, probably due to
+                    // connectivity, so by snoozing the event we will get it again later.
+                    Log.d(TAG, "Unable to write resolved content, snoozing completion event.");
+                    mConflictedCompletionEvent.snooze();
+                }
+            }
+        };
+
+        private String getResolvedDriveContent(DriveId driveId) {
+            // Get base contents.
+            InputStream baseInputStream = mConflictedCompletionEvent.getBaseContentsInputStream();
+            String baseStr = ConflictUtil.getStringFromInputStream(baseInputStream);
+
+            // Get modified contents.
+            InputStream modifiedInputStream = mConflictedCompletionEvent.getModifiedContentsInputStream();
+            String modifiedStr = ConflictUtil.getStringFromInputStream(modifiedInputStream);
+
+            DriveFile currentFile = driveId.asDriveFile();
+            DriveContentsResult currentDriveContentsResult = currentFile.open(mGoogleApiClient, DriveFile.MODE_READ_ONLY, null).await();
+            String serverStr = "";
+            DriveContents currentDriveContents = null;
+            if (currentDriveContentsResult.getStatus().isSuccess()) {
+                currentDriveContents = currentDriveContentsResult.getDriveContents();
+                InputStream serverInputStream = currentDriveContents.getInputStream();
+                serverStr = ConflictUtil.getStringFromInputStream(serverInputStream);
+            } else {
+                // The current contents cannot be opened at this point, probably due to
+                // connectivity, so by snoozing the event we will get it again later.
+                Log.d(TAG, "Unable to retrieve current content, snoozing completion event.");
+                mConflictedCompletionEvent.snooze();
+            }
+
+            // Resolve conflict.
+            return ConflictUtil.resolveConflict(baseStr, serverStr, modifiedStr);
+        }
     }
 
     private static final String TAG = "ConflictResolver";
 
-    public static final String CONFLICT_RESOLVED =
-            "com.google.android.gms.drive.sample.conflict.CONFLICT_RESOLVED";
+    public static final String CONFLICT_RESOLVED = "com.google.android.gms.drive.sample.conflict.CONFLICT_RESOLVED";
 
     private LocalBroadcastManager mBroadcaster;
     private GoogleApiClient mGoogleApiClient;
