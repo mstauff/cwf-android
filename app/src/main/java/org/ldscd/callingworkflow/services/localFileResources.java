@@ -1,6 +1,5 @@
 package org.ldscd.callingworkflow.services;
 
-import android.app.Application;
 import android.content.Context;
 import com.android.volley.Response;
 import dagger.Module;
@@ -9,7 +8,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ldscd.callingworkflow.model.Member;
 import org.ldscd.callingworkflow.model.Org;
-import org.ldscd.callingworkflow.web.IWebResources;
 import org.ldscd.callingworkflow.web.MemberListRequest;
 import org.ldscd.callingworkflow.web.OrgsListRequest;
 
@@ -24,20 +22,14 @@ import java.util.Map;
  * Service class to interact with assets files within application project.
  */
  @Module
-public class localFileResources extends Application implements IWebResources {
+public class localFileResources {
     protected Map<String, File> fileMap;
+    private Context context;
 
-    private static Application sApplication;
-
-    public static Application getApplication() {
-        return sApplication;
+    public localFileResources(Context context) {
+        this.context = context;
     }
 
-    public static Context getContext() {
-        return getApplication().getApplicationContext();
-    }
-
-    @Override
     public void getUserInfo(Response.Listener<JSONObject> userCallback) {
         try {
             userCallback.onResponse(new JSONObject(getJSONFromAssets("user-info.json")));
@@ -46,7 +38,6 @@ public class localFileResources extends Application implements IWebResources {
         }
     }
 
-    @Override
     public void getOrgs(Response.Listener<List<Org>> orgsCallback) {
         OrgsListRequest orgsListRequest = new OrgsListRequest(null, null, null, null);
         List<Org> orgs = new ArrayList<>();
@@ -58,16 +49,16 @@ public class localFileResources extends Application implements IWebResources {
         orgsCallback.onResponse(orgs);
     }
 
-    @Override
     public void getWardList(Response.Listener<List<Member>> wardCallback) {
         MemberListRequest memberListRequest = new MemberListRequest(null, null, null, null);
-        wardCallback.onResponse(memberListRequest.getMembers(getJSONFromAssets("org-callings.json")));
+        List<Member> members = memberListRequest.getMembers(getJSONFromAssets("member-objects.json"));
+        wardCallback.onResponse(members);
     }
 
     private String getJSONFromAssets(String fileName) {
         String json = null;
         try {
-            InputStream is = getContext().getAssets().open(fileName);
+            InputStream is = context.getAssets().open(fileName);
             int size = is.available();
             byte[] buffer = new byte[size];
             is.read(buffer);

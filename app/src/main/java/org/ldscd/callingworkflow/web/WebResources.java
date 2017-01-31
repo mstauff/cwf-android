@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class WebResources implements IWebResources {
+public class WebResources {
     private static final String TAG = "WebResourcesLog";
     private static final String CONFIG_URL = "http://dev-ldscd.rhcloud.com/cwf/config?env=test";
     private static final String UTF8 = "UTF-8";
@@ -150,7 +150,6 @@ public class WebResources implements IWebResources {
         }
     }
 
-    @Override
     public void getUserInfo(final Response.Listener<JSONObject> userCallback) {
         if(userInfo != null) {
             userCallback.onResponse(userInfo);
@@ -203,7 +202,6 @@ public class WebResources implements IWebResources {
         }
     }
 
-    @Override
     public void getOrgs(final Response.Listener<List<Org>> orgsCallback) {
         if(orgsInfo != null) {
             orgsCallback.onResponse(orgsInfo);
@@ -242,7 +240,6 @@ public class WebResources implements IWebResources {
         }
     }
 
-    @Override
     public void getWardList(final Response.Listener<List<Member>> wardCallback) {
         if(wardMemberList != null) {
             wardCallback.onResponse(wardMemberList);

@@ -2,16 +2,14 @@ package org.ldscd.callingworkflow.dependencies;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
-
+import dagger.Module;
+import dagger.Provides;
+import org.ldscd.callingworkflow.services.localFileResources;
 import org.ldscd.callingworkflow.web.WebResources;
 
 import javax.inject.Singleton;
-
-import dagger.Module;
-import dagger.Provides;
 
 @Module(includes = {ApplicationContextModule.class, StorageModule.class})
 public class NetModule {
@@ -28,4 +26,9 @@ public class NetModule {
         return new WebResources(applicationContext, requestQueue, preferences);
     }
 
+    @Provides
+    @Singleton
+    localFileResources providesLocalFileResources(Context context) {
+        return new localFileResources(context);
+    }
 }
