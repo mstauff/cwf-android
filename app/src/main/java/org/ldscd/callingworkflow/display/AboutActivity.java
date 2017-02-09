@@ -1,23 +1,24 @@
-package org.ldscd.callingworkflow;
+package org.ldscd.callingworkflow.display;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.MenuItem;
+import org.ldscd.callingworkflow.R;
 
-public class CreateCallingActivity extends AppCompatActivity {
+public class AboutActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_create_calling);
+        setContentView(R.layout.activity_about);
 
         // Show the Up button in the action bar.
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setTitle(R.string.title_create_calling);
+            actionBar.setTitle(R.string.title_about);
         }
     }
 

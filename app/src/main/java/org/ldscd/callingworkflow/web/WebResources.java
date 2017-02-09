@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class WebResources {
+public class WebResources implements IWebResources {
     private static final String TAG = "WebResourcesLog";
     private static final String CONFIG_URL = "http://dev-ldscd.rhcloud.com/cwf/config?env=test";
     private static final String UTF8 = "UTF-8";
@@ -70,7 +70,8 @@ public class WebResources {
         }
     }
 
-    public void setCredentials(String userName, String password){
+    @Override
+    public void setCredentials(String userName, String password) {
         this.userName = userName;
         this.password = password;
         getAuthCookie(new Response.Listener<String>() {
@@ -81,6 +82,7 @@ public class WebResources {
         });
     }
 
+    @Override
     public void getConfigInfo(final Response.Listener<ConfigInfo> configCallback) {
         if(configInfo != null) {
             configCallback.onResponse(configInfo);
@@ -150,6 +152,7 @@ public class WebResources {
         }
     }
 
+    @Override
     public void getUserInfo(final Response.Listener<JSONObject> userCallback) {
         if(userInfo != null) {
             userCallback.onResponse(userInfo);
@@ -202,6 +205,7 @@ public class WebResources {
         }
     }
 
+    @Override
     public void getOrgs(final Response.Listener<List<Org>> orgsCallback) {
         if(orgsInfo != null) {
             orgsCallback.onResponse(orgsInfo);
@@ -240,6 +244,7 @@ public class WebResources {
         }
     }
 
+    @Override
     public void getWardList(final Response.Listener<List<Member>> wardCallback) {
         if(wardMemberList != null) {
             wardCallback.onResponse(wardMemberList);

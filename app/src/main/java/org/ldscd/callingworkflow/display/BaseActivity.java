@@ -1,4 +1,4 @@
-package org.ldscd.callingworkflow;
+package org.ldscd.callingworkflow.display;
 
 import android.app.Activity;
 import android.content.Intent;

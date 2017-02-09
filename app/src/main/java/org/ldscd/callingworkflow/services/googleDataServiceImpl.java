@@ -23,8 +23,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class googleDataServiceImpl implements googleDataService, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
-    @Inject
+public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+    public GoogleDataServiceImpl() {
+    }
+
     @Override
     public void getOrgData(final Response.Listener<Org> listener, Response.ErrorListener errorListener, final Org org) {
         fileName = DataUtil.getFileName(org);
@@ -237,7 +239,7 @@ public class googleDataServiceImpl implements googleDataService, GoogleApiClient
     /*
      * Name of the service being used.
      */
-    private String TAG = "googleDataService";
+    private String TAG = "GoogleDataService";
     /*
      * Instance variables used for DriveFile and DriveContents to help initiate file conflicts.
      */

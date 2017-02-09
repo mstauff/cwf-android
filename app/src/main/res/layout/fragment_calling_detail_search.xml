@@ -1,0 +1,21 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+            android:orientation="vertical"
+             tools:context="org.ldscd.callingworkflow.display.CallingDetailSearchFragment">
+    <android.support.v7.widget.SearchView
+        android:id="@+id/calling_detail_search_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:iconifiedByDefault="false">
+        <requestFocus />
+    </android.support.v7.widget.SearchView>
+    <ListView
+        android:id="@+id/member_search_list"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:dividerHeight="2px"
+        android:layout_below="@+id/calling_detail_search_view" />
+</RelativeLayout>

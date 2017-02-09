@@ -1,4 +1,4 @@
-package org.ldscd.callingworkflow;
+package org.ldscd.callingworkflow.display;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -17,13 +17,14 @@ import com.google.android.gms.drive.*;
 import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.Query;
 import com.google.android.gms.drive.query.SearchableField;
+import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.google.ConflictResolver;
 import org.ldscd.callingworkflow.google.ConflictUtil;
+import org.ldscd.callingworkflow.web.IWebResources;
 import org.ldscd.callingworkflow.web.WebResources;
 
-import java.io.*;
-
 import javax.inject.Inject;
+import java.io.*;
 
 /* Google drive api items. */
 public class SettingsActivity extends BaseActivity {
@@ -44,7 +45,7 @@ public class SettingsActivity extends BaseActivity {
     protected BroadcastReceiver broadcastReceiver;
 
     @Inject
-    WebResources wr;
+    IWebResources wr;
 
     @Override
     protected void onCreate(Bundle b) {

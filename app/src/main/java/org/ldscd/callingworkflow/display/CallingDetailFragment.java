@@ -1,4 +1,4 @@
-package org.ldscd.callingworkflow;
+package org.ldscd.callingworkflow.display;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.dummy.DummyContent;
 
 /**
@@ -53,8 +54,7 @@ public class CallingDetailFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.calling_detail, container, false);
 
         // Show the dummy content as text in a TextView.

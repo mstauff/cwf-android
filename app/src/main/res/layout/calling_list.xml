@@ -9,5 +9,5 @@
     android:layout_marginLeft="16dp"
     android:layout_marginRight="16dp"
     app:layoutManager="LinearLayoutManager"
-    tools:context="org.ldscd.callingworkflow.CallingListActivity"
+    tools:context="org.ldscd.callingworkflow.display.CallingListActivity"
     tools:listitem="@layout/calling_list_content" />

@@ -1,15 +1,18 @@
-package org.ldscd.callingworkflow;
+package org.ldscd.callingworkflow.display;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
+import org.ldscd.callingworkflow.R;
+import org.ldscd.callingworkflow.services.GoogleDataService;
+import org.ldscd.callingworkflow.web.IWebResources;
+import org.ldscd.callingworkflow.web.LocalFileResources;
+
+import javax.inject.Inject;
 
 /**
  * An activity representing a single Calling detail screen. This
@@ -19,22 +22,21 @@ import android.view.View;
  */
 public class CallingDetailActivity extends AppCompatActivity {
 
+    @Inject
+    IWebResources webResources;
+
+    @Inject
+    GoogleDataService googleDataServices;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ((CWFApplication)getApplication()).getNetComponent().inject(this);
+
         setContentView(R.layout.activity_calling_detail);
         Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
         toolbar.setTitle("Al gore");
         setSupportActionBar(toolbar);
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own detail action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
 
         // Show the Up button in the action bar.
         ActionBar actionBar = getSupportActionBar();
@@ -58,10 +60,12 @@ public class CallingDetailActivity extends AppCompatActivity {
             arguments.putString(CallingDetailFragment.ARG_ITEM_ID,
                     getIntent().getStringExtra(CallingDetailFragment.ARG_ITEM_ID));
             CallingDetailFragment fragment = new CallingDetailFragment();
+            CallingDetailSearchFragment searchFragment = new CallingDetailSearchFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.calling_detail_container, fragment)
-                    .commit();
+                .add(R.id.calling_detail_container, fragment)
+                .add(R.id.calling_detail_search_container, searchFragment)
+                .commit();
         }
     }
 

@@ -6,8 +6,11 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
 import dagger.Module;
 import dagger.Provides;
-import org.ldscd.callingworkflow.services.localFileResources;
-import org.ldscd.callingworkflow.web.WebResources;
+
+import org.ldscd.callingworkflow.services.GoogleDataService;
+import org.ldscd.callingworkflow.services.GoogleDataServiceImpl;
+import org.ldscd.callingworkflow.web.LocalFileResources;
+import org.ldscd.callingworkflow.web.IWebResources;
 
 import javax.inject.Singleton;
 
@@ -22,13 +25,19 @@ public class NetModule {
 
     @Provides
     @Singleton
-    WebResources providesWebResources(Context applicationContext, RequestQueue requestQueue, SharedPreferences preferences) {
-        return new WebResources(applicationContext, requestQueue, preferences);
+    IWebResources providesWebResources(Context context, RequestQueue requestQueue, SharedPreferences preferences) {
+        return new LocalFileResources(context); //new WebResources(context, requestQueue, preferences);
     }
 
     @Provides
     @Singleton
-    localFileResources providesLocalFileResources(Context context) {
-        return new localFileResources(context);
+    LocalFileResources providesLocalFileResources(Context context) {
+        return new LocalFileResources(context);
+    }
+
+    @Provides
+    @Singleton
+    GoogleDataService providesGoogleDataServices() {
+        return new GoogleDataServiceImpl();
     }
 }

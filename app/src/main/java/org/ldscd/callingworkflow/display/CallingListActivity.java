@@ -1,4 +1,4 @@
-package org.ldscd.callingworkflow;
+package org.ldscd.callingworkflow.display;
 
 import android.content.Context;
 import android.content.Intent;
@@ -21,6 +21,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 
+import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.dummy.DummyContent;
 
 import java.util.List;

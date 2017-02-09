@@ -4,9 +4,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="org.ldscd.callingworkflow.CallingDetailActivity"
-    tools:ignore="MergeRootFrame">
-
+    tools:context="org.ldscd.callingworkflow.display.CallingDetailActivity">
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginTop="0dp">
     <android.support.design.widget.AppBarLayout
         android:id="@+id/app_bar"
         android:layout_width="match_parent"
@@ -21,11 +23,20 @@
                 app:popupTheme="@style/AppTheme.PopupOverlay" />
 
     </android.support.design.widget.AppBarLayout>
-
-    <android.support.v4.widget.NestedScrollView
-        android:id="@+id/calling_detail_container"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
-
+        android:layout_alignBottom="@+id/app_bar">
+        <android.support.v4.widget.NestedScrollView
+            android:id="@+id/calling_detail_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/calling_detail_search_container">
+        </RelativeLayout>
+    </RelativeLayout>
+    </RelativeLayout>
 </android.support.design.widget.CoordinatorLayout>
