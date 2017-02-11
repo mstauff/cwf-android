@@ -4,7 +4,9 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
+import android.widget.Filter;
 import android.widget.TextView;
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.model.Member;
@@ -13,18 +15,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class MemberSearchAdapter extends BaseAdapter {
-    Context mContext;
-    LayoutInflater inflater;
+public class MemberSearchAdapter extends ArrayAdapter<Member> {
+    private Context mContext;
+    private LayoutInflater inflater;
     private List<Member> members = null;
-    private ArrayList<Member> arraylist;
+    private List<Member> wardMembers;
+    private List<Member> suggestions;
+    private int viewResourceId;
 
-    public MemberSearchAdapter(Context context, List<Member> members) {
+    public MemberSearchAdapter(Context context, int viewResourceId, ArrayList<Member> members) {
+        super(context, viewResourceId, members);
         mContext = context;
         this.members = members;
+        this.wardMembers = (ArrayList<Member>) members.clone();
         inflater = LayoutInflater.from(mContext);
-        this.arraylist = new ArrayList<Member>();
-        this.arraylist.addAll(members);
+        this.suggestions = new ArrayList<Member>();
+        this.viewResourceId = viewResourceId;
     }
 
     public class ViewHolder {
@@ -46,7 +52,7 @@ public class MemberSearchAdapter extends BaseAdapter {
         return position;
     }
 
-    public View getView(final int position, View view, ViewGroup parent) {
+    public View getView(int position, View view, ViewGroup parent) {
         final ViewHolder holder;
         if (view == null) {
             holder = new ViewHolder();
@@ -61,8 +67,53 @@ public class MemberSearchAdapter extends BaseAdapter {
         return view;
     }
 
+    @Override
+    public Filter getFilter() {
+        return nameFilter;
+    }
+
+    Filter nameFilter = new Filter() {
+        public String convertResultToString(Object resultValue) {
+            return ((Member) (resultValue)).getFormattedName();
+        }
+
+        @Override
+        protected FilterResults performFiltering(CharSequence constraint) {
+            if (constraint != null) {
+                suggestions.clear();
+                for (Member member : wardMembers) {
+                    if (member.getFormattedName().toLowerCase()
+                            .contains(constraint.toString().toLowerCase())) {
+                        suggestions.add(member);
+                    }
+                }
+                FilterResults filterResults = new FilterResults();
+                filterResults.values = suggestions;
+                filterResults.count = suggestions.size();
+                return filterResults;
+            } else {
+                return new FilterResults();
+            }
+        }
+
+        @Override
+        protected void publishResults(CharSequence constraint,
+                                      FilterResults results) {
+            @SuppressWarnings("unchecked")
+            ArrayList<Member> filteredList = (ArrayList<Member>) results.values;
+            if (results != null && results.count > 0) {
+                clear();
+                for (Member c : filteredList) {
+                    add(c);
+                }
+                notifyDataSetChanged();
+            }
+        }
+    };
+
+
     // Filter Class
-    public void filter(String charText) {
+    /*public void filter(String charText) {
         charText = charText.toLowerCase(Locale.getDefault());
         members.clear();
         if (charText.length() == 0) {
@@ -75,5 +126,5 @@ public class MemberSearchAdapter extends BaseAdapter {
             }
         }
         notifyDataSetChanged();
-    }
+    }*/
 }

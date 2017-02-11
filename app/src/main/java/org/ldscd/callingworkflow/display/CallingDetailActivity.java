@@ -1,16 +1,31 @@
 package org.ldscd.callingworkflow.display;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Adapter;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.Spinner;
+import android.widget.TextView;
+
 import org.ldscd.callingworkflow.R;
+import org.ldscd.callingworkflow.constants.CallingStatus;
 import org.ldscd.callingworkflow.services.GoogleDataService;
 import org.ldscd.callingworkflow.web.IWebResources;
 import org.ldscd.callingworkflow.web.LocalFileResources;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -31,42 +46,15 @@ public class CallingDetailActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        /* Initialize Volley injection class */
         ((CWFApplication)getApplication()).getNetComponent().inject(this);
-
+        /* Initialize UI */
         setContentView(R.layout.activity_calling_detail);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
-        toolbar.setTitle("Al gore");
-        setSupportActionBar(toolbar);
 
-        // Show the Up button in the action bar.
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-        }
-
-        // savedInstanceState is non-null when there is fragment state
-        // saved from previous configurations of this activity
-        // (e.g. when rotating the screen from portrait to landscape).
-        // In this case, the fragment will automatically be re-added
-        // to its container so we don't need to manually add it.
-        // For more information, see the Fragments API guide at:
-        //
-        // http://developer.android.com/guide/components/fragments.html
-        //
-        if (savedInstanceState == null) {
-            // Create the detail fragment and add it to the activity
-            // using a fragment transaction.
-            Bundle arguments = new Bundle();
-            arguments.putString(CallingDetailFragment.ARG_ITEM_ID,
-                    getIntent().getStringExtra(CallingDetailFragment.ARG_ITEM_ID));
-            CallingDetailFragment fragment = new CallingDetailFragment();
-            CallingDetailSearchFragment searchFragment = new CallingDetailSearchFragment();
-            fragment.setArguments(arguments);
-            getSupportFragmentManager().beginTransaction()
-                .add(R.id.calling_detail_container, fragment)
-                .add(R.id.calling_detail_search_container, searchFragment)
-                .commit();
-        }
+        wireUpToolbar();
+        wireUpFinalizeButton();
+        wireUpStatusDropdown();
+        wireUpFragments(savedInstanceState);
     }
 
     @Override
@@ -90,5 +78,92 @@ public class CallingDetailActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void submitOrgChanges(View v) {
+        Spinner spinner = (Spinner) findViewById(R.id.calling_detail_status_dropdown);
+        String selected = ((CallingStatus)spinner.getSelectedItem()).name();
+    }
+
+    private void wireUpToolbar() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
+        toolbar.setTitle("Primary - CTR7");
+        setSupportActionBar(toolbar);
+
+        // Show the Up button in the action bar.
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
+    }
+
+    private void wireUpStatusDropdown() {
+        CallingStatus[] callingStatuses = new CallingStatus[CallingStatus.values().length];
+        List<CallingStatus> status = new ArrayList(Arrays.asList(CallingStatus.values()));
+        Spinner statusDropdown = (Spinner) findViewById(R.id.calling_detail_status_dropdown);
+        ArrayAdapter adapter = new ArrayAdapter<CallingStatus>(this, android.R.layout.simple_list_item_1, status) {
+           /* @Override
+            public boolean isEnabled(int position) {
+                if (position == 0) {
+                    // Disable the first item from Spinner
+                    // First item will be use for hint
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+
+            @Override
+            public View getDropDownView(int position, View convertView,
+                                        ViewGroup parent) {
+                View view = super.getDropDownView(position, convertView, parent);
+                TextView tv = (TextView) view;
+                if (position == 0) {
+                    // Set the hint text color gray
+                    tv.setTextColor(Color.GRAY);
+                } else {
+                    tv.setTextColor(Color.BLACK);
+                }
+                return view;
+            }*/
+        };
+        statusDropdown.setAdapter(adapter);
+    }
+
+    private void wireUpFinalizeButton() {
+        /* Finalize calling button setup */
+        Button button = (Button) findViewById(R.id.button_finalize_calling);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                submitOrgChanges(v);
+            }
+        });
+    }
+
+    private void wireUpFragments(Bundle savedInstanceState) {
+        // savedInstanceState is non-null when there is fragment state
+        // saved from previous configurations of this activity
+        // (e.g. when rotating the screen from portrait to landscape).
+        // In this case, the fragment will automatically be re-added
+        // to its container so we don't need to manually add it.
+        // For more information, see the Fragments API guide at:
+        //
+        // http://developer.android.com/guide/components/fragments.html
+        //
+        if (savedInstanceState == null) {
+            // Create the detail fragment and add it to the activity
+            // using a fragment transaction.
+//            Bundle arguments = new Bundle();
+//            arguments.putString(CallingDetailFragment.ARG_ITEM_ID,
+//                    getIntent().getStringExtra(CallingDetailFragment.ARG_ITEM_ID));
+            CallingDetailFragment fragment = new CallingDetailFragment();
+            CallingDetailSearchFragment searchFragment = new CallingDetailSearchFragment();
+//            fragment.setArguments(arguments);
+            getSupportFragmentManager().beginTransaction()
+                    //.add(R.id.calling_detail_container, fragment)
+                    .add(R.id.calling_detail_search_container, searchFragment)
+                    .commit();
+        }
     }
 }

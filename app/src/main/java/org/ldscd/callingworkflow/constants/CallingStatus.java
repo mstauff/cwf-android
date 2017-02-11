@@ -5,13 +5,13 @@ public enum CallingStatus {
     SUBMITTED("Submitted"),
     APPROVED("Approved"),
     REJECTED("Rejected"),
-    ON_HOLD("OnHold"),
-    APPT_SET("AppointmentSet"),
+    ON_HOLD("On Hold"),
+    APPT_SET("Appointment Set"),
     EXTENDED("Extended"),
     ACCEPTED("Accepted"),
     DECLINED("Declined"),
     SUSTAINED("Sustained"),
-    SET_APART("SetApart"),
+    SET_APART("Set Apart"),
     RECORDED("Recorded"),
     UNKNOWN("Unknown");
 
@@ -25,6 +25,10 @@ public enum CallingStatus {
      * @return The string representation of this element in the enumeration.
      */
     public String getStatus() {
+        return this.status;
+    }
+
+    @Override public String toString() {
         return this.status;
     }
 }

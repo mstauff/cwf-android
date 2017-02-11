@@ -8,7 +8,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
+import android.widget.Adapter;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import com.android.volley.Response;
 import org.ldscd.callingworkflow.R;
@@ -20,6 +24,8 @@ import org.ldscd.callingworkflow.web.LocalFileResources;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
+
+import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
 
 
 /**
@@ -142,7 +148,7 @@ public class CallingDetailSearchFragment extends android.support.v4.app.Fragment
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
         if(mParam1 == null) {
-            final List<Member> memberList = new ArrayList<>();
+            final ArrayList<Member> memberList = new ArrayList<>();
             webResources.getWardList(new Response.Listener<List<Member>>() {
                 @Override
                 public void onResponse(List<Member> members) {
@@ -150,17 +156,13 @@ public class CallingDetailSearchFragment extends android.support.v4.app.Fragment
                 }
             });
 
-            adapter = new MemberSearchAdapter(getActivity(), memberList);
-            final ListView listView = (ListView) v.findViewById(R.id.member_search_list);
+            adapter = new MemberSearchAdapter(getActivity(), android.R.layout.simple_dropdown_item_1line, memberList);
+            AutoCompleteTextView memberLookup = (AutoCompleteTextView) v.findViewById(R.id.autocomplete_calling_detail_member_lookup);
+            memberLookup.setAdapter(adapter);
+            /*final ListView listView = (ListView) v.findViewById(R.id.member_search_list);
             listView.setTextFilterEnabled(true);
             listView.setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
             listView.setClickable(true);
-            /*listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    listView.setVisibility(View.INVISIBLE);
-                }
-            });*/
             listView.setAdapter(adapter);
 
             final SearchView searchView = (SearchView) v.findViewById(R.id.calling_detail_search_view);
@@ -170,6 +172,9 @@ public class CallingDetailSearchFragment extends android.support.v4.app.Fragment
             searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
                 @Override
                 public boolean onQueryTextChange(String newText) {
+                    if(searchView.hasFocus()) {
+                        listView.setVisibility(View.VISIBLE);
+                    }
                     adapter.filter(newText);
                     return true;
                 }
@@ -179,17 +184,27 @@ public class CallingDetailSearchFragment extends android.support.v4.app.Fragment
                     return false;
                 }
             });
+            searchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
+                @Override
+                public void onFocusChange(View v, boolean hasFocus) {
+                    if(listView != null) {
+                        if (hasFocus && listView.getChildAt(0) != null) {
+                            listView.setVisibility(View.VISIBLE);
+                            ViewGroup.LayoutParams params = listView.getLayoutParams();
+                            params.height = 3 * listView.getChildAt(0).getMeasuredHeight();
+                            listView.setLayoutParams(params);
+                        } else {
+                            listView.setVisibility(View.INVISIBLE);
+                        }
+                    }
+                }
+            });
 
-            /*listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     searchView.setQuery(adapter.getItem(position).getFormattedName(), true);
-                    if(adapter.getCount() > 4) {
-                        ViewGroup.LayoutParams params = listView.getLayoutParams();
-                        params.height = 3 * view.getMeasuredHeight();
-                        listView.setLayoutParams(params);
-                    }
-
+                    listView.setVisibility(View.INVISIBLE);
                 }
             });*/
         }

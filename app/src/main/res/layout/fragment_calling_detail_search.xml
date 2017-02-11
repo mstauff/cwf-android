@@ -4,12 +4,13 @@
              android:layout_height="wrap_content"
             android:orientation="vertical"
              tools:context="org.ldscd.callingworkflow.display.CallingDetailSearchFragment">
-    <android.support.v7.widget.SearchView
+
+    <!--<android.support.v7.widget.SearchView
         android:id="@+id/calling_detail_search_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:iconifiedByDefault="false">
-        <requestFocus />
+        &lt;!&ndash;<requestFocus />&ndash;&gt;
     </android.support.v7.widget.SearchView>
     <ListView
         android:id="@+id/member_search_list"
@@ -17,5 +18,16 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:dividerHeight="2px"
-        android:layout_below="@+id/calling_detail_search_view" />
+        android:visibility="invisible"
+        android:layout_below="@+id/calling_detail_search_view" />-->
+    <AutoCompleteTextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="@string/member_lookup"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="0dp"
+        android:inputType="textNoSuggestions"
+        android:id="@+id/autocomplete_calling_detail_member_lookup" />
 </RelativeLayout>

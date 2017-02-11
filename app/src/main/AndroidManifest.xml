@@ -29,6 +29,7 @@
         </activity>
         <activity
             android:name=".display.CallingDetailActivity"
+            android:windowSoftInputMode="adjustPan"
             android:label="@string/title_calling_detail"
             android:parentActivityName=".display.CallingListActivity"
             android:theme="@style/AppTheme.NoActionBar" >
