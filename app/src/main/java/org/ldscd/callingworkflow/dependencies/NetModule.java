@@ -12,6 +12,10 @@ import org.ldscd.callingworkflow.services.GoogleDataServiceImpl;
 import org.ldscd.callingworkflow.web.LocalFileResources;
 import org.ldscd.callingworkflow.web.IWebResources;
 
+import org.ldscd.callingworkflow.web.CallingData;
+import org.ldscd.callingworkflow.web.MemberData;
+import org.ldscd.callingworkflow.web.WebResources;
+
 import javax.inject.Singleton;
 
 @Module(includes = {ApplicationContextModule.class, StorageModule.class})
@@ -39,5 +43,17 @@ public class NetModule {
     @Singleton
     GoogleDataService providesGoogleDataServices() {
         return new GoogleDataServiceImpl();
+    }
+
+    @Provides
+    @Singleton
+    CallingData providesCallingData(IWebResources webResources, LocalFileResources localFileResources) {
+        return new CallingData(webResources, localFileResources);
+    }
+
+    @Provides
+    @Singleton
+    MemberData providesMemberData(IWebResources webResources, LocalFileResources localFileResources) {
+        return new MemberData(webResources, localFileResources);
     }
 }

@@ -45,7 +45,7 @@ public class SettingsActivity extends BaseActivity {
     protected BroadcastReceiver broadcastReceiver;
 
     @Inject
-    IWebResources wr;
+    IWebResources webResources;
 
     @Override
     protected void onCreate(Bundle b) {
@@ -94,7 +94,7 @@ public class SettingsActivity extends BaseActivity {
                 String user = usernameEditText.getText().toString();
                 String password = passwordEditText.getText().toString();
                 if(!user.equals("") && !password.equals("")) {
-                    wr.setCredentials(user, password);
+                    webResources.setCredentials(user, password);
                 }
             }
         });
