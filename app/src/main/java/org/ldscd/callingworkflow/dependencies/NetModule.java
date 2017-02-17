@@ -35,25 +35,19 @@ public class NetModule {
 
     @Provides
     @Singleton
-    LocalFileResources providesLocalFileResources(Context context) {
-        return new LocalFileResources(context);
-    }
-
-    @Provides
-    @Singleton
     GoogleDataService providesGoogleDataServices() {
         return new GoogleDataServiceImpl();
     }
 
     @Provides
     @Singleton
-    CallingData providesCallingData(IWebResources webResources, LocalFileResources localFileResources) {
-        return new CallingData(webResources, localFileResources);
+    CallingData providesCallingData(IWebResources webResources) {
+        return new CallingData(webResources);
     }
 
     @Provides
     @Singleton
-    MemberData providesMemberData(IWebResources webResources, LocalFileResources localFileResources) {
-        return new MemberData(webResources, localFileResources);
+    MemberData providesMemberData(IWebResources webResources) {
+        return new MemberData(webResources);
     }
 }

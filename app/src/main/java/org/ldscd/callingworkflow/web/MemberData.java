@@ -11,18 +11,16 @@ import java.util.Map;
 
 public class MemberData {
     private IWebResources webResources;
-    private LocalFileResources localFileResources;
 
     private List<Member> members;
     private Map<Long, Member> membersByIndividualId;
 
-    public MemberData(IWebResources webResources, LocalFileResources localFileResources) {
+    public MemberData(IWebResources webResources) {
         this.webResources = webResources;
-        this.localFileResources = localFileResources;
     }
 
     private void loadMembers(final Response.Listener<List<Member>> membersCallback) {
-        localFileResources.getWardList(new Response.Listener<List<Member>>() {
+        webResources.getWardList(new Response.Listener<List<Member>>() {
             @Override
             public void onResponse(List<Member> response) {
                 members = response;

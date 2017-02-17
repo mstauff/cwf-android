@@ -14,21 +14,19 @@ import java.util.Map;
 public class CallingData {
 
     private IWebResources webResources;
-    private LocalFileResources localFileResources;
 
     private List<Org> orgs;
     private Map<Long, Org> orgsById;
     private Map<Long, List<Calling>> callingsByOrg;
     private Map<Long, Calling> callingsById;
 
-    public CallingData(IWebResources webResources, LocalFileResources localFileResources) {
+    public CallingData(IWebResources webResources) {
         this.webResources = webResources;
-        this.localFileResources = localFileResources;
     }
 
     // TODO: This needs to pull in info from google as well and merge the two
     private void loadOrgs(final Response.Listener<List<Org>> orgsCallback) {
-        localFileResources.getOrgs(new Response.Listener<List<Org>>() {
+        webResources.getOrgs(new Response.Listener<List<Org>>() {
             @Override
             public void onResponse(List<Org> response) {
                 orgs = response;
