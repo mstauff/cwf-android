@@ -165,7 +165,10 @@ public class LocalFileResources implements IWebResources {
         OrgsListRequest orgsListRequest = new OrgsListRequest(null, null, null, null);
         List<Org> orgs = new ArrayList<>();
         try {
-            orgs = orgsListRequest.extractOrgs(new JSONArray(getJSONFromAssets("org-callings.json")));
+            String json = getJSONFromAssets("cwf-object.json");
+            JSONArray jsonArray = new JSONArray();
+            jsonArray.put(new JSONObject(json).getJSONObject("orgWithCallingsInSubOrg"));
+            orgs = orgsListRequest.extractOrgs(jsonArray);
         } catch (JSONException e) {
             e.printStackTrace();
         }

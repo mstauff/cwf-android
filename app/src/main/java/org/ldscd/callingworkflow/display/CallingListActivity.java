@@ -62,7 +62,8 @@ public class CallingListActivity extends AppCompatActivity {
         toolbar.setTitle(getTitle());
         ActionBar actionBar = getSupportActionBar();
         if(actionBar != null) {
-            callingData.getOrg(getIntent().getLongExtra(ARG_ORG_ID, 0), new Response.Listener<Org>() {
+            long orgId = getIntent().getLongExtra(ARG_ORG_ID, 0) == 0  ? savedInstanceState.getLong(ARG_ORG_ID) : getIntent().getLongExtra(ARG_ORG_ID, 0);
+            callingData.getOrg(orgId, new Response.Listener<Org>() {
                 @Override
                 public void onResponse(Org org) {
                     getSupportActionBar().setTitle(org.getOrgName());
@@ -148,5 +149,11 @@ public class CallingListActivity extends AppCompatActivity {
         }
 
         return false;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putLong(ARG_ORG_ID, getIntent().getLongExtra(ARG_ORG_ID, 0));
+        super.onSaveInstanceState(outState);
     }
 }

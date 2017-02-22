@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -15,7 +16,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.Drive;
 
 
-public class BaseActivity  extends Activity implements
+public class BaseActivity  extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
 
@@ -59,6 +60,10 @@ public class BaseActivity  extends Activity implements
         mGoogleApiClient.connect();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
     /**
      * Called when activity is stopped. Connection to Drive service needs to
      * be disconnected as soon as an activity is stopped.
@@ -75,8 +80,7 @@ public class BaseActivity  extends Activity implements
      * Handles resolution callbacks.
      */
     @Override
-    protected void onActivityResult(int requestCode, int resultCode,
-                                    Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE_RESOLUTION && resultCode == RESULT_OK) {
             mGoogleApiClient.connect();

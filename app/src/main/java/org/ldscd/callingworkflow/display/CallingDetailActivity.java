@@ -17,8 +17,12 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.constants.CallingStatus;
+import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.services.GoogleDataService;
 import org.ldscd.callingworkflow.web.IWebResources;
 import org.ldscd.callingworkflow.web.LocalFileResources;
@@ -36,6 +40,7 @@ import javax.inject.Inject;
  * in a {@link CallingListActivity}.
  */
 public class CallingDetailActivity extends AppCompatActivity {
+    private Org organization;
 
     @Inject
     IWebResources webResources;
@@ -55,6 +60,28 @@ public class CallingDetailActivity extends AppCompatActivity {
         wireUpFinalizeButton();
         wireUpStatusDropdown();
         wireUpFragments(savedInstanceState);
+        final List<Org> orgs = new ArrayList<>();
+        webResources.getOrgs(new Response.Listener<List<Org>>() {
+            @Override
+            public void onResponse(List<Org> response) {
+                if(response != null && !response.isEmpty())
+                orgs.addAll(response);
+            }
+        });
+
+        //googleDataServices.syncDriveIds(orgs, this);
+
+        googleDataServices.getOrgData(new Response.Listener<Org>() {
+            @Override
+            public void onResponse(Org response) {
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+        }, orgs.get(0));
     }
 
     @Override
@@ -66,7 +93,7 @@ public class CallingDetailActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
+        /*int id = item.getItemId();
         if (id == android.R.id.home) {
             // This ID represents the Home or Up button. In the case of this
             // activity, the Up button is shown. For
@@ -74,10 +101,12 @@ public class CallingDetailActivity extends AppCompatActivity {
             //
             // http://developer.android.com/design/patterns/navigation.html#up-vs-back
             //
-            navigateUpTo(new Intent(this, CallingListActivity.class));
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+            *//*Intent intent = new Intent();
+            intent.hasExtra(CallingListActivity.ARG_ORG_ID, getIntent().getExtras(CallingListActivity.ARG_ORG_ID));
+            navigateUpTo(new Intent(this, CallingListActivity.class));*//*
+            return false;
+        }*/
+        return false;
     }
 
     private void submitOrgChanges(View v) {

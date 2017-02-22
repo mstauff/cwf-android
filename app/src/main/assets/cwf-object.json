@@ -13,29 +13,43 @@
       "subOrgId": 38432972,
       "children": [],
       "callings": [{
-        "memberId": 123,
+        "memberId": 8999999998963918,
+        "existingStatus": "ACTIVE",
         "positionId": 734829,
         "positionTypeId": 1481,
         "positionTypeEnum": "PRIMARY_WORKER_CTR_7",
         "position": "Primary Teacher",
         "hidden": false,
-        "status": "PROPOSED",
-        "proposedIndId": 456,
+        "proposedStatus": "PROPOSED",
+        "proposedIndId": 8999999998987510,
         "notes": "Some String",
         "editableByOrg": true
       }, {
-        "memberId": 234,
+        "memberId": 11111,
+        "existingStatus": "ACTIVE",
         "positionId": 734820,
         "positionTypeId": 1481,
         "positionTypeEnum": "PRIMARY_WORKER_CTR_7",
         "position": "Primary Teacher",
         "hidden": false,
-        "status": null,
+        "proposedStatus": null,
         "proposedIndId": null,
         "notes": null,
         "editableByOrg": true
-      }]
-
+      }, {
+          "memberId": 22222,
+          "existingStatus": "ACTIVE",
+          "activeDate": null,
+          "positionId": 275893,
+          "positionTypeId": 1459,
+          "positionTypeEnum": "VARSITY_COACH",
+          "position": "Varsity Coach",
+          "hidden": false,
+          "proposedStatus": null,
+          "proposedIndId": null,
+          "notes": "calling two levels deep",
+          "editableByOrg": true
+        }]
     }],
     "callings": []
   },
@@ -48,14 +62,14 @@
     "subOrgId": 7428354,
     "children": [],
     "callings": [{
-      "memberId": 123,
+      "memberId": 11111,
       "positionId": 734829,
       "positionTypeId": 1481,
       "positionTypeEnum": "PRIMARY_WORKER_CTR_7",
       "position": "Primary Teacher",
       "hidden": true,
       "status": "PROPOSED",
-      "proposedIndId": 456,
+      "proposedIndId": 8999999998987510,
       "notes": "Some String",
       "editableByOrg": true
     }]

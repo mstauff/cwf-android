@@ -15,6 +15,7 @@ import org.ldscd.callingworkflow.model.Org;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -24,14 +25,21 @@ public class OrgsListRequest extends Request<List<Org>> {
     private static final String orgIdFieldName = "subOrgId";
     private static final String defaultNameFieldName = "defaultOrgName";
     private static final String customNameFieldName = "customOrgName";
-    private static final String orgTypeIdFieldName = "firstOrgTypeId";
+    private static final String orgTypeIdFieldName = "orgTypeId";
     private static final String displayOrderFieldName = "displayOrder";
     private static final String childrenArrayName = "children";
     private static final String callingArrayName = "callings";
-
-    private static final String currentIndIdFieldName = "memberId";
+    private static final String existingStatusFieldName = "existingStatus";
+    private static final String activeDateFieldName = "activeDate";
+    private static final String hiddenFieldName = "hidden";
+    private static final String proposedStatusFieldName = "proposedStatus";
+    private static final String proposedIndIdFieldName = "proposedIndId";
+    private static final String notesFieldName = "notes";
+    private static final String editableByOrgFieldName = "editableByOrg";
+    private static final String currentMemberIdFieldName = "memberId";
     private static final String positionIdFieldName = "positionId";
-    private static final String callingNameFieldName = "position";
+    private static final String positionTypeIdFieldName = "positionTypeId";
+    private static final String positionFieldName = "position";
 
     private final Response.Listener<List<Org>> listener;
     private Map<String, String> headers;
@@ -70,9 +78,13 @@ public class OrgsListRequest extends Request<List<Org>> {
     public List<Org> extractOrgs(JSONArray orgsJson) throws JSONException {
         List<Org> orgs = new ArrayList<>();
         for(int i=0; i < orgsJson.length(); i++) {
-            JSONObject orgJson = orgsJson.getJSONObject(i);
-            Org org = extractOrg(orgJson);
-            orgs.add(org);
+            try {
+                JSONObject orgJson = orgsJson.getJSONObject(i);
+                Org org = extractOrg(orgJson);
+                orgs.add(org);
+            } catch(JSONException e) {
+                e.printStackTrace();
+            }
         }
         return orgs;
     }
@@ -103,16 +115,40 @@ public class OrgsListRequest extends Request<List<Org>> {
     }
 
     private Calling extractCalling(JSONObject json, long parentId) throws JSONException {
-        long currentId = 0;
-        if(!json.isNull(currentIndIdFieldName)) {
-            currentId = json.getLong(currentIndIdFieldName);
+        long currentMemberId = 0;
+        if(!json.isNull(currentMemberIdFieldName)) {
+            currentMemberId = json.getLong(currentMemberIdFieldName);
         }
         long positionId = 0;
         if(!json.isNull(positionIdFieldName)) {
             positionId = json.getLong(positionIdFieldName);
         }
-        String callingName = json.getString(callingNameFieldName);
+        long positionTypeId = 0;
+        if(!json.isNull(positionTypeIdFieldName)) {
+            positionTypeId = json.getLong(positionTypeIdFieldName);
+        }
+        String position = json.getString(positionFieldName);
 
-        return new Calling(currentId, 0, positionId, null, callingName, null, parentId, null, true);
+        String existingStatus = json.getString(existingStatusFieldName);
+        Date activeDate = null;
+        if(!json.isNull(activeDateFieldName)) {
+            activeDate = new Date(json.getString(activeDateFieldName));
+        }
+        boolean hidden = false;
+        if(!json.isNull(hiddenFieldName)) {
+            hidden = json.getBoolean(hiddenFieldName);
+        }
+        String proposedStatus = json.getString(proposedStatusFieldName);
+        long proposedIndId = 0;
+        if(!json.isNull(proposedIndIdFieldName)) {
+            proposedIndId = json.getLong(proposedIndIdFieldName);
+        }
+        String notes = json.getString(notesFieldName);
+        boolean editableByOrg = false;
+        if(!json.isNull(editableByOrgFieldName)) {
+            editableByOrg = json.getBoolean(editableByOrgFieldName);
+        }
+
+        return new Calling(currentMemberId, proposedIndId, activeDate, positionId, positionTypeId, position, existingStatus, proposedStatus, hidden, notes, editableByOrg);
     }
 }

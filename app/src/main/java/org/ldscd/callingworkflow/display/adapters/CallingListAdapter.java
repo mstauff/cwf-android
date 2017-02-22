@@ -42,8 +42,8 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.item = callings.get(position);
-        holder.titleView.setText(holder.item.getName());
-        memberData.getMemberName(holder.item.getCurrentIndId(), new Response.Listener<String>() {
+        holder.titleView.setText(holder.item.getPosition());
+        memberData.getMemberName(holder.item.getMemberId(), new Response.Listener<String>() {
             @Override
             public void onResponse(String memberName) {
                 if(memberName != null) {

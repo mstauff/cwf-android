@@ -6,12 +6,14 @@ import org.ldscd.callingworkflow.display.CallingDetailSearchFragment;
 import org.ldscd.callingworkflow.display.SettingsActivity;
 import org.ldscd.callingworkflow.display.CallingListActivity;
 import org.ldscd.callingworkflow.display.OrgListActivity;
+import org.ldscd.callingworkflow.display.SplashActivity;
 
 import javax.inject.Singleton;
 
 @Singleton
 @Component(modules = NetModule.class)
 public interface NetComponent {
+    void inject(SplashActivity activity);
     void inject(OrgListActivity activity);
     void inject(CallingListActivity activity);
     void inject(SettingsActivity activity);
