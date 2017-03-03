@@ -10,4 +10,7 @@
     <color name="blue_grey_800">#37474F</color>
     <color name="blue_grey_900">#263238</color>
     <color name="transparent">#00FFFFFF</color>
+
+    <color name="light_grey">#e0e0e0</color>
+    <color name="highlight_name">#00aa00</color>
 </resources>

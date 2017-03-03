@@ -87,13 +87,9 @@ public class OrgListActivity extends AppCompatActivity
     }
 
     private void setupRecyclerView(@NonNull final RecyclerView recyclerView) {
-        callingData.getOrgs(new Response.Listener<List<Org>>() {
-            @Override
-            public void onResponse(List<Org> orgs) {
-                FragmentManager fragmentManager = twoPane ? getSupportFragmentManager() : null;
-                recyclerView.setAdapter(new OrgListAdapter(orgs, twoPane, fragmentManager));
-            }
-        });
+        List<Org> orgs = callingData.getOrgs();
+        FragmentManager fragmentManager = twoPane ? getSupportFragmentManager() : null;
+        recyclerView.setAdapter(new OrgListAdapter(orgs, twoPane, fragmentManager));
     }
 
     @Override

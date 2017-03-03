@@ -8,9 +8,11 @@ import android.widget.ProgressBar;
 
 import com.android.volley.Response;
 import org.ldscd.callingworkflow.R;
+import org.ldscd.callingworkflow.model.Member;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.services.GoogleDataService;
 import org.ldscd.callingworkflow.web.CallingData;
+import org.ldscd.callingworkflow.web.MemberData;
 
 import java.util.List;
 
@@ -19,12 +21,16 @@ import javax.inject.Inject;
 public class SplashActivity extends AppCompatActivity {
 
     protected ProgressBar pb;
+    private boolean googleDataFinished = false;
+    private boolean memberDataFinished = false;
 
     @Inject
     GoogleDataService googleDataService;
 
     @Inject
     CallingData callingData;
+    @Inject
+    MemberData memberData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,21 +57,39 @@ public class SplashActivity extends AppCompatActivity {
         @Override
         public void onResponse(Boolean response) {
             if(response) {
-                callingData.getOrgs(new Response.Listener<List<Org>>() {
+
+                callingData.loadOrgs(new Response.Listener<List<Org>>() {
                     @Override
                     public void onResponse(List<Org> orgs) {
                         googleDataService.syncDriveIds(new Response.Listener<Boolean>() {
                             @Override
                             public void onResponse(Boolean response) {
-                                pb.setProgress(100);
-                                Intent intent = new Intent(SplashActivity.this, OrgListActivity.class);
-                                startActivity(intent);
+                                googleDataFinished = true;
+                                if(memberDataFinished) {
+                                    startApplication();
+                                }
                             }
                         }, orgs, getParent());
 
                     }
                 });
+
+                memberData.loadMembers(new Response.Listener<List<Member>>() {
+                    @Override
+                    public void onResponse(List<Member> response) {
+                        memberDataFinished = true;
+                        if(googleDataFinished) {
+                            startApplication();
+                        }
+                    }
+                });
             }
         }
     };
+
+    private void startApplication() {
+        pb.setProgress(100);
+        Intent intent = new Intent(SplashActivity.this, OrgListActivity.class);
+        startActivity(intent);
+    }
 }

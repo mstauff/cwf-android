@@ -1,5 +1,6 @@
 package org.ldscd.callingworkflow.display;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -7,24 +8,19 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-
-
-import com.android.volley.Response;
+import android.widget.ExpandableListAdapter;
+import android.widget.ExpandableListView;
 
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.display.adapters.CallingListAdapter;
-import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.web.CallingData;
 import org.ldscd.callingworkflow.web.MemberData;
-
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -45,6 +41,7 @@ public class CallingListActivity extends AppCompatActivity {
      */
     private boolean twoPane;
     AppCompatActivity activity = this;
+    ExpandableListView callingListView;
 
     @Inject
     CallingData callingData;
@@ -63,12 +60,8 @@ public class CallingListActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         if(actionBar != null) {
             long orgId = getIntent().getLongExtra(ARG_ORG_ID, 0) == 0  ? savedInstanceState.getLong(ARG_ORG_ID) : getIntent().getLongExtra(ARG_ORG_ID, 0);
-            callingData.getOrg(orgId, new Response.Listener<Org>() {
-                @Override
-                public void onResponse(Org org) {
-                    getSupportActionBar().setTitle(org.getOrgName());
-                }
-            });
+            Org org = callingData.getOrg(orgId);
+            getSupportActionBar().setTitle(org.getOrgName());
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
@@ -81,9 +74,9 @@ public class CallingListActivity extends AppCompatActivity {
             }
         });
 
-        View recyclerView = findViewById(R.id.calling_list);
-        assert recyclerView != null;
-        setupRecyclerView((RecyclerView) recyclerView);
+        callingListView = (ExpandableListView) findViewById(R.id.calling_list);
+        assert callingListView != null;
+        setupListView(callingListView);
 
         if (findViewById(R.id.calling_detail_container) != null) {
             // The detail container view will be present only in the
@@ -94,12 +87,37 @@ public class CallingListActivity extends AppCompatActivity {
         }
     }
 
-    private void setupRecyclerView(@NonNull final RecyclerView recyclerView) {
-        callingData.getCallings(getIntent().getLongExtra(ARG_ORG_ID, 0), new Response.Listener<List<Calling>>() {
+    private void setupListView(@NonNull final ExpandableListView callingListView) {
+        final Org org = callingData.getOrg(getIntent().getLongExtra(ARG_ORG_ID, 0));
+        FragmentManager fragmentManager = twoPane ? getSupportFragmentManager() : null;
+        ExpandableListAdapter adapter = new CallingListAdapter(org, memberData, twoPane, fragmentManager, activity);
+        callingListView.setAdapter(adapter);
+
+        callingListView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
             @Override
-            public void onResponse(List<Calling> callings) {
-                FragmentManager fragmentManager = twoPane ? getSupportFragmentManager() : null;
-                recyclerView.setAdapter(new CallingListAdapter(callings, memberData, twoPane, fragmentManager));
+            public boolean onChildClick(ExpandableListView expandableListView, View view, int index, int subIndex, long id) {
+                Org subOrg = org.getChildren().get(index);
+                if(subIndex >= subOrg.getChildren().size()) {
+                    long callingId = subOrg.getCallings().get(subIndex).getPositionId();
+
+                    /*if (twoPane) {
+                        Bundle arguments = new Bundle();
+                        arguments.putString(CallingDetailFragment.ARG_ITEM_ID, holder.orgItem.id);
+                        CallingDetailFragment fragment = new CallingDetailFragment();
+                        fragment.setArguments(arguments);
+                        fragmentManager.beginTransaction()
+                                .replace(R.id.calling_detail_container, fragment)
+                                .commit();
+                    } else {*/
+                        Context context = view.getContext();
+                        Intent intent = new Intent(context, CallingDetailActivity.class);
+                        intent.putExtra(CallingDetailFragment.ARG_ITEM_ID, callingId);
+                        intent.putExtra(CallingListActivity.ARG_ORG_ID, org.getId());
+                        context.startActivity(intent);
+                        return true;
+                    //}
+                }
+                return false;
             }
         });
     }

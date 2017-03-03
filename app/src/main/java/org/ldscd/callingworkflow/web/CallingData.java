@@ -25,7 +25,7 @@ public class CallingData {
     }
 
     // TODO: This needs to pull in info from google as well and merge the two
-    private void loadOrgs(final Response.Listener<List<Org>> orgsCallback) {
+    public void loadOrgs(final Response.Listener<List<Org>> orgsCallback) {
         webResources.getOrgs(new Response.Listener<List<Org>>() {
             @Override
             public void onResponse(List<Org> response) {
@@ -57,50 +57,20 @@ public class CallingData {
         return orgCallings;
     }
 
-    public void getOrgs(Response.Listener<List<Org>> orgsCallback) {
-        if(orgs != null) {
-            orgsCallback.onResponse(orgs);
-        } else {
-            loadOrgs(orgsCallback);
-        }
+    public List<Org> getOrgs() {
+        return orgs;
     }
 
-    public void getOrg(final long orgId, final Response.Listener<Org> orgCallback) {
-        if(orgsById != null) {
-            orgCallback.onResponse(orgsById.get(orgId));
-        } else {
-            loadOrgs(new Response.Listener<List<Org>> () {
-                @Override
-                public void onResponse(List<Org> response) {
-                    orgCallback.onResponse(orgsById.get(orgId));
-                }
-            });
-        }
+    public Org getOrg(long orgId) {
+        return orgsById.get(orgId);
     }
 
-    public void getCallings(final long orgId, final Response.Listener<List<Calling>> callingsCallback) {
-        if(callingsByOrg != null) {
-            callingsCallback.onResponse(callingsByOrg.get(orgId));
-        } else {
-            loadOrgs(new Response.Listener<List<Org>> () {
-                @Override
-                public void onResponse(List<Org> response) {
-                    callingsCallback.onResponse(callingsByOrg.get(orgId));
-                }
-            });
-        }
+    //returns all callings in an org, including callings from subOrgs
+    public List<Calling> getCallings(long orgId) {
+        return callingsByOrg.get(orgId);
     }
 
-    public void getCalling(final long positionId, final Response.Listener<Calling> callingCallback) {
-        if(callingsById != null) {
-            callingCallback.onResponse(callingsById.get(positionId));
-        } else {
-            loadOrgs(new Response.Listener<List<Org>>() {
-                @Override
-                public void onResponse(List<Org> response) {
-                    callingCallback.onResponse(callingsById.get(positionId));
-                }
-            });
-        }
+    public Calling getCalling(long positionId) {
+        return callingsById.get(positionId);
     }
 }

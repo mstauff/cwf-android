@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/org_list_item"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/calling_list_org"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal">
@@ -12,5 +13,16 @@
         android:layout_marginTop="@dimen/text_margin"
         android:layout_marginBottom="@dimen/text_margin"
         android:layout_marginLeft="34dp"
+        android:layout_weight="1"
         android:textAppearance="?attr/textAppearanceListItem" />
+
+    <!--<android.support.design.widget.FloatingActionButton
+        android:id="@+id/add_calling_button"
+        android:layout_width="wrap_content"
+        android:layout_height="35dp"
+        android:layout_margin="@dimen/fab_margin"
+        app:backgroundTint="@android:color/holo_green_dark"
+        app:srcCompat="@android:drawable/ic_menu_add"
+        android:focusable="false"
+        android:focusableInTouchMode="false"/>-->
 </LinearLayout>

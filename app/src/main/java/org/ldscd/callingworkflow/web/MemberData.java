@@ -19,7 +19,7 @@ public class MemberData {
         this.webResources = webResources;
     }
 
-    private void loadMembers(final Response.Listener<List<Member>> membersCallback) {
+    public void loadMembers(final Response.Listener<List<Member>> membersCallback) {
         webResources.getWardList(new Response.Listener<List<Member>>() {
             @Override
             public void onResponse(List<Member> response) {
@@ -33,24 +33,12 @@ public class MemberData {
         });
     }
 
-    public void getMemberName(final long individualId, final Response.Listener<String> nameCallback) {
+    public String getMemberName(long individualId) {
         if(individualId > 0) {
-            if (membersByIndividualId != null) {
-                Member member = membersByIndividualId.get(individualId);
-                String result = member != null ? member.getFormattedName() : null;
-                nameCallback.onResponse(result);
-            } else {
-                loadMembers(new Response.Listener<List<Member>>() {
-                    @Override
-                    public void onResponse(List<Member> response) {
-                        Member member = membersByIndividualId.get(individualId);
-                        String result = member != null ? member.getFormattedName() : null;
-                        nameCallback.onResponse(result);
-                    }
-                });
-            }
+            Member member = membersByIndividualId.get(individualId);
+            return member != null ? member.getFormattedName() : null;
         } else {
-            nameCallback.onResponse("");
+            return  "";
         }
     }
 }
