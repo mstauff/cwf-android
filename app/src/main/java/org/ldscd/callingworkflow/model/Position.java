@@ -26,4 +26,6 @@ public class Position {
 
     public int getPositionOrgTypeId() { return positionOrgTypeId; }
     public void setPositionOrgTypeId(int positionOrgTypeId) { this.positionOrgTypeId = positionOrgTypeId; }
+
+    public String toString() { return name; }
 }

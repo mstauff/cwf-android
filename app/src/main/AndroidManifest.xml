@@ -53,7 +53,8 @@
         </activity>
         <activity android:name=".display.SettingsActivity" />
         <activity android:name=".display.AboutActivity" />
-        <activity android:name=".display.CreateCallingActivity" />
+        <activity android:name=".display.CreateCallingActivity"
+            android:windowSoftInputMode="adjustPan"/>
 
         <service
             android:name=".google.MyDriveEventService"

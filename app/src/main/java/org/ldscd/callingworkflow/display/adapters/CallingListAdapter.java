@@ -2,6 +2,7 @@ package org.ldscd.callingworkflow.display.adapters;
 
 import android.content.Context;
 import android.content.Intent;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
@@ -16,6 +17,8 @@ import com.android.volley.Response;
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.display.CallingDetailActivity;
 import org.ldscd.callingworkflow.display.CallingDetailFragment;
+import org.ldscd.callingworkflow.display.CallingListActivity;
+import org.ldscd.callingworkflow.display.CreateCallingActivity;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.web.MemberData;
@@ -126,13 +129,25 @@ public class CallingListAdapter extends BaseExpandableListAdapter {
         }
     }
 
-    private View getOrgView(Org org, boolean isExpanded, View convertView, ViewGroup parentView, boolean childView) {
+    private View getOrgView(final Org groupOrg, boolean isExpanded, View convertView, ViewGroup parentView, boolean childView) {
         if(convertView == null || convertView.getId() != R.id.calling_list_org) {
             convertView = LayoutInflater.from(parentView.getContext())
                     .inflate(R.layout.calling_list_org, parentView, false);
+            FloatingActionButton addButton = (FloatingActionButton) convertView.findViewById(R.id.add_calling_button);
+            addButton.setFocusable(false);
+            addButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(ctx.getApplicationContext(), CreateCallingActivity.class);
+                    intent.putExtra(CreateCallingActivity.PARENT_ORG_ID, groupOrg.getId());
+                    intent.putExtra(CallingListActivity.ARG_ORG_ID, org.getId());
+                    ctx.startActivity(intent);
+
+                }
+            });
         }
         TextView orgName = (TextView) convertView.findViewById(R.id.org_list_name);
-        orgName.setText(org.getOrgName());
+        orgName.setText(groupOrg.getOrgName());
 
         if(isExpanded) {
             convertView.setBackgroundColor(ContextCompat.getColor(ctx, R.color.light_grey));
