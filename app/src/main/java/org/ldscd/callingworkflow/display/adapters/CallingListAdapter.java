@@ -5,19 +5,13 @@ import android.content.Intent;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.TextView;
 
-import com.android.volley.Response;
-
 import org.ldscd.callingworkflow.R;
-import org.ldscd.callingworkflow.display.CallingDetailActivity;
-import org.ldscd.callingworkflow.display.CallingDetailFragment;
-import org.ldscd.callingworkflow.display.CallingListActivity;
 import org.ldscd.callingworkflow.display.CreateCallingActivity;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Org;
@@ -140,7 +134,6 @@ public class CallingListAdapter extends BaseExpandableListAdapter {
                 public void onClick(View view) {
                     Intent intent = new Intent(ctx.getApplicationContext(), CreateCallingActivity.class);
                     intent.putExtra(CreateCallingActivity.PARENT_ORG_ID, groupOrg.getId());
-                    intent.putExtra(CallingListActivity.ARG_ORG_ID, org.getId());
                     ctx.startActivity(intent);
 
                 }

@@ -93,7 +93,7 @@ public class CallingDetailActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        /*int id = item.getItemId();
+        int id = item.getItemId();
         if (id == android.R.id.home) {
             // This ID represents the Home or Up button. In the case of this
             // activity, the Up button is shown. For
@@ -101,11 +101,9 @@ public class CallingDetailActivity extends AppCompatActivity {
             //
             // http://developer.android.com/design/patterns/navigation.html#up-vs-back
             //
-            *//*Intent intent = new Intent();
-            intent.hasExtra(CallingListActivity.ARG_ORG_ID, getIntent().getExtras(CallingListActivity.ARG_ORG_ID));
-            navigateUpTo(new Intent(this, CallingListActivity.class));*//*
-            return false;
-        }*/
+            finish();
+            return true;
+        }
         return false;
     }
 

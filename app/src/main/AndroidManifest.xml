@@ -40,7 +40,7 @@
             android:name=".display.CallingListActivity"
             android:label="@string/app_name"
             android:parentActivityName=".display.OrgListActivity"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar"/>
         <activity
             android:name=".display.CallingDetailActivity"
             android:label="@string/title_calling_detail"
@@ -54,6 +54,7 @@
         <activity android:name=".display.SettingsActivity" />
         <activity android:name=".display.AboutActivity" />
         <activity android:name=".display.CreateCallingActivity"
+            android:parentActivityName=".display.CallingListActivity"
             android:windowSoftInputMode="adjustPan"/>
 
         <service

@@ -69,16 +69,12 @@ public class CreateCallingActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == android.R.id.home) {
-            Intent intent = new Intent(this, CallingListActivity.class);
-            intent.putExtra(CallingListActivity.ARG_ORG_ID, getIntent().getLongExtra(CallingListActivity.ARG_ORG_ID, 0));
-            navigateUpTo(intent);
+            finish();
             return true;
         } else if(id == R.id.confirm_action) {
             Toast toast = Toast.makeText(getApplicationContext(), R.string.new_calling_saved, Toast.LENGTH_SHORT);
             toast.show();
-            Intent intent = new Intent(this, CallingListActivity.class);
-            intent.putExtra(CallingListActivity.ARG_ORG_ID, getIntent().getLongExtra(CallingListActivity.ARG_ORG_ID, 0));
-            navigateUpTo(intent);
+            finish();
             return true;
         }
         return super.onOptionsItemSelected(item);

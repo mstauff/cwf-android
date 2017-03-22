@@ -1,5 +1,7 @@
 package org.ldscd.callingworkflow.web;
 
+import android.util.Log;
+
 import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkResponse;
 import com.android.volley.ParseError;
@@ -14,6 +16,8 @@ import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Org;
 
 import java.io.UnsupportedEncodingException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -41,6 +45,7 @@ public class OrgsListRequest extends Request<List<Org>> {
     private static final String positionTypeIdFieldName = "positionTypeId";
     private static final String positionFieldName = "position";
 
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     private final Response.Listener<List<Org>> listener;
     private Map<String, String> headers;
 
@@ -107,14 +112,14 @@ public class OrgsListRequest extends Request<List<Org>> {
         List<Calling> callings = new ArrayList<>();
         for(int i=0; i < callingsJson.length(); i++) {
             JSONObject callingJson = callingsJson.getJSONObject(i);
-            Calling calling = extractCalling(callingJson, id);
+            Calling calling = extractCalling(callingJson);
             callings.add(calling);
         }
 
         return new Org(id, name, typeId, order, childOrgs, callings);
     }
 
-    private Calling extractCalling(JSONObject json, long parentId) throws JSONException {
+    private Calling extractCalling(JSONObject json) throws JSONException {
         long currentMemberId = 0;
         if(!json.isNull(currentMemberIdFieldName)) {
             currentMemberId = json.getLong(currentMemberIdFieldName);
@@ -132,7 +137,11 @@ public class OrgsListRequest extends Request<List<Org>> {
         String existingStatus = json.getString(existingStatusFieldName);
         Date activeDate = null;
         if(!json.isNull(activeDateFieldName)) {
-            activeDate = new Date(json.getString(activeDateFieldName));
+            try {
+                activeDate = dateFormat.parse(json.getString(activeDateFieldName));
+            } catch (ParseException e) {
+                Log.e("OrgsListRequest", "Error parsing active date: " + json.getString(activeDateFieldName));
+            }
         }
         boolean hidden = false;
         if(!json.isNull(hiddenFieldName)) {
