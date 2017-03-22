@@ -5,27 +5,44 @@ package org.ldscd.callingworkflow.model;
  */
 public class Position {
     /* Fields */
-    long positionId;
-    String name;
-    int positionOrgTypeId;
+    private String name;
+    private int positionTypeId;
+    private Boolean hidden;
+    private Boolean multiplesAllowed;
 
     /* Constructors */
     public Position() {}
-    public Position(long positionId, String name, int positionOrgTypeId) {
-        this.positionId = positionId;
+    public Position(String name, int positionTypeId, Boolean hidden, Boolean multiplesAllowed) {
         this.name = name;
-        this.positionOrgTypeId = positionOrgTypeId;
+        this.positionTypeId = positionTypeId;
+        this.hidden = hidden;
+        this.multiplesAllowed = multiplesAllowed;
     }
 
     /* Properties */
-    public long getPositionId() { return positionId; }
-    public void setPositionId(long positionId) { this.positionId = positionId; }
-
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
-    public int getPositionOrgTypeId() { return positionOrgTypeId; }
-    public void setPositionOrgTypeId(int positionOrgTypeId) { this.positionOrgTypeId = positionOrgTypeId; }
+    public int getPositionTypeId() { return positionTypeId; }
+    public void setPositionTypeId(int positionTypeId) { this.positionTypeId = positionTypeId; }
+
+    public Boolean getHidden() {
+        return hidden;
+    }
+    public void setHidden(Boolean hidden) {
+        this.hidden = hidden;
+    }
+
+    public Boolean getMultiplesAllowed() {
+        return multiplesAllowed;
+    }
+    public void setMultiplesAllowed(Boolean multiplesAllowed) {
+        this.multiplesAllowed = multiplesAllowed;
+    }
 
     public String toString() { return name; }
+
+    public boolean equals(Position position) {
+        return this.getPositionTypeId() == position.getPositionTypeId();
+    }
 }

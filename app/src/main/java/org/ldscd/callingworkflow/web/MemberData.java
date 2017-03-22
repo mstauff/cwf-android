@@ -41,4 +41,8 @@ public class MemberData {
             return  "";
         }
     }
+
+    public Member getMember(long individualId) {
+        return membersByIndividualId.get(individualId);
+    }
 }

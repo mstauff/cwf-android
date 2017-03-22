@@ -98,7 +98,7 @@ public class CallingListActivity extends AppCompatActivity {
             public boolean onChildClick(ExpandableListView expandableListView, View view, int index, int subIndex, long id) {
                 Org subOrg = org.getChildren().get(index);
                 if(subIndex >= subOrg.getChildren().size()) {
-                    long callingId = subOrg.getCallings().get(subIndex).getPositionId();
+                    long callingId = subOrg.getCallings().get(subIndex).getId();
 
                     /*if (twoPane) {
                         Bundle arguments = new Bundle();

@@ -1,25 +1,20 @@
 package org.ldscd.callingworkflow.display;
 
 import android.app.Activity;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.widget.SearchView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
-import android.widget.Adapter;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import com.android.volley.Response;
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.display.adapters.MemberSearchAdapter;
 import org.ldscd.callingworkflow.model.Member;
 import org.ldscd.callingworkflow.web.IWebResources;
-import org.ldscd.callingworkflow.web.LocalFileResources;
+import org.ldscd.callingworkflow.web.MemberData;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -37,21 +32,21 @@ import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
  * create an instance of this fragment.
  */
 public class CallingDetailSearchFragment extends android.support.v4.app.Fragment {
-    // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    public static final String INDIVIDUAL_ID = "individualId";
+    private long individualId;
     private View v;
     ListView list;
     MemberSearchAdapter adapter;
     SearchView memberSearch;
     List<Member> members;
+    AutoCompleteTextView memberLookup;
+
     @Inject
     IWebResources webResources;
+
+    @Inject
+    MemberData memberData;
 
     private OnFragmentInteractionListener mListener;
 
@@ -59,16 +54,13 @@ public class CallingDetailSearchFragment extends android.support.v4.app.Fragment
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
+     * @param individualId Parameter 1.
      * @return A new instance of fragment CallingDetailSearchFragment.
      */
-    // TODO: Rename and change types and number of parameters
-    public static CallingDetailSearchFragment newInstance(String param1, String param2) {
+    public static CallingDetailSearchFragment newInstance(long individualId) {
         CallingDetailSearchFragment fragment = new CallingDetailSearchFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putLong(INDIVIDUAL_ID, individualId);
         fragment.setArguments(args);
         return fragment;
     }
@@ -86,28 +78,16 @@ public class CallingDetailSearchFragment extends android.support.v4.app.Fragment
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
+        /* Inflate the layout for this fragment. */
         v = inflater.inflate(R.layout.fragment_calling_detail_search, container, false);
         init();
         return v;
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
-
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        /*try {
-            mListener = (OnFragmentInteractionListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }*/
+        mListener = (OnFragmentInteractionListener) activity;
     }
 
     @Override
@@ -115,17 +95,6 @@ public class CallingDetailSearchFragment extends android.support.v4.app.Fragment
         super.onDetach();
         mListener = null;
     }
-
-    /*@Override
-    public boolean onQueryTextSubmit(String query) {
-        return false;
-    }
-
-    @Override
-    public boolean onQueryTextChange(String newText) {
-        adapter.filter(newText);
-        return false;
-    }*/
 
     /**
      * This interface must be implemented by activities that contain this
@@ -138,16 +107,14 @@ public class CallingDetailSearchFragment extends android.support.v4.app.Fragment
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(Uri uri);
+        public void onFragmentInteraction(Long individualId);
     }
 
     private void init() {
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            individualId = getArguments().getLong(INDIVIDUAL_ID);
         }
-        if(mParam1 == null) {
+        if(individualId > 0) {
             final ArrayList<Member> memberList = new ArrayList<>();
             webResources.getWardList(new Response.Listener<List<Member>>() {
                 @Override
@@ -157,56 +124,26 @@ public class CallingDetailSearchFragment extends android.support.v4.app.Fragment
             });
 
             adapter = new MemberSearchAdapter(getActivity(), android.R.layout.simple_dropdown_item_1line, memberList);
-            AutoCompleteTextView memberLookup = (AutoCompleteTextView) v.findViewById(R.id.autocomplete_calling_detail_member_lookup);
+            memberLookup = (AutoCompleteTextView) v.findViewById(R.id.autocomplete_calling_detail_member_lookup);
             memberLookup.setAdapter(adapter);
-            /*final ListView listView = (ListView) v.findViewById(R.id.member_search_list);
-            listView.setTextFilterEnabled(true);
-            listView.setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
-            listView.setClickable(true);
-            listView.setAdapter(adapter);
-
-            final SearchView searchView = (SearchView) v.findViewById(R.id.calling_detail_search_view);
-            searchView.setIconifiedByDefault(false);
-            searchView.setSubmitButtonEnabled(false);
-            searchView.setQueryHint("Member Lookup");
-            searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            memberLookup.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
-                public boolean onQueryTextChange(String newText) {
-                    if(searchView.hasFocus()) {
-                        listView.setVisibility(View.VISIBLE);
-                    }
-                    adapter.filter(newText);
-                    return true;
-                }
-
-                @Override
-                public boolean onQueryTextSubmit(String newText){
-                    return false;
+                public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
+                    Member selected = (Member) arg0.getAdapter().getItem(arg2);
+                    mListener.onFragmentInteraction(selected.getIndividualId());
                 }
             });
-            searchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
-                @Override
-                public void onFocusChange(View v, boolean hasFocus) {
-                    if(listView != null) {
-                        if (hasFocus && listView.getChildAt(0) != null) {
-                            listView.setVisibility(View.VISIBLE);
-                            ViewGroup.LayoutParams params = listView.getLayoutParams();
-                            params.height = 3 * listView.getChildAt(0).getMeasuredHeight();
-                            listView.setLayoutParams(params);
-                        } else {
-                            listView.setVisibility(View.INVISIBLE);
-                        }
+            final String name = memberData.getMemberName(individualId);
+            if(name != null && name.length() > 0) {
+                memberLookup.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        memberLookup.showDropDown();
+                        memberLookup.setText(name);
+                        memberLookup.setSelection(memberLookup.getText().length());
                     }
-                }
-            });
-
-            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    searchView.setQuery(adapter.getItem(position).getFormattedName(), true);
-                    listView.setVisibility(View.INVISIBLE);
-                }
-            });*/
+                }, 500);
+            }
         }
     }
 }

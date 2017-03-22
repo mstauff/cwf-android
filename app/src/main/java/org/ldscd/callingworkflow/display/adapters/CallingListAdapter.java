@@ -5,18 +5,13 @@ import android.content.Intent;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.TextView;
 
-import com.android.volley.Response;
-
 import org.ldscd.callingworkflow.R;
-import org.ldscd.callingworkflow.display.CallingDetailActivity;
-import org.ldscd.callingworkflow.display.CallingDetailFragment;
 import org.ldscd.callingworkflow.display.CallingListActivity;
 import org.ldscd.callingworkflow.display.CreateCallingActivity;
 import org.ldscd.callingworkflow.model.Calling;
@@ -86,7 +81,7 @@ public class CallingListAdapter extends BaseExpandableListAdapter {
             return subOrg.getId();
         } else {
             Calling calling = (Calling) getGroup(index);
-            return calling.getPositionId();
+            return calling.getId();
         }
     }
 
@@ -96,7 +91,7 @@ public class CallingListAdapter extends BaseExpandableListAdapter {
         if(subIndex < subOrg.getChildren().size()) {
             return subOrg.getChildren().get(subIndex).getId();
         } else {
-            return subOrg.getCallings().get(subIndex - subOrg.getChildren().size()).getPositionId();
+            return subOrg.getCallings().get(subIndex - subOrg.getChildren().size()).getId();
         }
     }
 
@@ -172,7 +167,7 @@ public class CallingListAdapter extends BaseExpandableListAdapter {
         TextView current = (TextView) convertView.findViewById(R.id.calling_list_current);
         TextView proposed = (TextView) convertView.findViewById(R.id.calling_list_proposed);
 
-        callingTitle.setText(calling.getPosition());
+        callingTitle.setText(calling.getPosition().getName());
         current.setText("(" + memberData.getMemberName(calling.getMemberId()) + ")");
         proposed.setText(memberData.getMemberName(calling.getProposedIndId()));
 
@@ -188,6 +183,4 @@ public class CallingListAdapter extends BaseExpandableListAdapter {
     public boolean isChildSelectable(int i, int i1) {
         return true;
     }
-
-
 }

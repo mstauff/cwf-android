@@ -1,7 +1,6 @@
 package org.ldscd.callingworkflow.display;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -9,23 +8,18 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Adapter;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.constants.CallingStatus;
+import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.services.GoogleDataService;
-import org.ldscd.callingworkflow.web.IWebResources;
-import org.ldscd.callingworkflow.web.LocalFileResources;
+import org.ldscd.callingworkflow.web.CallingData;
+import org.ldscd.callingworkflow.web.MemberData;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,14 +33,21 @@ import javax.inject.Inject;
  * item details are presented side-by-side with a list of items
  * in a {@link CallingListActivity}.
  */
-public class CallingDetailActivity extends AppCompatActivity {
-    private Org organization;
-
+public class CallingDetailActivity extends AppCompatActivity implements CallingDetailSearchFragment.OnFragmentInteractionListener {
     @Inject
-    IWebResources webResources;
-
+    CallingData callingData;
+    @Inject
+    MemberData memberData;
     @Inject
     GoogleDataService googleDataServices;
+
+    Spinner statusDropdown;
+    TextView notes;
+    private long orgId;
+    private long positionId;
+    private Long individualId;
+    private Calling calling;
+    private Org org;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,32 +57,14 @@ public class CallingDetailActivity extends AppCompatActivity {
         /* Initialize UI */
         setContentView(R.layout.activity_calling_detail);
 
-        wireUpToolbar();
-        wireUpFinalizeButton();
-        wireUpStatusDropdown();
+        statusDropdown = (Spinner) findViewById(R.id.calling_detail_status_dropdown);
+        notes = (TextView) findViewById(R.id.notes_calling_detail);
+
+        orgId = getIntent().getLongExtra(CallingListActivity.ARG_ORG_ID, 0);
+        positionId = getIntent().getLongExtra(CallingDetailFragment.ARG_ITEM_ID, 0);
+        hydrateOrg(orgId);
+        hydrateCalling(positionId);
         wireUpFragments(savedInstanceState);
-        final List<Org> orgs = new ArrayList<>();
-        webResources.getOrgs(new Response.Listener<List<Org>>() {
-            @Override
-            public void onResponse(List<Org> response) {
-                if(response != null && !response.isEmpty())
-                orgs.addAll(response);
-            }
-        });
-
-        //googleDataServices.syncDriveIds(orgs, this);
-
-        googleDataServices.getOrgData(new Response.Listener<Org>() {
-            @Override
-            public void onResponse(Org response) {
-
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-
-            }
-        }, orgs.get(0));
     }
 
     @Override
@@ -93,7 +76,7 @@ public class CallingDetailActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        /*int id = item.getItemId();
+        int id = item.getItemId();
         if (id == android.R.id.home) {
             // This ID represents the Home or Up button. In the case of this
             // activity, the Up button is shown. For
@@ -101,22 +84,67 @@ public class CallingDetailActivity extends AppCompatActivity {
             //
             // http://developer.android.com/design/patterns/navigation.html#up-vs-back
             //
-            *//*Intent intent = new Intent();
-            intent.hasExtra(CallingListActivity.ARG_ORG_ID, getIntent().getExtras(CallingListActivity.ARG_ORG_ID));
-            navigateUpTo(new Intent(this, CallingListActivity.class));*//*
-            return false;
-        }*/
-        return false;
+            //TODO: capture all the changes and if there are items changed, make updates and save.
+            submitOrgChanges();
+            Intent intent = new Intent(this, CallingListActivity.class);
+            intent.putExtra(CallingListActivity.ARG_ORG_ID, orgId);
+            navigateUpTo(intent);
+            return true;
+        }
+        return true;
     }
 
-    private void submitOrgChanges(View v) {
-        Spinner spinner = (Spinner) findViewById(R.id.calling_detail_status_dropdown);
-        String selected = ((CallingStatus)spinner.getSelectedItem()).name();
+    @Override
+    public void onFragmentInteraction(Long individualId) {
+        this.individualId = individualId;
+    }
+
+    private void submitOrgChanges() {
+        boolean hasChanges = false;
+        String status = ((CallingStatus)statusDropdown.getSelectedItem()).name();
+        if(!status.equals(calling.getProposedStatus())) {
+            calling.setProposedStatus(status);
+            hasChanges = true;
+        }
+        CharSequence extraNotes = notes.getText();
+        if(!extraNotes.equals(calling.getNotes())) {
+            calling.setNotes(extraNotes.toString());
+            hasChanges = true;
+        }
+        if(individualId != calling.getProposedIndId()) {
+            calling.setProposedIndId(individualId);
+            hasChanges = true;
+        }
+        if(hasChanges) {
+            googleDataServices.saveFile(org);
+        }
+    }
+
+    private void hydrateCalling(long positionId) {
+        calling = callingData.getCalling(positionId);
+        if(calling != null) {
+            final TextView currentlyCalled = (TextView)findViewById(R.id.calling_detail_currently_called);
+            String name = memberData.getMemberName(calling.getMemberId());
+            currentlyCalled.setText(name);
+            TextView notes = (TextView) findViewById(R.id.notes_calling_detail);
+            if(calling.getNotes() != null && calling.getNotes().length() > 0) {
+                notes.setText(calling.getNotes());
+            }
+            wireUpStatusDropdown();
+            wireUpToolbar();
+        }
+    }
+
+    private void hydrateOrg(long orgId) {
+        final List<Org> orgs = new ArrayList<>();
+        //TODO: get org from google drive until callingData is up to date.
+        org = callingData.getOrg(orgId);
+        wireUpFinalizeButton();
     }
 
     private void wireUpToolbar() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
-        toolbar.setTitle("Primary - CTR7");
+        toolbar.setTitle(org.getOrgName() + " - " + calling.getPosition());
         setSupportActionBar(toolbar);
 
         // Show the Up button in the action bar.
@@ -127,35 +155,10 @@ public class CallingDetailActivity extends AppCompatActivity {
     }
 
     private void wireUpStatusDropdown() {
-        CallingStatus[] callingStatuses = new CallingStatus[CallingStatus.values().length];
         List<CallingStatus> status = new ArrayList(Arrays.asList(CallingStatus.values()));
         Spinner statusDropdown = (Spinner) findViewById(R.id.calling_detail_status_dropdown);
-        ArrayAdapter adapter = new ArrayAdapter<CallingStatus>(this, android.R.layout.simple_list_item_1, status) {
-           /* @Override
-            public boolean isEnabled(int position) {
-                if (position == 0) {
-                    // Disable the first item from Spinner
-                    // First item will be use for hint
-                    return false;
-                } else {
-                    return true;
-                }
-            }
-
-            @Override
-            public View getDropDownView(int position, View convertView,
-                                        ViewGroup parent) {
-                View view = super.getDropDownView(position, convertView, parent);
-                TextView tv = (TextView) view;
-                if (position == 0) {
-                    // Set the hint text color gray
-                    tv.setTextColor(Color.GRAY);
-                } else {
-                    tv.setTextColor(Color.BLACK);
-                }
-                return view;
-            }*/
-        };
+        ArrayAdapter adapter = new ArrayAdapter<CallingStatus>(this, android.R.layout.simple_list_item_1, status);
+        statusDropdown.setSelection(adapter.getPosition(CallingStatus.get(calling.getProposedStatus())));
         statusDropdown.setAdapter(adapter);
     }
 
@@ -165,7 +168,7 @@ public class CallingDetailActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                submitOrgChanges(v);
+                submitOrgChanges();
             }
         });
     }
@@ -183,16 +186,15 @@ public class CallingDetailActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
-//            Bundle arguments = new Bundle();
-//            arguments.putString(CallingDetailFragment.ARG_ITEM_ID,
-//                    getIntent().getStringExtra(CallingDetailFragment.ARG_ITEM_ID));
-            CallingDetailFragment fragment = new CallingDetailFragment();
             CallingDetailSearchFragment searchFragment = new CallingDetailSearchFragment();
-//            fragment.setArguments(arguments);
+            if(calling != null && calling.getProposedIndId() > 0) {
+                Bundle args = new Bundle();
+                args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, calling.getProposedIndId());
+                searchFragment.setArguments(args);
+            }
             getSupportFragmentManager().beginTransaction()
-                    //.add(R.id.calling_detail_container, fragment)
-                    .add(R.id.calling_detail_search_container, searchFragment)
-                    .commit();
+                .add(R.id.calling_detail_search_container, searchFragment)
+                .commit();
         }
     }
 }

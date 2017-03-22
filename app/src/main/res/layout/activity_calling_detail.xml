@@ -69,7 +69,6 @@
                 android:layout_marginLeft="10dp"
                 android:textColor="#201f1f"
                 android:layout_alignBottom="@id/label_calling_detail_currently_called"
-                android:text="Blanchard, Brian"
                 android:ems="30"
                 android:enabled="false"
                 android:id="@+id/calling_detail_currently_called" />

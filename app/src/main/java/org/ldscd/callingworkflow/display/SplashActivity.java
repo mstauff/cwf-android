@@ -69,7 +69,7 @@ public class SplashActivity extends AppCompatActivity {
                                     startApplication();
                                 }
                             }
-                        }, orgs, getParent());
+                        }, orgs);
 
                     }
                 });

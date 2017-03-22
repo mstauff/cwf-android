@@ -36,9 +36,9 @@ public class CreateCallingActivity extends AppCompatActivity {
 
         //Position Dropdown
         List<Position> samplePositions = new ArrayList<>();
-        samplePositions.add(new Position(1,"Primary Teacher",0));
-        samplePositions.add(new Position(2,"Relief Society Pianist",0));
-        samplePositions.add(new Position(3,"Ward Choir Director",0));
+        samplePositions.add(new Position("Primary Teacher",0, false, true));
+        samplePositions.add(new Position("Relief Society Pianist",1, false, true));
+        samplePositions.add(new Position("Ward Choir Director",2, false, true));
         Spinner positionDropdown = (Spinner) findViewById(R.id.new_calling_position_dropdown);
         ArrayAdapter positionAdapter = new ArrayAdapter<Position>(this, android.R.layout.simple_list_item_1, samplePositions);
         positionDropdown.setAdapter(positionAdapter);

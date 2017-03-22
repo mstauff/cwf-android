@@ -37,7 +37,7 @@ public class CallingData {
                     orgsById.put(org.getId(), org);
                     List<Calling> callings = extractCallings(org);
                     for(Calling calling: callings) {
-                        callingsById.put(calling.getPositionId(), calling);
+                        callingsById.put(calling.getId(), calling);
                     }
                     callingsByOrg.put(org.getId(), callings);
                 }

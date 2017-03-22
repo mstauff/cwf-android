@@ -12,6 +12,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Org;
+import org.ldscd.callingworkflow.model.Position;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ public class OrgsListRequest extends Request<List<Org>> {
     private static final String TAG = "OrgsListRequest";
 
     private static final String orgIdFieldName = "subOrgId";
+    private static final String positionCwfIdFieldName = "cwfId";
     private static final String defaultNameFieldName = "defaultOrgName";
     private static final String customNameFieldName = "customOrgName";
     private static final String orgTypeIdFieldName = "orgTypeId";
@@ -40,6 +42,7 @@ public class OrgsListRequest extends Request<List<Org>> {
     private static final String positionIdFieldName = "positionId";
     private static final String positionTypeIdFieldName = "positionTypeId";
     private static final String positionFieldName = "position";
+    private static final String multiplesAllowedFieldName = "allowMultiple";
 
     private final Response.Listener<List<Org>> listener;
     private Map<String, String> headers;
@@ -119,36 +122,54 @@ public class OrgsListRequest extends Request<List<Org>> {
         if(!json.isNull(currentMemberIdFieldName)) {
             currentMemberId = json.getLong(currentMemberIdFieldName);
         }
-        long positionId = 0;
-        if(!json.isNull(positionIdFieldName)) {
-            positionId = json.getLong(positionIdFieldName);
+        Long cwfId = null;
+        if(!json.isNull(positionCwfIdFieldName)) {
+            cwfId = json.getLong(positionCwfIdFieldName);
         }
+        Long id = null;
+        if(!json.isNull(positionIdFieldName)) {
+            id = json.getLong(positionIdFieldName);
+        }
+        Position position = new Position();
         long positionTypeId = 0;
         if(!json.isNull(positionTypeIdFieldName)) {
-            positionTypeId = json.getLong(positionTypeIdFieldName);
+            position.setPositionTypeId(json.getInt(positionTypeIdFieldName));
         }
-        String position = json.getString(positionFieldName);
-
+        position.setName(json.getString(positionFieldName));
+        if(position.getName().equals("null")) {
+            position.setName(null);
+        }
+        if(!json.isNull(multiplesAllowedFieldName)) {
+            position.setMultiplesAllowed(json.getBoolean(multiplesAllowedFieldName));
+        }
         String existingStatus = json.getString(existingStatusFieldName);
+        if(existingStatus.equals("null")) {
+            existingStatus = null;
+        }
         Date activeDate = null;
         if(!json.isNull(activeDateFieldName)) {
             activeDate = new Date(json.getString(activeDateFieldName));
         }
-        boolean hidden = false;
         if(!json.isNull(hiddenFieldName)) {
-            hidden = json.getBoolean(hiddenFieldName);
+            position.setHidden(json.getBoolean(hiddenFieldName));
         }
         String proposedStatus = json.getString(proposedStatusFieldName);
+        if(proposedStatus.equals("null")) {
+            proposedStatus = null;
+        }
         long proposedIndId = 0;
         if(!json.isNull(proposedIndIdFieldName)) {
             proposedIndId = json.getLong(proposedIndIdFieldName);
         }
         String notes = json.getString(notesFieldName);
+        if(notes.equals("null")) {
+            notes = null;
+        }
         boolean editableByOrg = false;
         if(!json.isNull(editableByOrgFieldName)) {
             editableByOrg = json.getBoolean(editableByOrgFieldName);
         }
 
-        return new Calling(currentMemberId, proposedIndId, activeDate, positionId, positionTypeId, position, existingStatus, proposedStatus, hidden, notes, editableByOrg);
+        return new Calling(id, cwfId, currentMemberId, proposedIndId, activeDate, position, existingStatus, proposedStatus, notes, editableByOrg, parentId);
     }
 }

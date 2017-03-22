@@ -11,10 +11,10 @@ public interface GoogleDataService {
     void init(Response.Listener<Boolean> listener, Activity activity);
 
     public void getOrgData(Response.Listener<Org> listener, Response.ErrorListener errorListener, Org org);
-    public boolean saveFile(final Org org);
+    public void saveFile(final Org org);
     public boolean deleteFile(final Org org);
     public boolean isAuthenticated();
-    public void syncDriveIds(Response.Listener<Boolean> listener, List<Org> orgList, Activity activity);
+    public void syncDriveIds(Response.Listener<Boolean> listener, List<Org> orgList);
 
     void stopConnection();
 

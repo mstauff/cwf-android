@@ -1,5 +1,8 @@
 package org.ldscd.callingworkflow.model;
 
+import org.ldscd.callingworkflow.constants.Operation;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -13,6 +16,7 @@ public class Org {
     int displayOrder;
     List<Org> children;
     List<Calling> callings;
+    private transient List<Long> callingIds;
 
     /* Constructors */
     public Org() {}
@@ -44,4 +48,67 @@ public class Org {
 
     public List<Calling> getCallings() { return callings; }
     public void setCallings(List<Calling> callings) { this.callings = callings; }
+
+    public List<Long> allOrgCallingIds() {
+        if(callingIds == null || callingIds.size() == 0) {
+            callingIds = new ArrayList<>(allOrgCallings().size());
+            for(Calling calling : allOrgCallings()) {
+                callingIds.add(calling.getId());
+            }
+        }
+        return callingIds;
+    }
+    List<Calling> allCallings;
+    public List<Calling> allOrgCallings() {
+        List<Calling> callings = this.callings;
+        for (Org org : this.children) {
+            callings.addAll(org.allOrgCallings());
+        }
+        return callings;
+    }
+
+    public List<Org> allSubOrgs() {
+        List<Org> subOrgs = this.children;
+        for(Org org : this.children) {
+            subOrgs.addAll(org.allSubOrgs());
+        }
+        return subOrgs;
+    }
+
+    public Calling find(Long param) {
+        if(allCallings == null) {
+            allCallings = allOrgCallings();
+        }
+        for(Calling calling : allCallings) {
+            if(calling.equals(param)) {
+                return calling;
+            }
+        }
+        return null;
+    }
+
+    /* Methods */
+    public boolean equals(Org org) {
+        return this.id == org.id;
+    }
+
+    private Org updateWithCallingChange(Calling updatedCalling, Operation operation) {
+        if(updatedCalling != null && operation != null) {
+            for(Calling calling : allOrgCallings()) {
+                if(calling.equals(updatedCalling)) {
+
+                    switch(operation) {
+                        case UPDATE :
+                            break;
+                        case CREATE :
+                            break;
+                        case DELETE :
+                            break;
+                    }
+                    break;
+                }
+            }
+        }
+        return null;
+    }
 }

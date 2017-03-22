@@ -97,8 +97,7 @@ public class MemberSearchAdapter extends ArrayAdapter<Member> {
         }
 
         @Override
-        protected void publishResults(CharSequence constraint,
-                                      FilterResults results) {
+        protected void publishResults(CharSequence constraint, FilterResults results) {
             @SuppressWarnings("unchecked")
             ArrayList<Member> filteredList = (ArrayList<Member>) results.values;
             if (results != null && results.count > 0) {
