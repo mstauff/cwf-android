@@ -34,27 +34,24 @@ public class CallingData {
                 callingsByOrg = new HashMap<Long, List<Calling>>();
                 callingsById = new HashMap<Long, Calling>();
                 for(Org org: orgs) {
-                    orgsById.put(org.getId(), org);
-                    List<Calling> callings = extractCallings(org);
-                    for(Calling calling: callings) {
-                        callingsById.put(calling.getId(), calling);
-                    }
-                    callingsByOrg.put(org.getId(), callings);
+                    callingsByOrg.put(org.getId(), new ArrayList<Calling>());
+                    extractOrg(org, org.getId());
                 }
                 orgsCallback.onResponse(orgs);
             }
         });
     }
 
-    private List<Calling> extractCallings(Org org) {
-        List<Calling> orgCallings = new ArrayList<>();
+    private void extractOrg(Org org, long baseOrgId) {
+        orgsById.put(org.getId(), org);
+        List<Calling> callingsList = callingsByOrg.get(baseOrgId);
         for(Calling calling: org.getCallings()) {
-            orgCallings.add(calling);
+            callingsById.put(calling.getPositionId(), calling);
+            callingsList.add(calling);
         }
         for(Org subOrg: org.getChildren()) {
-            orgCallings.addAll(extractCallings(subOrg));
+            extractOrg(subOrg, baseOrgId);
         }
-        return orgCallings;
     }
 
     public List<Org> getOrgs() {
@@ -66,6 +63,7 @@ public class CallingData {
     }
 
     //returns all callings in an org, including callings from subOrgs
+    //this only works for base organizations
     public List<Calling> getCallings(long orgId) {
         return callingsByOrg.get(orgId);
     }

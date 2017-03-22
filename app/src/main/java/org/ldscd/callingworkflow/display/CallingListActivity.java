@@ -8,8 +8,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,6 +21,8 @@ import org.ldscd.callingworkflow.display.adapters.CallingListAdapter;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.web.CallingData;
 import org.ldscd.callingworkflow.web.MemberData;
+
+import java.util.Arrays;
 
 import javax.inject.Inject;
 
@@ -34,6 +36,7 @@ import javax.inject.Inject;
  */
 public class CallingListActivity extends AppCompatActivity {
     public static final String ARG_ORG_ID = "orgId";
+    public static final String ARG_EXPAND_ID = "expandOrgId";
 
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
@@ -41,6 +44,8 @@ public class CallingListActivity extends AppCompatActivity {
      */
     private boolean twoPane;
     AppCompatActivity activity = this;
+    long orgId;
+    long expandId;
     ExpandableListView callingListView;
 
     @Inject
@@ -59,20 +64,19 @@ public class CallingListActivity extends AppCompatActivity {
         toolbar.setTitle(getTitle());
         ActionBar actionBar = getSupportActionBar();
         if(actionBar != null) {
-            long orgId = getIntent().getLongExtra(ARG_ORG_ID, 0) == 0  ? savedInstanceState.getLong(ARG_ORG_ID) : getIntent().getLongExtra(ARG_ORG_ID, 0);
-            Org org = callingData.getOrg(orgId);
-            getSupportActionBar().setTitle(org.getOrgName());
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(activity, CreateCallingActivity.class);
-                startActivity(intent);
+            orgId = getIntent().getLongExtra(ARG_ORG_ID, 0) == 0  ? savedInstanceState.getLong(ARG_ORG_ID) : getIntent().getLongExtra(ARG_ORG_ID, 0);
+            expandId = getIntent().getLongExtra(ARG_EXPAND_ID, 0);
+            if(orgId > 0){
+                Org org = callingData.getOrg(orgId);
+                getSupportActionBar().setTitle(org.getOrgName());
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            } else {
+                Log.e("CallingListActivity", "Org id list not found or empty");
+                Context context = getApplicationContext();
+                Intent intent = new Intent(context, OrgListActivity.class);
+                context.startActivity(intent);
             }
-        });
+        }
 
         callingListView = (ExpandableListView) findViewById(R.id.calling_list);
         assert callingListView != null;
@@ -93,12 +97,30 @@ public class CallingListActivity extends AppCompatActivity {
         ExpandableListAdapter adapter = new CallingListAdapter(org, memberData, twoPane, fragmentManager, activity);
         callingListView.setAdapter(adapter);
 
+        //expand subOrg if expandId was provided
+        if(expandId > 0) {
+            for (int i = 0; i < org.getChildren().size(); i++) {
+                if(org.getChildren().get(i).getId() == expandId) {
+                    callingListView.expandGroup(i);
+                    break;
+                }
+            }
+        }
+
         callingListView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
             @Override
             public boolean onChildClick(ExpandableListView expandableListView, View view, int index, int subIndex, long id) {
                 Org subOrg = org.getChildren().get(index);
-                if(subIndex >= subOrg.getChildren().size()) {
-                    long callingId = subOrg.getCallings().get(subIndex).getId();
+                if(subIndex < subOrg.getChildren().size()) {
+                    Context context = view.getContext();
+                    Intent intent = new Intent(context, CallingListActivity.class);
+                    intent.putExtra(CallingListActivity.ARG_ORG_ID, subOrg.getId());
+                    long selectedChildId = subOrg.getChildren().get(subIndex).getId();
+                    intent.putExtra(CallingListActivity.ARG_EXPAND_ID, selectedChildId);
+                    context.startActivity(intent);
+                    return true;
+                } else {
+                    long callingId = subOrg.getCallings().get(subIndex).getPositionId();
 
                     /*if (twoPane) {
                         Bundle arguments = new Bundle();
@@ -117,7 +139,6 @@ public class CallingListActivity extends AppCompatActivity {
                         return true;
                     //}
                 }
-                return false;
             }
         });
     }
@@ -149,8 +170,11 @@ public class CallingListActivity extends AppCompatActivity {
                 break;
         }
 
-        //This section keeps the menu from closing when items are selected
-        if(id != android.R.id.home) {
+        if(id == android.R.id.home) {
+            finish();
+            return true;
+        } else {
+            //This section keeps the menu from closing when items are selected
             item.setShowAsAction(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
             item.setActionView(new View(activity.getApplicationContext()));
             MenuItemCompat.setOnActionExpandListener(item, new MenuItemCompat.OnActionExpandListener() {

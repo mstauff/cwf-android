@@ -12,7 +12,6 @@ import android.widget.BaseExpandableListAdapter;
 import android.widget.TextView;
 
 import org.ldscd.callingworkflow.R;
-import org.ldscd.callingworkflow.display.CallingListActivity;
 import org.ldscd.callingworkflow.display.CreateCallingActivity;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Org;
@@ -135,7 +134,6 @@ public class CallingListAdapter extends BaseExpandableListAdapter {
                 public void onClick(View view) {
                     Intent intent = new Intent(ctx.getApplicationContext(), CreateCallingActivity.class);
                     intent.putExtra(CreateCallingActivity.PARENT_ORG_ID, groupOrg.getId());
-                    intent.putExtra(CallingListActivity.ARG_ORG_ID, org.getId());
                     ctx.startActivity(intent);
 
                 }
