@@ -120,7 +120,7 @@ public class CallingListActivity extends AppCompatActivity {
                     context.startActivity(intent);
                     return true;
                 } else {
-                    long callingId = subOrg.getCallings().get(subIndex).getPositionId();
+                    long callingId = subOrg.getCallings().get(subIndex).getId();
 
                     /*if (twoPane) {
                         Bundle arguments = new Bundle();
