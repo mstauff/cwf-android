@@ -115,14 +115,14 @@ public class OrgsListRequest extends Request<List<Org>> {
         List<Calling> callings = new ArrayList<>();
         for(int i=0; i < callingsJson.length(); i++) {
             JSONObject callingJson = callingsJson.getJSONObject(i);
-            Calling calling = extractCalling(callingJson);
+            Calling calling = extractCalling(callingJson, id);
             callings.add(calling);
         }
 
         return new Org(id, name, typeId, order, childOrgs, callings);
     }
 
-    private Calling extractCalling(JSONObject json) throws JSONException {
+    private Calling extractCalling(JSONObject json, Long parentId) throws JSONException {
         long currentMemberId = 0;
         if(!json.isNull(currentMemberIdFieldName)) {
             currentMemberId = json.getLong(currentMemberIdFieldName);
