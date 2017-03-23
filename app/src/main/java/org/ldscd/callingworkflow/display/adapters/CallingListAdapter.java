@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import org.ldscd.callingworkflow.R;
@@ -127,7 +128,7 @@ public class CallingListAdapter extends BaseExpandableListAdapter {
         if(convertView == null || convertView.getId() != R.id.calling_list_org) {
             convertView = LayoutInflater.from(parentView.getContext())
                     .inflate(R.layout.calling_list_org, parentView, false);
-            FloatingActionButton addButton = (FloatingActionButton) convertView.findViewById(R.id.add_calling_button);
+            ImageButton addButton = (ImageButton) convertView.findViewById(R.id.add_calling_button);
             addButton.setFocusable(false);
             addButton.setOnClickListener(new View.OnClickListener() {
                 @Override

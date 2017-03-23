@@ -18,8 +18,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class CreateCallingActivity extends AppCompatActivity {
+public class CreateCallingActivity extends AppCompatActivity implements CallingDetailSearchFragment.OnFragmentInteractionListener {
     public static final String PARENT_ORG_ID = "parentOrgId";
+
+    private long proposedIndividualId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,5 +80,10 @@ public class CreateCallingActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onFragmentInteraction(Long individualId) {
+        proposedIndividualId = individualId;
     }
 }
