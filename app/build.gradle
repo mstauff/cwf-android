@@ -3,7 +3,7 @@ apply plugin: "com.neenbedankt.android-apt"
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "24.0.0"
+    buildToolsVersion '25.0.0'
     compileOptions.incremental = false
 
     defaultConfig {
@@ -31,17 +31,10 @@ dependencies {
     def googlePlayServiceVersion = "9.6.1"
 
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    testCompile 'junit:junit:4.12'
 
-    apt 'com.google.dagger:dagger-compiler:2.7'
-    compile 'com.google.dagger:dagger:2.7'
-    provided 'javax.annotation:jsr250-api:1.0'
-    compile 'com.android.volley:volley:1.0.0'
-    compile 'com.google.code.gson:gson:2.2.4'
     compile "com.android.support:appcompat-v7:${androidVersion}"
     compile "com.android.support:support-v4:${androidVersion}"
     compile "com.android.support:recyclerview-v7:${androidVersion}"
-    compile "com.android.support:design:24.2.0"
     compile "com.google.android.gms:play-services-drive:${googlePlayServiceVersion}"
     compile "com.google.android.gms:play-services-auth:${googlePlayServiceVersion}"
     compile "com.android.support:support-annotations:${androidVersion}"
@@ -57,9 +50,17 @@ dependencies {
     androidTestCompile "com.android.support.test.espresso:espresso-intents:${espressoVersion}"
     /* Unit test dependencies. */
     testCompile "junit:junit:4.12"
-    testCompile "org.mockito:mockito-core:1.10.19"
 
     configurations.androidTestCompile.dependencies.each { androidTestCompileDependency ->
         androidTestCompileDependency.exclude group: "com.android.support"
     }
+    compile 'com.google.dagger:dagger:2.7'
+    compile 'com.android.volley:volley:1.0.0'
+    compile 'com.google.code.gson:gson:2.2.4'
+    compile 'com.android.support:design:24.2.1'
+    compile 'com.android.support:support-v4:24.2.1'
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-core:1.10.19'
+    apt 'com.google.dagger:dagger-compiler:2.7'
+    provided 'javax.annotation:jsr250-api:1.0'
 }
