@@ -2,6 +2,7 @@ package org.ldscd.callingworkflow.model;
 
 import org.ldscd.callingworkflow.constants.Gender;
 import org.ldscd.callingworkflow.constants.Priesthood;
+import org.ldscd.callingworkflow.utils.JsonUtil;
 
 import java.util.Date;
 import java.util.List;
@@ -30,12 +31,12 @@ public class Member {
                   String individualEmail, String householdEmail, String streetAddress, Date birthDate, Gender gender,
                   Priesthood priesthood, List<Calling> currentCallings) {
         this.individualId = individualId;
-        this.formattedName = formattedName;
-        this.individualPhone = individualPhone;
-        this.householdPhone = householdPhone;
-        this.individualEmail = individualEmail;
-        this.householdEmail = householdEmail;
-        this.streetAddress = streetAddress;
+        this.formattedName = JsonUtil.evalNull(formattedName);
+        this.individualPhone = JsonUtil.evalNull(individualPhone);
+        this.householdPhone = JsonUtil.evalNull(householdPhone);
+        this.individualEmail = JsonUtil.evalNull(individualEmail);
+        this.householdEmail = JsonUtil.evalNull(householdEmail);
+        this.streetAddress = JsonUtil.evalNull(streetAddress);
         this.birthDate = birthDate;
         this.gender = gender;
         this.priesthood = priesthood;
@@ -47,22 +48,22 @@ public class Member {
     public void setIndividualId(long individualId) { this.individualId = individualId;}
 
     public String getFormattedName() { return formattedName; }
-    public void setFormattedName(String formattedName ) {this.formattedName = formattedName;}
+    public void setFormattedName(String formattedName ) {this.formattedName = JsonUtil.evalNull(formattedName);}
 
     public String getIndividualPhone() { return individualPhone; }
-    public void setIndividualPhone(String individualPhone ) {this.individualPhone = individualPhone;}
+    public void setIndividualPhone(String individualPhone ) {this.individualPhone = JsonUtil.evalNull(individualPhone);}
 
     public String getHouseholdPhone() { return householdPhone; }
-    public void setHouseholdPhone(String householdPhone) {this.householdPhone  = householdPhone;}
+    public void setHouseholdPhone(String householdPhone) {this.householdPhone  = JsonUtil.evalNull(householdPhone);}
 
     public String getIndividualEmail() { return individualEmail; }
-    public void setIndividualEmail(String individualEmail) { this.individualEmail = individualEmail; }
+    public void setIndividualEmail(String individualEmail) { this.individualEmail = JsonUtil.evalNull(individualEmail); }
 
     public String getHouseholdEmail() { return householdEmail; }
-    public void setHouseholdEmail(String householdEmail) { this.householdEmail = householdEmail; }
+    public void setHouseholdEmail(String householdEmail) { this.householdEmail = JsonUtil.evalNull(householdEmail); }
 
     public String getStreetAddress() { return streetAddress; }
-    public void setStreetAddress(String streetAddress) { this.streetAddress = streetAddress; }
+    public void setStreetAddress(String streetAddress) { this.streetAddress = JsonUtil.evalNull(streetAddress); }
 
     public Date getBirthDate() { return birthDate; }
     public void setBirthDate(Date birthDate) { this.birthDate = birthDate; }

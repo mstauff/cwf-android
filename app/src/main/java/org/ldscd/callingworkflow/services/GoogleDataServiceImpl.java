@@ -301,12 +301,12 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
                                 // If the file exists then use it.
                                 for (Metadata metadata : metadataBufferResult.getMetadataBuffer()) {
                                     metaFileMap.put(metadata.getTitle(), metadata);
-                                    if(metadata.getTitle().toLowerCase().contains("primary") || metadata.getTitle().toLowerCase().contains("untitled")) {
+                                    /*if(metadata.getTitle().toLowerCase().contains("primary") || metadata.getTitle().toLowerCase().contains("untitled")) {
                                         DriveId fileId = metadata.getDriveId();
                                         DriveFile orgFile = fileId.asDriveFile();
                                          //Call to delete app data file. Unable to use trash because it's not a visible file.
                                         orgFile.delete(mGoogleApiClient);
-                                    }
+                                    }*/
                                 }
                                 if(orgList != null) {
                                     List<Org> itemsToCreate = new ArrayList<Org>();

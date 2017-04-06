@@ -37,50 +37,17 @@ import javax.crypto.spec.PBEParameterSpec;
  */
 public class LocalFileResources implements IWebResources {
     private static final String TAG = "LocalFileResourcesLog";
-    protected Map<String, File> fileMap;
     private Context context;
     private RequestQueue requestQueue;
-    private SharedPreferences preferences;
     private static final String CONFIG_URL = "http://dev-ldscd.rhcloud.com/cwf/config?env=test";
-    private static final String UTF8 = "UTF-8";
-    private static final String prefUsername = "username";
-    private static final String prefPassword = "password";
-
     private ConfigInfo configInfo = null;
-    private String authCookie = null;
-    private JSONObject userInfo = null;
-    private List<Org> orgsInfo = null;
-    private String userName = null;
-    private String password = null;
-    private char[] sKey = null;
-    private byte[] salt = null;
-    private List<Member> wardMemberList = null;
-    private String unitNumber = null;
 
     public LocalFileResources(Context context) {
         this.context = context;
     }
 
-    //load username and password which has been set previously
-    private void loadCredentials() {
-        String cryptUser = preferences.getString(prefUsername, null);
-        String cryptPassword = preferences.getString(prefPassword, null);
-        if (cryptUser != null && cryptPassword != null) {
-            userName = decrypt(cryptUser);
-            password = decrypt(cryptPassword);
-        }
-    }
-
     @Override
     public void setCredentials(String userName, String password) {
-        this.userName = userName;
-        this.password = password;
-        getAuthCookie(new Response.Listener<String>() {
-            @Override
-            public void onResponse(String cookie) {
-
-            }
-        });
     }
 
     @Override
@@ -109,47 +76,6 @@ public class LocalFileResources implements IWebResources {
                     }
             );
             requestQueue.add(configRequest);
-        }
-    }
-
-    private void getAuthCookie(final Response.Listener<String> authCallback) {
-        if(authCookie != null) {
-            authCallback.onResponse(authCookie);
-        } else {
-
-            getConfigInfo(new Response.Listener<ConfigInfo>() {
-                @Override
-                public void onResponse(ConfigInfo config) {
-                    if(userName == null || password == null) {
-                        loadCredentials();
-                    }
-
-                    AuthenticationRequest authRequest = new AuthenticationRequest(userName, password, configInfo.getEndpointUrl("SIGN_IN"),
-                            new Response.Listener<String>() {
-                                @Override
-                                public void onResponse(String response) {
-                                    authCookie = "clerk-resources-beta-terms=true; " + response;
-                                    Log.i(TAG, "auth call successful");
-
-                                    SharedPreferences.Editor editor = preferences.edit();
-                                    editor.putString(prefUsername, encrypt(userName));
-                                    editor.putString(prefPassword, encrypt(password));
-                                    editor.apply();
-
-                                    authCallback.onResponse(authCookie);
-                                }
-                            },
-                            new Response.ErrorListener() {
-                                @Override
-                                public void onErrorResponse(VolleyError error) {
-                                    Log.e(TAG, "auth error");
-                                    error.printStackTrace();
-                                }
-                            }
-                    );
-                    requestQueue.add(authRequest);
-                }
-            });
         }
     }
 
@@ -195,34 +121,5 @@ public class LocalFileResources implements IWebResources {
             return null;
         }
         return json;
-    }
-
-    private String encrypt( String value ) {
-
-        try {
-            final byte[] bytes = value!=null ? value.getBytes(UTF8) : new byte[0];
-            SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBEWithMD5AndDES");
-            SecretKey key = keyFactory.generateSecret(new PBEKeySpec(sKey));
-            Cipher pbeCipher = Cipher.getInstance("PBEWithMD5AndDES");
-            pbeCipher.init(Cipher.ENCRYPT_MODE, key, new PBEParameterSpec(salt, 20));
-            return new String(Base64.encode(pbeCipher.doFinal(bytes), Base64.NO_WRAP),UTF8);
-        } catch( Exception e ) {
-            throw new RuntimeException(e);
-        }
-
-    }
-
-    private String decrypt(String value){
-        try {
-            final byte[] bytes = value!=null ? Base64.decode(value,Base64.DEFAULT) : new byte[0];
-            SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBEWithMD5AndDES");
-            SecretKey key = keyFactory.generateSecret(new PBEKeySpec(sKey));
-            Cipher pbeCipher = Cipher.getInstance("PBEWithMD5AndDES");
-            pbeCipher.init(Cipher.DECRYPT_MODE, key, new PBEParameterSpec(salt, 20));
-            return new String(pbeCipher.doFinal(bytes),UTF8);
-        } catch( Exception e) {
-            Log.e(this.getClass().getName(), "Warning, could not decrypt the value.  It may be stored in plaintext.  "+e.getMessage());
-            return value;
-        }
     }
 }

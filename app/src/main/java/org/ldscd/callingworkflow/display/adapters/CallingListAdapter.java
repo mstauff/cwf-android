@@ -13,6 +13,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import org.ldscd.callingworkflow.R;
+import org.ldscd.callingworkflow.display.CallingListActivity;
 import org.ldscd.callingworkflow.display.CreateCallingActivity;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Org;
@@ -21,7 +22,7 @@ import org.ldscd.callingworkflow.web.MemberData;
 import java.util.List;
 
 public class CallingListAdapter extends BaseExpandableListAdapter {
-    private Context ctx;
+    private final Context ctx;
     private Org org;
     private List<Org> subOrgs;
     private List<Calling> callings;
@@ -88,11 +89,16 @@ public class CallingListAdapter extends BaseExpandableListAdapter {
     @Override
     public long getChildId(int index, int subIndex) {
         Org subOrg = (Org) getGroup(index);
-        if(subIndex < subOrg.getChildren().size()) {
-            return subOrg.getChildren().get(subIndex).getId();
-        } else {
-            return subOrg.getCallings().get(subIndex - subOrg.getChildren().size()).getId();
+        if(subOrg != null) {
+            if (subIndex < subOrg.getChildren().size()) {
+                return subOrg.getChildren().get(subIndex).getId();
+            } else {
+                //TODO: this needs to not only look at calling.id but calling.cwfId.  Should probably
+                // consolidate functionality to the calling object so everywhere else doesn't need to do the work.
+                return subOrg.getCallings().get(subIndex - subOrg.getChildren().size()).getId();
+            }
         }
+        return 0;
     }
 
     @Override
@@ -168,7 +174,25 @@ public class CallingListAdapter extends BaseExpandableListAdapter {
 
         callingTitle.setText(calling.getPosition().getName());
         current.setText("(" + memberData.getMemberName(calling.getMemberId()) + ")");
+        final Long currentIndividualId = calling.getProposedIndId();
+        current.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(ctx instanceof CallingListActivity) {
+                    ((CallingListActivity)ctx).wireUpIndividualInformationFragments(currentIndividualId);
+                }
+            }
+        });
         proposed.setText(memberData.getMemberName(calling.getProposedIndId()));
+        final Long proposedIndividualId = calling.getProposedIndId();
+        proposed.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(ctx instanceof CallingListActivity){
+                    ((CallingListActivity)ctx).wireUpIndividualInformationFragments(proposedIndividualId);
+                }
+            }
+        });
 
         if(childView) {
             convertView.setPadding(50, 0, 0, 0);

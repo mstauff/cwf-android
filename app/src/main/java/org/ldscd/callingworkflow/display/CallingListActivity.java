@@ -198,4 +198,14 @@ public class CallingListActivity extends AppCompatActivity {
         outState.putLong(ARG_ORG_ID, getIntent().getLongExtra(ARG_ORG_ID, 0));
         super.onSaveInstanceState(outState);
     }
+
+    public void wireUpIndividualInformationFragments(Long individualId) {
+        if (individualId != null) {
+            IndividualInformationFragment member_information_fragment = new IndividualInformationFragment();
+            Bundle args = new Bundle();
+            args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, individualId);
+            member_information_fragment.setArguments(args);
+            member_information_fragment.show(getSupportFragmentManager(), null);
+        }
+    }
 }

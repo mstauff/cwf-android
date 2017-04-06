@@ -23,6 +23,11 @@
     <string name="password">Password</string>
     <string name="sync">Sync</string>
     <string name="notes">Notes</string>
+    <string name="phone">Phone</string>
+    <string name="cell_phone">Cell</string>
+    <string name="home">Home</string>
+    <string name="email">Email</string>
+    <string name="address">Address</string>
     <string name="finalize_calling">Finalize Calling</string>
     <string name="currently_called">Currently Called</string>
     <string name="select_status">Select Status</string>

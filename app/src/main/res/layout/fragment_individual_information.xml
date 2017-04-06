@@ -1,0 +1,184 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:id="@+id/member_details_bottom_sheet"
+    tools:context=".display.IndividualInformationFragment">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingLeft="10dp"
+        android:paddingTop="10dp"
+        android:textStyle="bold"
+        android:textColor="#201f1f"
+        android:ems="30"
+        android:text="@string/navigation_drawer_callings" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingLeft="25dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:id="@+id/member_information_calling" />
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="1dip"
+        android:background="#b9b9b9" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingLeft="10dp"
+        android:paddingTop="10dp"
+        android:textStyle="bold"
+        android:textColor="#201f1f"
+        android:ems="30"
+        android:text="@string/phone" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingLeft="25dp"
+        android:paddingTop="10dp"
+        android:textStyle="bold"
+        android:textColor="#201f1f"
+        android:ems="30"
+        android:text="@string/list_display_options_individual" />
+    <TableLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <TableRow>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="left"
+                android:drawableLeft="@drawable/phone_blue"
+                android:drawablePadding="10dp"
+                android:paddingTop="10dp"
+                android:paddingLeft="25dp"
+                android:paddingBottom="10dp"
+                android:ems="30"
+                android:id="@+id/member_information_cell_phone"
+                android:autoLink="phone" />
+            <ImageButton
+                android:id="@+id/member_information_cell_phone_sms"
+                android:layout_gravity="right"
+                android:background="#ffffff"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingRight="30dp"
+                app:srcCompat="@drawable/sms_blue" />
+            </TableRow>
+    </TableLayout>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingLeft="25dp"
+        android:paddingTop="10dp"
+        android:textStyle="bold"
+        android:textColor="#201f1f"
+        android:ems="30"
+        android:text="@string/home" />
+    <TableLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <TableRow>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="left"
+                android:drawableLeft="@drawable/phone_blue"
+                android:drawablePadding="10dp"
+                android:paddingTop="10dp"
+                android:paddingLeft="25dp"
+                android:paddingBottom="10dp"
+                android:ems="30"
+                android:id="@+id/member_information_home_phone"
+                android:autoLink="phone" />
+            <ImageButton
+                android:id="@+id/member_information_home_phone_sms"
+                android:layout_gravity="right"
+                android:background="#ffffff"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingRight="30dp"
+                app:srcCompat="@drawable/sms_blue" />
+        </TableRow>
+    </TableLayout>
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="1dip"
+        android:background="#b9b9b9" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingLeft="10dp"
+        android:paddingTop="10dp"
+        android:textStyle="bold"
+        android:textColor="#201f1f"
+        android:ems="30"
+        android:text="@string/email" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingLeft="25dp"
+        android:paddingTop="10dp"
+        android:textStyle="bold"
+        android:textColor="#201f1f"
+        android:ems="30"
+        android:text="@string/list_display_options_individual" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:drawableLeft="@drawable/mail_blue"
+        android:drawablePadding="10dp"
+        android:paddingLeft="25dp"
+        android:paddingTop="10dp"
+        android:id="@+id/member_information_individual_email"
+        android:autoLink="email" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingLeft="25dp"
+        android:paddingTop="10dp"
+        android:textStyle="bold"
+        android:textColor="#201f1f"
+        android:ems="30"
+        android:text="@string/home" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:drawableLeft="@drawable/mail_blue"
+        android:drawablePadding="10dp"
+        android:paddingLeft="25dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:id="@+id/member_information_home_email"
+        android:autoLink="email" />
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="1dip"
+        android:background="#b9b9b9" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingLeft="10dp"
+        android:paddingTop="10dp"
+        android:textStyle="bold"
+        android:textColor="#201f1f"
+        android:ems="30"
+        android:text="@string/address" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:drawableLeft="@drawable/marker_pin_blue"
+        android:drawablePadding="10dp"
+        android:paddingLeft="25dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="20dp"
+        android:id="@+id/member_information_address"
+        android:autoLink="map" />
+</LinearLayout>
