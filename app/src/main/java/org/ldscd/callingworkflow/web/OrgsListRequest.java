@@ -127,9 +127,9 @@ public class OrgsListRequest extends Request<List<Org>> {
         if(!json.isNull(currentMemberIdFieldName)) {
             currentMemberId = json.getLong(currentMemberIdFieldName);
         }
-        Long cwfId = null;
+        String cwfId = null;
         if(!json.isNull(positionCwfIdFieldName)) {
-            cwfId = json.getLong(positionCwfIdFieldName);
+            cwfId = json.getString(positionCwfIdFieldName);
         }
         Long id = null;
         if(!json.isNull(positionIdFieldName)) {

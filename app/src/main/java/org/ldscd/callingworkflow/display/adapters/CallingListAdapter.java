@@ -2,7 +2,6 @@ package org.ldscd.callingworkflow.display.adapters;
 
 import android.content.Context;
 import android.content.Intent;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
@@ -88,16 +87,6 @@ public class CallingListAdapter extends BaseExpandableListAdapter {
 
     @Override
     public long getChildId(int index, int subIndex) {
-        Org subOrg = (Org) getGroup(index);
-        if(subOrg != null) {
-            if (subIndex < subOrg.getChildren().size()) {
-                return subOrg.getChildren().get(subIndex).getId();
-            } else {
-                //TODO: this needs to not only look at calling.id but calling.cwfId.  Should probably
-                // consolidate functionality to the calling object so everywhere else doesn't need to do the work.
-                return subOrg.getCallings().get(subIndex - subOrg.getChildren().size()).getId();
-            }
-        }
         return 0;
     }
 

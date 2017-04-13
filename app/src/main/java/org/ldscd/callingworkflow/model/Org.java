@@ -35,6 +35,9 @@ public class Org {
         this.children = children;
         this.callings = callings;
         for(Calling calling : callings) {
+            if(this.positions == null) {
+                this.positions = new HashSet<>();
+            }
             this.positions.add(calling.getPosition());
         }
     }

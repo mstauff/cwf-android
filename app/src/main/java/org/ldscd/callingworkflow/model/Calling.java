@@ -5,14 +5,17 @@ import com.google.gson.annotations.Expose;
 import org.ldscd.callingworkflow.constants.ConflictCause;
 
 import java.util.Date;
+import java.util.UUID;
 
 /**
  * Represents a possible calling to be made.
  */
 public class Calling {
     /* Fields */
+    /* id is from LCR */
     private Long id;
-    private Long cwfId;
+    /* cwfId is and Id that if LCR doesn't have one we generate an Id. */
+    private String cwfId;
     private Long memberId;
     private Long proposedIndId;
     private Date activeDate;
@@ -21,17 +24,21 @@ public class Calling {
     private String proposedStatus;
     private String notes;
     private Boolean editableByOrg;
-    private transient Long parentOrg;
+    @Expose(serialize = false, deserialize = false)
+    private Long parentOrg;
     @Expose(serialize = false, deserialize = false)
     private ConflictCause conflictCause;
 
     /* Constructors */
     public Calling() {}
 
-    public Calling(Long id, Long cwfId, Long memberId, Long proposedIndId, Date activeDate, Position position,
+    public Calling(Long id, String cwfId, Long memberId, Long proposedIndId, Date activeDate, Position position,
                    String existingStatus, String proposedStatus, String notes, Boolean editableByOrg, Long parentOrg) {
         this.id = id;
-        this.cwfId = cwfId;
+        /* If we don't have a unique id then we create an internal one. */
+        if(id == null || id == 0) {
+            this.cwfId = (cwfId != null && cwfId.length() > 0) ? cwfId : UUID.randomUUID().toString();
+        }
         this.memberId = memberId;
         this.proposedIndId = proposedIndId;
         this.activeDate = activeDate;
@@ -44,17 +51,19 @@ public class Calling {
     }
 
     /* Properties */
-    public Long getId() {
-        return id;
+    public String getCallingId() {
+        return id != null && id > 0 ? id.toString() : cwfId;
     }
+
+    public Long getId() { return this.id; }
     public void setId(long id) {
         this.id = id;
     }
 
-    public Long getCwfId() {
+    public String getCwfId() {
         return cwfId;
     }
-    public void setCwfId(Long cwfId) {
+    public void setCwfId(String cwfId) {
         this.cwfId = cwfId;
     }
 

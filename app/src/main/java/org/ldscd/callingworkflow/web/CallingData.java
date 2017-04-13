@@ -18,7 +18,7 @@ public class CallingData {
     private List<Org> orgs;
     private Map<Long, Org> orgsById;
     private Map<Long, List<Calling>> callingsByOrg;
-    private Map<Long, Calling> callingsById;
+    private Map<String, Calling> callingsById;
 
     public CallingData(IWebResources webResources) {
         this.webResources = webResources;
@@ -32,7 +32,7 @@ public class CallingData {
                 orgs = response;
                 orgsById = new HashMap<Long, Org>();
                 callingsByOrg = new HashMap<Long, List<Calling>>();
-                callingsById = new HashMap<Long, Calling>();
+                callingsById = new HashMap<String, Calling>();
                 for(Org org: orgs) {
                     callingsByOrg.put(org.getId(), new ArrayList<Calling>());
                     extractOrg(org, org.getId());
@@ -46,7 +46,7 @@ public class CallingData {
         orgsById.put(org.getId(), org);
         List<Calling> callingsList = callingsByOrg.get(baseOrgId);
         for(Calling calling: org.getCallings()) {
-            callingsById.put(calling.getId(), calling);
+            callingsById.put(calling.getCallingId(), calling);
             callingsList.add(calling);
         }
         for(Org subOrg: org.getChildren()) {
@@ -68,7 +68,7 @@ public class CallingData {
         return callingsByOrg.get(orgId);
     }
 
-    public Calling getCalling(long positionId) {
-        return callingsById.get(positionId);
+    public Calling getCalling(String callingId) {
+        return callingsById.get(callingId);
     }
 }

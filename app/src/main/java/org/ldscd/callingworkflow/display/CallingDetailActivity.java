@@ -44,7 +44,6 @@ public class CallingDetailActivity extends AppCompatActivity implements CallingD
     Spinner statusDropdown;
     TextView notes;
     private long orgId;
-    private long positionId;
     private Long individualId;
     private Calling calling;
     private Org org;
@@ -61,9 +60,9 @@ public class CallingDetailActivity extends AppCompatActivity implements CallingD
         notes = (TextView) findViewById(R.id.notes_calling_detail);
 
         orgId = getIntent().getLongExtra(CallingListActivity.ARG_ORG_ID, 0);
-        positionId = getIntent().getLongExtra(CallingDetailFragment.ARG_ITEM_ID, 0);
+        String callingId = getIntent().getStringExtra(CallingDetailFragment.ARG_ITEM_ID);
         hydrateOrg(orgId);
-        hydrateCalling(positionId);
+        hydrateCalling(callingId);
         wireUpFragments(savedInstanceState);
     }
 
@@ -83,8 +82,6 @@ public class CallingDetailActivity extends AppCompatActivity implements CallingD
             // more details, see the Navigation pattern on Android Design:
             //
             // http://developer.android.com/design/patterns/navigation.html#up-vs-back
-            //
-            //TODO: capture all the changes and if there are items changed, make updates and save.
             submitOrgChanges();
             Intent intent = new Intent(this, CallingListActivity.class);
             intent.putExtra(CallingListActivity.ARG_ORG_ID, orgId);
@@ -111,7 +108,7 @@ public class CallingDetailActivity extends AppCompatActivity implements CallingD
             calling.setNotes(extraNotes.toString());
             hasChanges = true;
         }
-        if(individualId != calling.getProposedIndId()) {
+        if(individualId.equals(calling.getProposedIndId())) {
             calling.setProposedIndId(individualId);
             hasChanges = true;
         }
@@ -120,8 +117,8 @@ public class CallingDetailActivity extends AppCompatActivity implements CallingD
         }
     }
 
-    private void hydrateCalling(long positionId) {
-        calling = callingData.getCalling(positionId);
+    private void hydrateCalling(String callingId) {
+        calling = callingData.getCalling(callingId);
         if(calling != null) {
             final TextView currentlyCalled = (TextView)findViewById(R.id.calling_detail_currently_called);
             String name = memberData.getMemberName(calling.getMemberId());
