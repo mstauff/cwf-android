@@ -1,8 +1,11 @@
 package org.ldscd.callingworkflow.model;
 
+import com.google.gson.annotations.Expose;
+
 import org.ldscd.callingworkflow.constants.Operation;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -16,7 +19,10 @@ public class Org {
     int displayOrder;
     List<Org> children;
     List<Calling> callings;
-    private transient List<Long> callingIds;
+    @Expose(serialize = false, deserialize = false)
+    private HashSet<Position> positions;
+    @Expose(serialize = false, deserialize = false)
+    private List<Long> callingIds;
 
     /* Constructors */
     public Org() {}
@@ -28,6 +34,9 @@ public class Org {
         this.displayOrder = displayOrder;
         this.children = children;
         this.callings = callings;
+        for(Calling calling : callings) {
+            this.positions.add(calling.getPosition());
+        }
     }
 
     /* Properties */
@@ -58,7 +67,7 @@ public class Org {
         }
         return callingIds;
     }
-    List<Calling> allCallings;
+
     public List<Calling> allOrgCallings() {
         List<Calling> callings = this.callings;
         for (Org org : this.children) {
@@ -76,15 +85,35 @@ public class Org {
     }
 
     public Calling find(Long param) {
-        if(allCallings == null) {
-            allCallings = allOrgCallings();
-        }
-        for(Calling calling : allCallings) {
+        for(Calling calling : allOrgCallings()) {
             if(calling.equals(param)) {
                 return calling;
             }
         }
         return null;
+    }
+
+    public HashSet<Position> getPositions() {
+        return this.positions;
+    }
+    public void setPositions(Position position) {
+        if(position != null) {
+            this.positions.add(position);
+        }
+    }
+
+    public List<Position> potentialNewPositions() {
+        List<Integer> existingPositionTypeIds = new ArrayList<>();
+        for(Calling calling : callings) {
+            existingPositionTypeIds.add(calling.getPosition().getPositionTypeId());
+        }
+        List<Position> potentialPositions = new ArrayList<>();
+        for(Position position : this.positions) {
+            if(position.getMultiplesAllowed() || !existingPositionTypeIds.contains(position.getPositionTypeId())) {
+                potentialPositions.add(position);
+            }
+        }
+        return potentialPositions;
     }
 
     /* Methods */
