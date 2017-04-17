@@ -41,8 +41,8 @@ public class NetModule {
 
     @Provides
     @Singleton
-    CallingData providesCallingData(IWebResources webResources) {
-        return new CallingData(webResources);
+    CallingData providesCallingData(IWebResources webResources, GoogleDataService googleDataService) {
+        return new CallingData(webResources, googleDataService);
     }
 
     @Provides

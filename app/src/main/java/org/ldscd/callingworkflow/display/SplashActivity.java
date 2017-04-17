@@ -21,7 +21,7 @@ import javax.inject.Inject;
 public class SplashActivity extends AppCompatActivity {
 
     protected ProgressBar pb;
-    private boolean googleDataFinished = false;
+    private boolean orgDataFinished = false;
     private boolean memberDataFinished = false;
 
     @Inject
@@ -39,50 +39,37 @@ public class SplashActivity extends AppCompatActivity {
         setContentView(R.layout.activity_splash);
          pb = (ProgressBar) findViewById(R.id.progress_bar_splash);
         pb.setProgress(10);
-        googleDataService.init(listener, this);
-        pb.setProgress(40);
+        callingData.loadOrgs(orgListener, pb, this);
+        memberData.loadMembers(memberListener, pb);
     }
 
     @Override
     protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        pb.setProgress(60);
         if (resultCode == RESULT_OK) {
-            googleDataService.restartConnection(listener, this);
-            pb.setProgress(90);
+            callingData.loadOrgs(orgListener, pb, this);
         }
     }
 
-    protected Response.Listener<Boolean> listener = new Response.Listener<Boolean>() {
+    protected Response.Listener<Boolean> orgListener = new Response.Listener<Boolean>() {
         @Override
         public void onResponse(Boolean response) {
-            if(response) {
-
-                callingData.loadOrgs(new Response.Listener<List<Org>>() {
-                    @Override
-                    public void onResponse(List<Org> orgs) {
-                        googleDataService.syncDriveIds(new Response.Listener<Boolean>() {
-                            @Override
-                            public void onResponse(Boolean response) {
-                                googleDataFinished = true;
-                                if(memberDataFinished) {
-                                    startApplication();
-                                }
-                            }
-                        }, orgs);
-
-                    }
-                });
-
-                memberData.loadMembers(new Response.Listener<List<Member>>() {
-                    @Override
-                    public void onResponse(List<Member> response) {
-                        memberDataFinished = true;
-                        if(googleDataFinished) {
-                            startApplication();
-                        }
-                    }
-                });
+            if (response) {
+                orgDataFinished = true;
+                if(memberDataFinished) {
+                    startApplication();
+                }
+            }
+        }
+    };
+    protected Response.Listener<Boolean> memberListener = new Response.Listener<Boolean>() {
+        @Override
+        public void onResponse(Boolean response) {
+            if (response) {
+                memberDataFinished = true;
+                if(orgDataFinished) {
+                    startApplication();
+                }
             }
         }
     };
