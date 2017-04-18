@@ -136,12 +136,20 @@ public class Calling {
     public boolean equals(Calling calling) {
         boolean result = false;
         if(this.parentOrg.equals(calling.parentOrg) && this.getPosition().equals(calling.getPosition())) {
-            if(this.id != null && this.id == calling.id)  {
+            if(this.id != null && this.id.equals(calling.id))  {
                 result = true;
             } else if (this.cwfId != null) {
                 result = this.cwfId == calling.getCwfId();
             }
         }
         return result;
+    }
+
+    public void importCWFData(Calling sourceCalling) {
+        cwfId = sourceCalling.getCwfId();
+        existingStatus = sourceCalling.getExistingStatus();
+        proposedIndId = sourceCalling.getProposedIndId();
+        proposedStatus = sourceCalling.getProposedStatus();
+        notes = sourceCalling.getNotes();
     }
 }

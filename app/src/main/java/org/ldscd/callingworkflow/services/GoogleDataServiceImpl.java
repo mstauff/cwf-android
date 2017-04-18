@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.android.volley.Response;
+import com.android.volley.VolleyError;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -156,7 +157,7 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
     }
 
     @Override
-    public void getOrgData(final Response.Listener<Org> listener, Response.ErrorListener errorListener, final Org org) {
+    public void getOrgData(final Response.Listener<Org> listener, final Response.ErrorListener errorListener, final Org org) {
         fileName = DataUtil.getFileName(org);
         // TODO: make cwFile local.
         // TODO: get file name.
@@ -180,11 +181,15 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
                             public void onResult(DriveApi.DriveContentsResult driveContentsResult) {
                                 /* Read the results from the callback as content and turn it into a stream. */
                                 cwFileContent = driveContentsResult.getDriveContents();
-                                InputStream inputStream = cwFileContent.getInputStream();
-                                /* Convert the stream into a string for usability. */
-                                String cwStr = ConflictUtil.getStringFromInputStream(inputStream);
-                                /* Convert the json string into an Org.  Then inject the org into the callback. */
-                                listener.onResponse(new Gson().fromJson(cwStr, Org.class));
+                                if(cwFileContent != null) {
+                                    InputStream inputStream = cwFileContent.getInputStream();
+                                    /* Convert the stream into a string for usability. */
+                                    String cwStr = ConflictUtil.getStringFromInputStream(inputStream);
+                                    /* Convert the json string into an Org.  Then inject the org into the callback. */
+                                    listener.onResponse(new Gson().fromJson(cwStr, Org.class));
+                                } else {
+                                    errorListener.onErrorResponse(new VolleyError("File not found: " + org.getOrgName()));
+                                }
                             }
                         });
                 }

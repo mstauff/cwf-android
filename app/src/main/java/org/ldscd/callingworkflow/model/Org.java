@@ -2,6 +2,7 @@ package org.ldscd.callingworkflow.model;
 
 import com.google.gson.annotations.Expose;
 
+import org.ldscd.callingworkflow.constants.ConflictCause;
 import org.ldscd.callingworkflow.constants.Operation;
 
 import java.util.ArrayList;
@@ -23,6 +24,10 @@ public class Org {
     private HashSet<Position> positions;
     @Expose(serialize = false, deserialize = false)
     private List<Long> callingIds;
+    @Expose(serialize = false, deserialize = false)
+    private ConflictCause conflictCause;
+    @Expose(serialize = false, deserialize = false)
+    private boolean hasUnsavedChanges = false;
 
     /* Constructors */
     public Org() {}
@@ -60,6 +65,12 @@ public class Org {
 
     public List<Calling> getCallings() { return callings; }
     public void setCallings(List<Calling> callings) { this.callings = callings; }
+
+    public ConflictCause getConflictCause() { return conflictCause; }
+    public void setConflictCause(ConflictCause conflictCause) { this.conflictCause = conflictCause; }
+
+    public boolean hasUnsavedChanges() { return hasUnsavedChanges; }
+    public void setHasUnsavedChanges(boolean hasUnsavedChanges) { this.hasUnsavedChanges = hasUnsavedChanges; }
 
     public List<Long> allOrgCallingIds() {
         if(callingIds == null || callingIds.size() == 0) {

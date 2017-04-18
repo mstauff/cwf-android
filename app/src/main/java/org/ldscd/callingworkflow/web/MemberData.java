@@ -1,6 +1,8 @@
 package org.ldscd.callingworkflow.web;
 
 
+import android.widget.ProgressBar;
+
 import com.android.volley.Response;
 
 import org.ldscd.callingworkflow.model.Member;
@@ -19,7 +21,7 @@ public class MemberData {
         this.webResources = webResources;
     }
 
-    public void loadMembers(final Response.Listener<List<Member>> membersCallback) {
+    public void loadMembers(final Response.Listener<Boolean> membersCallback, final ProgressBar pb) {
         webResources.getWardList(new Response.Listener<List<Member>>() {
             @Override
             public void onResponse(List<Member> response) {
@@ -28,7 +30,8 @@ public class MemberData {
                 for(Member member: members) {
                     membersByIndividualId.put(member.getIndividualId(), member);
                 }
-                membersCallback.onResponse(members);
+                pb.setProgress(pb.getProgress() + 20);
+                membersCallback.onResponse(true);
             }
         });
     }
