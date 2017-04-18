@@ -13,6 +13,8 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.android.volley.Response;
+
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.constants.CallingStatus;
 import org.ldscd.callingworkflow.model.Calling;
@@ -113,7 +115,12 @@ public class CallingDetailActivity extends AppCompatActivity implements CallingD
             hasChanges = true;
         }
         if(hasChanges) {
-            googleDataServices.saveFile(org);
+            googleDataServices.saveFile(new Response.Listener<Boolean>() {
+                @Override
+                public void onResponse(Boolean response) {
+
+                }
+            }, org);
         }
     }
 

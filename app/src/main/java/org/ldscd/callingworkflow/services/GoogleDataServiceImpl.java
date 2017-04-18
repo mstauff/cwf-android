@@ -201,7 +201,7 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
     }
 
     @Override
-    public void saveFile(final Org org) {
+    public void saveFile(final Response.Listener<Boolean> listener, final Org org) {
         fileName = DataUtil.getFileName(org);
         if (metaFileMap != null) {
             final Metadata metadata = metaFileMap.get(fileName);
@@ -209,7 +209,7 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
                 syncDriveIds(new Response.Listener<Boolean>() {
                     @Override
                     public void onResponse(Boolean response) {
-
+                        listener.onResponse(response);
                     }
                 }, null);
             }
@@ -220,6 +220,7 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
                         .setResultCallback(new ResultCallback<DriveApi.DriveContentsResult>() {
                             @Override
                             public void onResult(DriveApi.DriveContentsResult driveContentsResult) {
+                                listener.onResponse(driveContentsResult.getStatus().isSuccess());
                                 if (!driveContentsResult.getStatus().isSuccess()) {
                                     Log.e(TAG, "Unable to load CW data.");
                                     return;
@@ -234,6 +235,7 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
                                         cwFileContent.commit(mGoogleApiClient, null).setResultCallback(new ResultCallback<Status>() {
                                             @Override
                                             public void onResult(@NonNull Status status) {
+                                                listener.onResponse(status.getStatus().isSuccess());
                                                 if(status.getStatus().isSuccess()) {
                                                     Log.i("Update Method", status.getStatus().toString());
                                                 }
@@ -245,6 +247,7 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
                                     }
                                 } catch (IOException e) {
                                     Log.e(TAG, e.getMessage());
+                                    listener.onResponse(false);
                                 }
                             }
                         });
@@ -257,7 +260,7 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
     }
 
     @Override
-    public boolean deleteFile(final Org org) {
+    public void deleteFile(final Response.Listener<Boolean> listener, final Org org) {
         Metadata metadata = metaFileMap.get(DataUtil.getFileName(org));
         if (metadata != null) {
             if (metadata.getDriveId() != null) {
@@ -266,17 +269,15 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
                 /* Call to delete app data file. Unable to use trash because it's not a visible file. */
                 com.google.android.gms.common.api.Status deleteStatus =
                         orgFile.delete(mGoogleApiClient).await();
+                listener.onResponse(deleteStatus.isSuccess());
                 if (!deleteStatus.isSuccess()) {
                     Log.e(TAG, "Unable to delete app data file.");
-                    return true;
                 }
                 /* Remove stored MetaData. */
                 metaFileMap.remove(DataUtil.getFileName(org));
                 Log.d(TAG, "Org file deleted.");
             }
-            return false;
         }
-        return false;
     }
 
     @Override
