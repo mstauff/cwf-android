@@ -71,7 +71,7 @@ public class CallingDetailActivity extends AppCompatActivity implements CallingD
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.list_display_options, menu);
+        getMenuInflater().inflate(R.menu.calling_detail, menu);
         return true;
     }
 
@@ -89,6 +89,10 @@ public class CallingDetailActivity extends AppCompatActivity implements CallingD
             intent.putExtra(CallingListActivity.ARG_ORG_ID, orgId);
             navigateUpTo(intent);
             return true;
+        } else if(id == R.id.calling_detail_release_current_in_lcr) {
+            // Send event to LCR
+        } else if(id == R.id.calling_detail_delete_current_calling_in_lcr) {
+            // Send event to LCR
         }
         return true;
     }
