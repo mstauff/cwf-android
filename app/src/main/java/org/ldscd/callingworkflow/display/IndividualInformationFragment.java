@@ -1,9 +1,11 @@
 package org.ldscd.callingworkflow.display;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -12,11 +14,17 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.BottomSheetDialogFragment;
 import android.support.design.widget.CoordinatorLayout;
+import android.support.v7.widget.LinearLayoutCompat;
 import android.text.method.LinkMovementMethod;
+import android.text.util.Linkify;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,7 +40,6 @@ import javax.inject.Inject;
 public class IndividualInformationFragment extends BottomSheetDialogFragment {
 
     private static final String INDIVIDUAL_ID = "individualId";
-    private static long individualId;
     @Inject
     MemberData memberData;
 
@@ -62,9 +69,8 @@ public class IndividualInformationFragment extends BottomSheetDialogFragment {
         super.onCreate(savedInstanceState);
         ((CWFApplication)getActivity().getApplication()).getNetComponent().inject(this);
         if (getArguments() != null) {
-            individualId = getArguments().getLong(INDIVIDUAL_ID);
+            long individualId = getArguments().getLong(INDIVIDUAL_ID);
             member = memberData.getMember(individualId);
-
         }
     }
 
@@ -73,57 +79,14 @@ public class IndividualInformationFragment extends BottomSheetDialogFragment {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_individual_information, container, false);
         if(member != null) {
-            /* Hydrate Calling(s) */
-            TextView calling = (TextView) v.findViewById(R.id.member_information_calling);
-            calling.setText((member.getCurrentCallings() != null && member.getCurrentCallings().size() > 0)
-                    ? member.getCurrentCallings().toString() : "");
-            /* Hydrate Phone */
-            TextView cell_phone = (TextView) v.findViewById(R.id.member_information_cell_phone);
-            cell_phone.setText(member.getIndividualPhone() != null
-                    ? member.getIndividualPhone() : "");
-            /* Hydrate Home phone */
-            TextView home_phone = (TextView) v.findViewById(R.id.member_information_home_phone);
-            home_phone.setText(member.getHouseholdPhone() != null
-                    ? member.getHouseholdPhone() : "");
-            /* Hydrate Individual Email */
-            TextView individual_email = (TextView) v.findViewById(R.id.member_information_individual_email);
-            individual_email.setText(member.getIndividualEmail() != null
-                    ? member.getIndividualEmail() : "");
-            /* Hydrate Household Email */
-            TextView email = (TextView) v.findViewById(R.id.member_information_home_email);
-            email.setText(member.getHouseholdEmail() != null
-                    ? member.getHouseholdEmail() : "");
-            /* Hydrate Address */
-            TextView address = (TextView) v.findViewById(R.id.member_information_address);
-            try {
-                final String strAddress = member.getStreetAddress();
-                final String encodedAddress = URLEncoder.encode(strAddress, "UTF-8");
-                address.setText(strAddress);
-                address.setMovementMethod(LinkMovementMethod.getInstance());
-                address.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        initGoogleMap(encodedAddress);
-                    }
-                });
-            } catch (Error | UnsupportedEncodingException e) {
-                e.printStackTrace();
+            TextView nameView = (TextView) v.findViewById(R.id.member_information_member_name);
+            nameView.setText(member.getFormattedName());
+            TextView callingView = (TextView) v.findViewById(R.id.member_information_calling);
+            if(member.getCurrentCallings() != null && !member.getCurrentCallings().isEmpty()) {
+                callingView.setText(member.getCurrentCallings().toString());
             }
-            ImageButton cell_phone_sms = (ImageButton) v.findViewById(R.id.member_information_cell_phone_sms);
-            cell_phone_sms.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    sendSMS(member.getIndividualPhone());
-                }
-            });
 
-            ImageButton home_phone_sms = (ImageButton) v.findViewById(R.id.member_information_home_phone_sms);
-            home_phone_sms.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    sendSMS(member.getHouseholdPhone());
-                }
-            });
+            createViewItems(v, member);
         }
         return v;
     }
@@ -211,5 +174,222 @@ public class IndividualInformationFragment extends BottomSheetDialogFragment {
         if( behavior != null && behavior instanceof BottomSheetBehavior ) {
             ((BottomSheetBehavior) behavior).setBottomSheetCallback(mBottomSheetBehaviorCallback);
         }
+    }
+
+    public void createViewItems(View v, final Member member) {
+        /* Create xml for bottom sheet. */
+        TableLayout tableLayout = (TableLayout) v.findViewById(R.id.member_information_table_layout);
+        tableLayout.setGravity(Gravity.CENTER);
+        /* Set the horizontal separating border. */
+        tableLayout.addView(getBorderView());
+        /* For phone */
+        if((member.getIndividualPhone() == null || member.getIndividualPhone().isEmpty()) &&
+           (member.getHouseholdPhone() == null || member.getHouseholdPhone().isEmpty())) {
+                TextView noData = getNoDataTextView(getResources().getText(R.string.no_phone_number).toString());
+                TableRow tableRow = getTableRow();
+                tableRow.addView(noData);
+                tableLayout.addView(tableRow);
+        } else {
+            /* Individual phone. */
+            String phone = member.getIndividualPhone();
+            if(phone != null && !phone.isEmpty()) {
+                /* Phone number. */
+                TextView individualPhoneView = getPhoneTextView(phone);
+                /* SMS image button. */
+                ImageButton individualPhoneImageButton = getPhoneImageButton(phone);
+                /* Add all items to tablerow. */
+                TableRow tableRow = getTableRow();
+                tableRow.addView(individualPhoneView);
+                tableRow.addView(individualPhoneImageButton);
+                tableLayout.addView(tableRow, new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT));
+                /* Get underneath text. */
+                TableRow underRow = getTableRow();
+                underRow.addView(getIndividualHouseholdTextView(getResources().getText(R.string.list_display_options_individual).toString()));
+                tableLayout.addView(underRow);
+            }
+            /* Home phone. */
+            phone = member.getHouseholdPhone();
+            if(phone != null && !phone.isEmpty()) {
+                /* Phone number. */
+                TextView homePhoneView = getPhoneTextView(phone);
+                /* SMS image button. */
+                ImageButton homePhoneImageButton = getPhoneImageButton(phone);
+                /* Add all items to tablerow. */
+                TableRow tableRow = getTableRow();
+                tableRow.addView(homePhoneView);
+                tableRow.addView(homePhoneImageButton);
+                tableLayout.addView(tableRow);
+                /* Get underneath text. */
+                TableRow underRow = getTableRow();
+                underRow.addView(getIndividualHouseholdTextView(getResources().getText(R.string.household).toString()));
+                tableLayout.addView(underRow);
+            }
+        }
+        /* For Email */
+        /* Set the horizontal separating border. */
+        tableLayout.addView(getBorderView());
+        if((member.getIndividualEmail() == null || member.getIndividualEmail().isEmpty()) &&
+           (member.getHouseholdEmail() == null || member.getHouseholdEmail().isEmpty())) {
+            TextView noData = getNoDataTextView(getResources().getText(R.string.no_email_address).toString());
+            TableRow tableRow = getTableRow();
+            tableRow.addView(noData);
+            tableLayout.addView(tableRow);
+        } else {
+            String email = member.getIndividualEmail();
+            if(email != null && !email.isEmpty()) {
+                /* Individual email text. */
+                TextView individualEmailView = getEmailTextView(email);
+                /* Under email text. */
+                TextView individualTextView = getIndividualHouseholdTextView(getResources().getText(R.string.list_display_options_individual).toString());
+                /* Add all items to tableRow. */
+                TableRow tableRow = getTableRow();
+                tableRow.addView(individualEmailView);
+                tableLayout.addView(tableRow);
+                TableRow underRow = getTableRow();
+                underRow.addView(individualTextView);
+                tableLayout.addView(underRow);
+            }
+            email = member.getHouseholdEmail();
+            if(email != null && !email.isEmpty()) {
+                /* Home email text. */
+                TextView householdEmailView = getEmailTextView(email);
+                /* Under email text. */
+                TextView householdTextView = getIndividualHouseholdTextView(getResources().getText(R.string.household).toString());
+                /* Add all items to tableRow. */
+                TableRow tableRow = getTableRow();
+                tableRow.addView(householdEmailView);
+                TableRow underRow = getTableRow();
+                underRow.addView(householdTextView);
+                tableLayout.addView(underRow);
+            }
+        }
+        /* Add address to the view. */
+        tableLayout.addView(getBorderView());
+        if(member.getStreetAddress() != null && member.getStreetAddress().length() > 0) {
+            try {
+                /* Get address and encode it. */
+                final String strAddress = member.getStreetAddress();
+                final String encodedAddress = URLEncoder.encode(strAddress, "UTF-8");
+                TextView textView = getEmailTextView(member.getStreetAddress());
+                textView.setPadding(45, 30, 0, 20);
+                textView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.marker_pin_blue, 0, 0, 0);
+                Linkify.addLinks(textView, Linkify.MAP_ADDRESSES);
+                /* Set the onclick listener. */
+                textView.setMovementMethod(LinkMovementMethod.getInstance());
+                textView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        initGoogleMap(encodedAddress);
+                    }
+                });
+                /* Add items to tablerow and then table. */
+                TableRow tableRow = getTableRow();
+                tableRow.addView(textView);
+                tableLayout.addView(tableRow);
+            } catch (Error | UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        } else {
+            /* Add no address information. */
+            TextView textView = getNoDataTextView(getResources().getText(R.string.no_address).toString());
+            TableRow tableRow = getTableRow();
+            tableRow.addView(textView);
+            tableLayout.addView(tableRow);
+        }
+    }
+
+    /* Phone Number link. */
+    private TextView getPhoneTextView(String content) {
+        TextView textView = getTextView(content);
+        TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT);
+        layoutParams.weight = 20f;
+        layoutParams.gravity = Gravity.CENTER_VERTICAL;
+        Linkify.addLinks(textView, Linkify.PHONE_NUMBERS);
+        textView.setLayoutParams(layoutParams);
+        textView.setPadding(45, 30, 0, 0);
+        textView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.phone_blue, 0, 0, 0);
+        textView.setCompoundDrawablePadding(30);
+        return textView;
+    }
+
+    /* The SMS Text Message button next to the phone number. */
+    private ImageButton getPhoneImageButton(final String content) {
+        ImageButton imageButton = new ImageButton(this.getContext());
+        TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT);
+        layoutParams.weight = 0f;
+        layoutParams.gravity = Gravity.CENTER_VERTICAL;
+        imageButton.setLayoutParams(layoutParams);
+        imageButton.setBackgroundColor(getResources().getColor(R.color.ldstools_white));
+        imageButton.setContentDescription("sms message");
+        imageButton.setPadding(0,30,30, 0);
+        imageButton.setImageResource(R.drawable.sms_blue);
+        if(content != null && content.length() > 0) {
+            imageButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    sendSMS(content);
+                }
+            });
+        }
+        return imageButton;
+    }
+
+    /* Email link text View. */
+    private TextView getEmailTextView(String content) {
+        TextView textView = getTextView(content);
+        TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT);
+        layoutParams.weight = 1;
+        Linkify.addLinks(textView, Linkify.EMAIL_ADDRESSES);
+        textView.setLayoutParams(layoutParams);
+        textView.setPadding(45, 30, 0, 0);
+        textView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.mail_blue, 0, 0, 0);
+        textView.setCompoundDrawablePadding(30);
+        return textView;
+    }
+
+    /* Underneath text showing Individual or Household. */
+    private TextView getIndividualHouseholdTextView(String content) {
+        TextView textView = getTextView(content);
+        TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT);
+        layoutParams.weight = 1f;
+        textView.setLayoutParams(layoutParams);
+        textView.setPadding(160, 0, 0, 20);
+        textView.setTextColor(getResources().getColor(R.color.ldstools_gray_light));
+        return textView;
+    }
+
+    /* Generic TableRow. */
+    private TableRow getTableRow() {
+        return new TableRow(this.getContext());
+    }
+
+    /* Generic TextView creation. */
+    private TextView getTextView(String content) {
+       TextView textView = new TextView(this.getContext());
+        textView.setEms(30);
+        textView.setTextColor(getResources().getColor(R.color.ldstools_black));
+        if(content != null && !content.isEmpty()) {
+            textView.setText(content);
+        }
+        return textView;
+    }
+
+    /* TextView for no data. */
+    private TextView getNoDataTextView(String content) {
+        TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT);
+        layoutParams.gravity = Gravity.CENTER_HORIZONTAL;
+        TextView textView = getTextView(content);
+        textView.setLayoutParams(layoutParams);
+        textView.setPadding(25, 30, 0, 30);
+        return textView;
+    }
+
+    /* Separating horizontal border. */
+    private View getBorderView() {
+        View view = new View(this.getContext());
+        TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, 1);
+        view.setLayoutParams(layoutParams);
+        view.setBackgroundColor(getResources().getColor(R.color.ldstools_gray_light));
+        return view;
     }
 }
