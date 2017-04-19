@@ -13,6 +13,7 @@ import com.android.volley.Response;
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.display.adapters.MemberSearchAdapter;
 import org.ldscd.callingworkflow.model.Member;
+import org.ldscd.callingworkflow.web.DataManager;
 import org.ldscd.callingworkflow.web.IWebResources;
 import org.ldscd.callingworkflow.web.MemberData;
 
@@ -43,10 +44,7 @@ public class CallingDetailSearchFragment extends android.support.v4.app.Fragment
     AutoCompleteTextView memberLookup;
 
     @Inject
-    IWebResources webResources;
-
-    @Inject
-    MemberData memberData;
+    DataManager dataManager;
 
     private OnFragmentInteractionListener mListener;
 
@@ -116,7 +114,7 @@ public class CallingDetailSearchFragment extends android.support.v4.app.Fragment
         }
         if(individualId > 0) {
             final ArrayList<Member> memberList = new ArrayList<>();
-            webResources.getWardList(new Response.Listener<List<Member>>() {
+            dataManager.getWardList(new Response.Listener<List<Member>>() {
                 @Override
                 public void onResponse(List<Member> members) {
                     memberList.addAll(members);
@@ -133,7 +131,7 @@ public class CallingDetailSearchFragment extends android.support.v4.app.Fragment
                     mListener.onFragmentInteraction(selected.getIndividualId());
                 }
             });
-            final String name = memberData.getMemberName(individualId);
+            final String name = dataManager.getMemberName(individualId);
             if(name != null && name.length() > 0) {
                 memberLookup.postDelayed(new Runnable() {
                     @Override

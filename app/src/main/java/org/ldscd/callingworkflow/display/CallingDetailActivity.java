@@ -21,6 +21,7 @@ import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.services.GoogleDataService;
 import org.ldscd.callingworkflow.web.CallingData;
+import org.ldscd.callingworkflow.web.DataManager;
 import org.ldscd.callingworkflow.web.MemberData;
 
 import java.util.ArrayList;
@@ -37,11 +38,7 @@ import javax.inject.Inject;
  */
 public class CallingDetailActivity extends AppCompatActivity implements CallingDetailSearchFragment.OnFragmentInteractionListener {
     @Inject
-    CallingData callingData;
-    @Inject
-    MemberData memberData;
-    @Inject
-    GoogleDataService googleDataServices;
+    DataManager dataManager;
 
     Spinner statusDropdown;
     TextView notes;
@@ -119,7 +116,7 @@ public class CallingDetailActivity extends AppCompatActivity implements CallingD
             hasChanges = true;
         }
         if(hasChanges) {
-            googleDataServices.saveFile(new Response.Listener<Boolean>() {
+            dataManager.saveFile(new Response.Listener<Boolean>() {
                 @Override
                 public void onResponse(Boolean response) {
 
@@ -129,10 +126,10 @@ public class CallingDetailActivity extends AppCompatActivity implements CallingD
     }
 
     private void hydrateCalling(String callingId) {
-        calling = callingData.getCalling(callingId);
+        calling = dataManager.getCalling(callingId);
         if(calling != null) {
             final TextView currentlyCalled = (TextView)findViewById(R.id.calling_detail_currently_called);
-            String name = memberData.getMemberName(calling.getMemberId());
+            String name = dataManager.getMemberName(calling.getMemberId());
             currentlyCalled.setText(name);
             TextView notes = (TextView) findViewById(R.id.notes_calling_detail);
             if(calling.getNotes() != null && calling.getNotes().length() > 0) {
@@ -146,7 +143,7 @@ public class CallingDetailActivity extends AppCompatActivity implements CallingD
     private void hydrateOrg(long orgId) {
         final List<Org> orgs = new ArrayList<>();
         //TODO: get org from google drive until callingData is up to date.
-        org = callingData.getOrg(orgId);
+        org = dataManager.getOrg(orgId);
         wireUpFinalizeButton();
     }
 

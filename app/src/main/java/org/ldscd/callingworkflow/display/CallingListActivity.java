@@ -20,6 +20,7 @@ import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.display.adapters.CallingListAdapter;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.web.CallingData;
+import org.ldscd.callingworkflow.web.DataManager;
 import org.ldscd.callingworkflow.web.MemberData;
 
 import java.util.Arrays;
@@ -49,9 +50,7 @@ public class CallingListActivity extends AppCompatActivity {
     ExpandableListView callingListView;
 
     @Inject
-    CallingData callingData;
-    @Inject
-    MemberData memberData;
+    DataManager dataManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +66,7 @@ public class CallingListActivity extends AppCompatActivity {
             orgId = getIntent().getLongExtra(ARG_ORG_ID, 0) == 0  ? savedInstanceState.getLong(ARG_ORG_ID) : getIntent().getLongExtra(ARG_ORG_ID, 0);
             expandId = getIntent().getLongExtra(ARG_EXPAND_ID, 0);
             if(orgId > 0){
-                Org org = callingData.getOrg(orgId);
+                Org org = dataManager.getOrg(orgId);
                 getSupportActionBar().setTitle(org.getOrgName());
                 getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             } else {
@@ -92,9 +91,9 @@ public class CallingListActivity extends AppCompatActivity {
     }
 
     private void setupListView(@NonNull final ExpandableListView callingListView) {
-        final Org org = callingData.getOrg(getIntent().getLongExtra(ARG_ORG_ID, 0));
+        final Org org = dataManager.getOrg(getIntent().getLongExtra(ARG_ORG_ID, 0));
         FragmentManager fragmentManager = twoPane ? getSupportFragmentManager() : null;
-        ExpandableListAdapter adapter = new CallingListAdapter(org, memberData, twoPane, fragmentManager, activity);
+        ExpandableListAdapter adapter = new CallingListAdapter(org, dataManager, twoPane, fragmentManager, activity);
         callingListView.setAdapter(adapter);
 
         //expand subOrg if expandId was provided

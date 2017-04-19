@@ -12,6 +12,7 @@ import org.ldscd.callingworkflow.model.Member;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.services.GoogleDataService;
 import org.ldscd.callingworkflow.web.CallingData;
+import org.ldscd.callingworkflow.web.DataManager;
 import org.ldscd.callingworkflow.web.MemberData;
 
 import java.util.List;
@@ -22,15 +23,10 @@ public class SplashActivity extends AppCompatActivity {
 
     protected ProgressBar pb;
     private boolean orgDataFinished = false;
-    private boolean memberDataFinished = false;
+    private boolean dataManagerFinished = false;
 
     @Inject
-    GoogleDataService googleDataService;
-
-    @Inject
-    CallingData callingData;
-    @Inject
-    MemberData memberData;
+    DataManager dataManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,15 +35,15 @@ public class SplashActivity extends AppCompatActivity {
         setContentView(R.layout.activity_splash);
          pb = (ProgressBar) findViewById(R.id.progress_bar_splash);
         pb.setProgress(10);
-        callingData.loadOrgs(orgListener, pb, this);
-        memberData.loadMembers(memberListener, pb);
+        dataManager.loadOrgs(orgListener, pb, this);
+        dataManager.loadMembers(memberListener, pb);
     }
 
     @Override
     protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
-            callingData.loadOrgs(orgListener, pb, this);
+            dataManager.loadOrgs(orgListener, pb, this);
         }
     }
 
@@ -56,7 +52,7 @@ public class SplashActivity extends AppCompatActivity {
         public void onResponse(Boolean response) {
             if (response) {
                 orgDataFinished = true;
-                if(memberDataFinished) {
+                if(dataManagerFinished) {
                     startApplication();
                 }
             }
@@ -66,7 +62,7 @@ public class SplashActivity extends AppCompatActivity {
         @Override
         public void onResponse(Boolean response) {
             if (response) {
-                memberDataFinished = true;
+                dataManagerFinished = true;
                 if(orgDataFinished) {
                     startApplication();
                 }

@@ -48,4 +48,8 @@ public class MemberData {
     public Member getMember(long individualId) {
         return membersByIndividualId.get(individualId);
     }
+
+    public void getMembers(Response.Listener<List<Member>> listener) {
+        listener.onResponse(this.members);
+    }
 }

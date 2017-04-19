@@ -20,6 +20,7 @@ import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.display.adapters.OrgListAdapter;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.web.CallingData;
+import org.ldscd.callingworkflow.web.DataManager;
 
 import java.util.List;
 
@@ -49,7 +50,7 @@ public class OrgListActivity extends AppCompatActivity
     AppCompatActivity activity = this;
 
     @Inject
-    CallingData callingData;
+    DataManager dataManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,7 +85,7 @@ public class OrgListActivity extends AppCompatActivity
     }
 
     private void setupRecyclerView(@NonNull final RecyclerView recyclerView) {
-        List<Org> orgs = callingData.getOrgs();
+        List<Org> orgs = dataManager.getOrgs();
         FragmentManager fragmentManager = twoPane ? getSupportFragmentManager() : null;
         recyclerView.setAdapter(new OrgListAdapter(orgs, twoPane, fragmentManager));
     }

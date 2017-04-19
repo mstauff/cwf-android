@@ -16,6 +16,7 @@ import org.ldscd.callingworkflow.display.CallingListActivity;
 import org.ldscd.callingworkflow.display.CreateCallingActivity;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Org;
+import org.ldscd.callingworkflow.web.DataManager;
 import org.ldscd.callingworkflow.web.MemberData;
 
 import java.util.List;
@@ -25,16 +26,16 @@ public class CallingListAdapter extends BaseExpandableListAdapter {
     private Org org;
     private List<Org> subOrgs;
     private List<Calling> callings;
-    private MemberData memberData;
+    private DataManager dataManager;
 
     private boolean twoPane;
     private final FragmentManager fragmentManager;
 
-    public CallingListAdapter(Org org, MemberData memberData, boolean twoPane, FragmentManager fragmentManager, Context ctx) {
+    public CallingListAdapter(Org org, DataManager dataManager, boolean twoPane, FragmentManager fragmentManager, Context ctx) {
         this.org = org;
         subOrgs = org.getChildren();
         callings = org.getCallings();
-        this.memberData = memberData;
+        this.dataManager = dataManager;
         this.ctx = ctx;
         this.twoPane = twoPane;
         this.fragmentManager = fragmentManager;
@@ -162,7 +163,7 @@ public class CallingListAdapter extends BaseExpandableListAdapter {
         TextView proposed = (TextView) convertView.findViewById(R.id.calling_list_proposed);
 
         callingTitle.setText(calling.getPosition().getName());
-        current.setText("(" + memberData.getMemberName(calling.getMemberId()) + ")");
+        current.setText("(" + dataManager.getMemberName(calling.getMemberId()) + ")");
         final Long currentIndividualId = calling.getProposedIndId();
         current.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -172,7 +173,7 @@ public class CallingListAdapter extends BaseExpandableListAdapter {
                 }
             }
         });
-        proposed.setText(memberData.getMemberName(calling.getProposedIndId()));
+        proposed.setText(dataManager.getMemberName(calling.getProposedIndId()));
         final Long proposedIndividualId = calling.getProposedIndId();
         proposed.setOnClickListener(new View.OnClickListener() {
             @Override

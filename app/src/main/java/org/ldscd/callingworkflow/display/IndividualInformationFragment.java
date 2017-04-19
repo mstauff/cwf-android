@@ -26,7 +26,7 @@ import android.widget.Toast;
 
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.model.Member;
-import org.ldscd.callingworkflow.web.MemberData;
+import org.ldscd.callingworkflow.web.DataManager;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -37,7 +37,7 @@ public class IndividualInformationFragment extends BottomSheetDialogFragment {
 
     private static final String INDIVIDUAL_ID = "individualId";
     @Inject
-    MemberData memberData;
+    DataManager dataManager;
 
     private Member member;
 
@@ -66,7 +66,7 @@ public class IndividualInformationFragment extends BottomSheetDialogFragment {
         ((CWFApplication)getActivity().getApplication()).getNetComponent().inject(this);
         if (getArguments() != null) {
             long individualId = getArguments().getLong(INDIVIDUAL_ID);
-            member = memberData.getMember(individualId);
+            member = dataManager.getMember(individualId);
         }
     }
 

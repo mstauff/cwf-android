@@ -9,6 +9,8 @@ import dagger.Provides;
 
 import org.ldscd.callingworkflow.services.GoogleDataService;
 import org.ldscd.callingworkflow.services.GoogleDataServiceImpl;
+import org.ldscd.callingworkflow.web.DataManager;
+import org.ldscd.callingworkflow.web.DataManagerImpl.DataManagerImpl;
 import org.ldscd.callingworkflow.web.LocalFileResources;
 import org.ldscd.callingworkflow.web.IWebResources;
 
@@ -49,5 +51,11 @@ public class NetModule {
     @Singleton
     MemberData providesMemberData(IWebResources webResources) {
         return new MemberData(webResources);
+    }
+
+    @Provides
+    @Singleton
+    DataManager providesDataManagerService(CallingData callingData, MemberData memberData, GoogleDataService googleDataService) {
+        return new DataManagerImpl(callingData, memberData, googleDataService);
     }
 }
