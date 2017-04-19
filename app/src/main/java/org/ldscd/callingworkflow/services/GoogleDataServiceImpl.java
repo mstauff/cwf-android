@@ -159,15 +159,10 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
     @Override
     public void getOrgData(final Response.Listener<Org> listener, final Response.ErrorListener errorListener, final Org org) {
         fileName = DataUtil.getFileName(org);
-        // TODO: make cwFile local.
-        // TODO: get file name.
-        // get file id
-        // get file from id
-        // open file
-        // read file and create org then pass in org to listener.
-        if (metaFileMap != null) {
-            /* Get the driveId and the file from it. */
-            Metadata metadata = metaFileMap.get(fileName);
+        getOrgFromMeta(metaFileMap.get(fileName), listener, errorListener);
+
+    }
+    private void getOrgFromMeta(final Metadata metadata, final Response.Listener<Org> listener, final Response.ErrorListener errorListener) {
             if(metadata != null) {
                 DriveId driveId = metadata.getDriveId();
                 if (driveId != null) {
@@ -176,28 +171,41 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
                 /* From the drive file do invoke the call to open a fresh copy of the file from google drive. */
                 if (cwFile != null) {
                     cwFile.open(mGoogleApiClient, DriveFile.MODE_READ_ONLY, null)
-                        .setResultCallback(new ResultCallback<DriveApi.DriveContentsResult>() {
-                            @Override
-                            public void onResult(DriveApi.DriveContentsResult driveContentsResult) {
+                            .setResultCallback(new ResultCallback<DriveApi.DriveContentsResult>() {
+                                @Override
+                                public void onResult(DriveApi.DriveContentsResult driveContentsResult) {
                                 /* Read the results from the callback as content and turn it into a stream. */
-                                cwFileContent = driveContentsResult.getDriveContents();
-                                if(cwFileContent != null) {
-                                    InputStream inputStream = cwFileContent.getInputStream();
+                                    cwFileContent = driveContentsResult.getDriveContents();
+                                    if(cwFileContent != null) {
+                                        InputStream inputStream = cwFileContent.getInputStream();
                                     /* Convert the stream into a string for usability. */
-                                    String cwStr = ConflictUtil.getStringFromInputStream(inputStream);
+                                        String cwStr = ConflictUtil.getStringFromInputStream(inputStream);
                                     /* Convert the json string into an Org.  Then inject the org into the callback. */
-                                    listener.onResponse(new Gson().fromJson(cwStr, Org.class));
-                                } else {
-                                    errorListener.onErrorResponse(new VolleyError("File not found: " + org.getOrgName()));
+                                        listener.onResponse(new Gson().fromJson(cwStr, Org.class));
+                                    } else {
+                                        errorListener.onErrorResponse(new VolleyError("File not found: " + metadata.getOriginalFilename()));
+                                    }
                                 }
-                            }
-                        });
+                            });
                 }
-            }
-        } else {
-            // invoke error listener
-            Log.e(TAG, "Initial startup failed to retrieve data from Google Drive.");
+            } else {
+                // invoke error listener
+                Log.e(TAG, "Initial startup failed to retrieve data from Google Drive.");
         }
+    }
+
+    @Override
+    public void getOrgs(Response.Listener<List<Org>> listener, Response.ErrorListener errorListener) {
+        final List<Org> orgList = new ArrayList<>();
+        for(Metadata metadata : metaFileMap.values()) {
+            getOrgFromMeta(metadata, new Response.Listener<Org>() {
+                @Override
+                public void onResponse(Org response) {
+                    orgList.add(response);
+                }
+            }, errorListener);
+        }
+        listener.onResponse(orgList);
     }
 
     @Override

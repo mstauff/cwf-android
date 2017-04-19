@@ -11,6 +11,7 @@ public interface GoogleDataService {
     void init(Response.Listener<Boolean> listener, Activity activity);
 
     public void getOrgData(Response.Listener<Org> listener, Response.ErrorListener errorListener, Org org);
+    public void getOrgs(Response.Listener<List<Org>> listener, Response.ErrorListener errorListener);
     public void saveFile(final Response.Listener<Boolean> listener, final Org org);
     public void deleteFile(final Response.Listener<Boolean> listener, final Org org);
     public boolean isAuthenticated();
