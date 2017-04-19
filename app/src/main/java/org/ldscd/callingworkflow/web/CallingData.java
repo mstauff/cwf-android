@@ -142,10 +142,10 @@ public class CallingData {
             }
         }
 
-        mergeCalings(lcrOrg, cwfOrg);
+        mergeCallings(lcrOrg, cwfOrg);
     }
 
-    private void mergeCalings(Org lcrOrg, Org cwfOrg) {
+    private void mergeCallings(Org lcrOrg, Org cwfOrg) {
         List<Calling> lcrCallings = lcrOrg.getCallings();
         for(Calling cwfCalling: cwfOrg.getCallings()) {
             boolean matchFound = false;
