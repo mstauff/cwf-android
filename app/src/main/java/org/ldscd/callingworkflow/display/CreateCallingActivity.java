@@ -4,55 +4,77 @@ import android.content.Intent;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.android.volley.Response;
+
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.constants.CallingStatus;
+import org.ldscd.callingworkflow.model.Calling;
+import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.model.Position;
+import org.ldscd.callingworkflow.web.DataManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.inject.Inject;
+
 public class CreateCallingActivity extends AppCompatActivity implements CallingDetailSearchFragment.OnFragmentInteractionListener {
     public static final String PARENT_ORG_ID = "parentOrgId";
 
+    @Inject
+    DataManager dataManager;
+
+    private Org parentOrg;
     private long proposedIndividualId;
+
+    Spinner positionDropdown;
+    Spinner statusDropdown;
+    EditText notesBox;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ((CWFApplication)getApplication()).getNetComponent().inject(this);
         setContentView(R.layout.activity_create_calling);
+        long parentOrgId = getIntent().getLongExtra(PARENT_ORG_ID, 0);
+        parentOrg = dataManager.getOrg(parentOrgId);
 
         // Show the Up button in the action bar.
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setHomeAsUpIndicator(android.R.drawable.ic_menu_close_clear_cancel);
-            actionBar.setTitle(R.string.title_create_calling);
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setHomeAsUpIndicator(android.R.drawable.ic_menu_close_clear_cancel);
+        actionBar.setTitle(R.string.title_create_calling);
+
+        if(parentOrg != null) {
+            //Position Dropdown
+            List<Position> potentialPositions = parentOrg.potentialNewPositions();
+            positionDropdown = (Spinner) findViewById(R.id.new_calling_position_dropdown);
+            ArrayAdapter positionAdapter = new ArrayAdapter<Position>(this, android.R.layout.simple_list_item_1, potentialPositions);
+            positionDropdown.setAdapter(positionAdapter);
         }
 
-        //Position Dropdown
-        List<Position> samplePositions = new ArrayList<>();
-        samplePositions.add(new Position("Primary Teacher",0, false, true));
-        samplePositions.add(new Position("Relief Society Pianist",1, false, true));
-        samplePositions.add(new Position("Ward Choir Director",2, false, true));
-        Spinner positionDropdown = (Spinner) findViewById(R.id.new_calling_position_dropdown);
-        ArrayAdapter positionAdapter = new ArrayAdapter<Position>(this, android.R.layout.simple_list_item_1, samplePositions);
-        positionDropdown.setAdapter(positionAdapter);
-
         //Status Dropdown
-        List<CallingStatus> status = new ArrayList(Arrays.asList(CallingStatus.values()));
-        Spinner statusDropdown = (Spinner) findViewById(R.id.new_calling_status_dropdown);
-        ArrayAdapter statusAdapter = new ArrayAdapter<CallingStatus>(this, android.R.layout.simple_list_item_1, status);
+        List<CallingStatus> statusOptions = new ArrayList(Arrays.asList(CallingStatus.values()));
+        statusDropdown = (Spinner) findViewById(R.id.new_calling_status_dropdown);
+        ArrayAdapter statusAdapter = new ArrayAdapter<CallingStatus>(this, android.R.layout.simple_list_item_1, statusOptions);
         statusDropdown.setAdapter(statusAdapter);
 
+        //notes editbox
+        notesBox = (EditText) findViewById(R.id.new_calling_notes);
+
         //Member Lookup
-        if(savedInstanceState == null) {
+        if (savedInstanceState == null) {
             CallingDetailSearchFragment searchFragment = new CallingDetailSearchFragment();
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.new_calling_search_container, searchFragment)
@@ -74,9 +96,23 @@ public class CreateCallingActivity extends AppCompatActivity implements CallingD
             finish();
             return true;
         } else if(id == R.id.confirm_action) {
-            Toast toast = Toast.makeText(getApplicationContext(), R.string.new_calling_saved, Toast.LENGTH_SHORT);
-            toast.show();
-            finish();
+            Position position = (Position)positionDropdown.getSelectedItem();
+            String status = ((CallingStatus)statusDropdown.getSelectedItem()).getStatus();
+            String notes = notesBox.getText().toString();
+            Calling calling = new Calling(null, null, null, proposedIndividualId, null, position, null, status, notes, null, parentOrg.getId());
+            dataManager.saveCalling(new Response.Listener<Boolean>() {
+                @Override
+                public void onResponse(Boolean success) {
+                    if(success) {
+                        Toast toast = Toast.makeText(getApplicationContext(), R.string.new_calling_saved, Toast.LENGTH_SHORT);
+                        toast.show();
+                        finish();
+                    } else {
+                        Toast toast = Toast.makeText(getApplicationContext(), R.string.new_calling_failed, Toast.LENGTH_SHORT);
+                        toast.show();
+                    }
+                }
+            }, calling);
             return true;
         }
         return super.onOptionsItemSelected(item);

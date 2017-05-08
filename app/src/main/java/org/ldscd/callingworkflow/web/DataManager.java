@@ -24,4 +24,5 @@ public interface DataManager {
     public void loadMembers(Response.Listener<Boolean> listener, ProgressBar progressBar);
     /* Google data. */
     public void saveFile(Response.Listener<Boolean> listener, Org org);
+    public void saveCalling(Response.Listener<Boolean> listener, Calling calling);
 }
