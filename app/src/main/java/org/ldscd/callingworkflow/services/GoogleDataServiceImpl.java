@@ -23,10 +23,14 @@ import com.google.android.gms.drive.Metadata;
 import com.google.android.gms.drive.MetadataChangeSet;
 import com.google.gson.Gson;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.ldscd.callingworkflow.google.ConflictUtil;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.utils.DataUtil;
+import org.ldscd.callingworkflow.web.OrgsListRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -181,7 +185,24 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
                                     /* Convert the stream into a string for usability. */
                                         String cwStr = ConflictUtil.getStringFromInputStream(inputStream);
                                     /* Convert the json string into an Org.  Then inject the org into the callback. */
-                                        listener.onResponse(new Gson().fromJson(cwStr, Org.class));
+                                    OrgsListRequest orgsListRequest = new OrgsListRequest(null, null, null, null);
+                                        JSONArray jsonArray = null;
+                                        JSONObject jsonObject = null;
+                                        List<Org> orgs = null;
+                                        try {
+                                            jsonObject = new JSONObject(cwStr);
+                                            jsonArray = new JSONArray();
+                                            jsonArray.put(jsonObject);
+                                            orgs = orgsListRequest.extractOrgs(jsonArray);
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        }
+                                        if(orgs != null && orgs.size() > 0) {
+                                            listener.onResponse(orgs.get(0));
+                                        } else {
+                                            listener.onResponse(null);
+                                        }
+
                                     } else {
                                         errorListener.onErrorResponse(new VolleyError("File not found: " + metadata.getOriginalFilename()));
                                     }

@@ -38,6 +38,7 @@ dependencies {
     compile "com.google.android.gms:play-services-drive:${googlePlayServiceVersion}"
     compile "com.google.android.gms:play-services-auth:${googlePlayServiceVersion}"
     compile "com.android.support:support-annotations:${androidVersion}"
+    compile 'joda-time:joda-time:2.9.9'
 
     /* Test dependencies */
     def espressoVersion = "2.2.2"

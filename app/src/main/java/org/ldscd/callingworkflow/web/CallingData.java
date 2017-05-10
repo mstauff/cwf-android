@@ -120,80 +120,82 @@ public class CallingData {
     }
 
     private void mergeOrgs(Org lcrOrg, Org cwfOrg) {
-
-        for(Org cwfSubOrg: cwfOrg.getChildren()) {
-            boolean matchFound = false;
-            for(Org lcrSubOrg: lcrOrg.getChildren()) {
-                if (cwfSubOrg.equals(lcrSubOrg)) {
-                    //org exists in both lists, merge children recursively
-                    mergeOrgs(lcrSubOrg, cwfSubOrg);
-                    if (lcrSubOrg.hasUnsavedChanges()) {
-                        lcrOrg.setHasUnsavedChanges(true);
+        if(cwfOrg != null && cwfOrg.getChildren() != null) {
+            for (Org cwfSubOrg : cwfOrg.getChildren()) {
+                boolean matchFound = false;
+                for (Org lcrSubOrg : lcrOrg.getChildren()) {
+                    if (cwfSubOrg.equals(lcrSubOrg)) {
+                        //org exists in both lists, merge children recursively
+                        mergeOrgs(lcrSubOrg, cwfSubOrg);
+                        if (lcrSubOrg.hasUnsavedChanges()) {
+                            lcrOrg.setHasUnsavedChanges(true);
+                        }
+                        matchFound = true;
+                        break;
                     }
-                    matchFound = true;
-                    break;
+                }
+
+                if (!matchFound) {
+                    //org exists in cwf but not lcr, flag and add to list
+                    cwfSubOrg.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
+                    lcrOrg.getChildren().add(cwfSubOrg);
                 }
             }
-
-            if(!matchFound) {
-                //org exists in cwf but not lcr, flag and add to list
-                cwfSubOrg.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
-                lcrOrg.getChildren().add(cwfSubOrg);
-            }
         }
-
         mergeCallings(lcrOrg, cwfOrg);
     }
 
     private void mergeCallings(Org lcrOrg, Org cwfOrg) {
         List<Calling> lcrCallings = lcrOrg.getCallings();
-        for(Calling cwfCalling: cwfOrg.getCallings()) {
-            boolean matchFound = false;
+        if(cwfOrg != null && cwfOrg.getCallings() != null) {
+            for (Calling cwfCalling : cwfOrg.getCallings()) {
+                boolean matchFound = false;
 
-            //Check for a match by Id, if so import cwf data
-            for(Calling lcrCalling: lcrCallings) {
-                if (cwfCalling.equals(lcrCalling)) {
-                    lcrCalling.importCWFData(cwfCalling);
-                    matchFound = true;
-                    break;
-                }
-            }
-
-            if(!matchFound) {
-                //Ids don't match so check for position matches
-                List<Calling> positionMatches = new ArrayList<>();
-                for(Calling lcrCalling: lcrCallings) {
-                    if(lcrCalling.getPosition().equals(cwfCalling.getPosition())) {
-                        positionMatches.add(lcrCalling);
-                    }
-                }
-                //no matches, we'll mark it as deleted and add it to the list
-                if(positionMatches.size() == 0) {
-                    //if there's no id than it didn't exist in lcr to begin with and shouldn't be marked
-                    if(cwfCalling.getId() != null) {
-                        cwfCalling.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
-                    }
-                    lcrCallings.add(cwfCalling);
-                }
-                //exactly one match so we'll check and copy proposed data if it doesn't match the new current id
-                else if(positionMatches.size() == 1) {
-                    Calling lcrCalling = positionMatches.get(0);
-                    if(cwfCalling.getProposedIndId() != null && !cwfCalling.getProposedIndId().equals(lcrCalling.getMemberId())) {
+                //Check for a match by Id, if so import cwf data
+                for (Calling lcrCalling : lcrCallings) {
+                    if (cwfCalling.equals(lcrCalling)) {
                         lcrCalling.importCWFData(cwfCalling);
+                        matchFound = true;
+                        break;
                     }
                 }
-                //multiple matches by position type, if the potential id matches any current ids we'll mark it as changed and add it otherwise we'll mark it as deleted and add it
-                else if(positionMatches.size() > 1) {
-                    if(cwfCalling.getId() != null) {
-                        cwfCalling.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
-                    }
-                    for(Calling lcrCalling: positionMatches) {
-                        if(cwfCalling.getProposedIndId() != null && cwfCalling.getProposedIndId().equals(lcrCalling.getMemberId())) {
-                            cwfCalling.setConflictCause(ConflictCause.EQUIVALENT_POTENTIAL_AND_ACTUAL);
-                            break;
+
+                if (!matchFound) {
+                    //Ids don't match so check for position matches
+                    List<Calling> positionMatches = new ArrayList<>();
+                    for (Calling lcrCalling : lcrCallings) {
+                        if (lcrCalling.getPosition().equals(cwfCalling.getPosition())) {
+                            positionMatches.add(lcrCalling);
                         }
                     }
-                    lcrCallings.add(cwfCalling);
+                    //no matches, we'll mark it as deleted and add it to the list
+                    if (positionMatches.size() == 0) {
+                        //if there's no id than it didn't exist in lcr to begin with and shouldn't be marked
+                        if (cwfCalling.getId() != null) {
+                            cwfCalling.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
+                        }
+                        lcrCallings.add(cwfCalling);
+                    }
+                    //exactly one match so we'll check and copy proposed data if it doesn't match the new current id
+                    else if (positionMatches.size() == 1) {
+                        Calling lcrCalling = positionMatches.get(0);
+                        if (cwfCalling.getProposedIndId() != null && !cwfCalling.getProposedIndId().equals(lcrCalling.getMemberId())) {
+                            lcrCalling.importCWFData(cwfCalling);
+                        }
+                    }
+                    //multiple matches by position type, if the potential id matches any current ids we'll mark it as changed and add it otherwise we'll mark it as deleted and add it
+                    else if (positionMatches.size() > 1) {
+                        if (cwfCalling.getId() != null) {
+                            cwfCalling.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
+                        }
+                        for (Calling lcrCalling : positionMatches) {
+                            if (cwfCalling.getProposedIndId() != null && cwfCalling.getProposedIndId().equals(lcrCalling.getMemberId())) {
+                                cwfCalling.setConflictCause(ConflictCause.EQUIVALENT_POTENTIAL_AND_ACTUAL);
+                                break;
+                            }
+                        }
+                        lcrCallings.add(cwfCalling);
+                    }
                 }
             }
         }

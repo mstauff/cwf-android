@@ -81,8 +81,8 @@ public class CallingListAdapter extends BaseExpandableListAdapter {
             Org subOrg = (Org) getGroup(index);
             return subOrg.getId();
         } else {
-            Calling calling = (Calling) getGroup(index);
-            return calling.getId();
+            //Calling calling = (Calling) getGroup(index);
+            return 0;
         }
     }
 

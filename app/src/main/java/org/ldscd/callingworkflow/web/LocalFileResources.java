@@ -1,8 +1,6 @@
 package org.ldscd.callingworkflow.web;
 
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.util.Base64;
 import android.util.Log;
 
 import com.android.volley.RequestQueue;
@@ -15,22 +13,11 @@ import org.json.JSONObject;
 import org.ldscd.callingworkflow.model.ConfigInfo;
 import org.ldscd.callingworkflow.model.Member;
 import org.ldscd.callingworkflow.model.Org;
-import org.ldscd.callingworkflow.web.IWebResources;
-import org.ldscd.callingworkflow.web.MemberListRequest;
-import org.ldscd.callingworkflow.web.OrgsListRequest;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.PBEParameterSpec;
 
 /**
  * Service class to interact with assets files within application project.
@@ -91,9 +78,8 @@ public class LocalFileResources implements IWebResources {
         OrgsListRequest orgsListRequest = new OrgsListRequest(null, null, null, null);
         List<Org> orgs = new ArrayList<>();
         try {
-            String json = getJSONFromAssets("cwf-object.json");
-            JSONArray jsonArray = new JSONArray();
-            jsonArray.put(new JSONObject(json).getJSONObject("orgWithCallingsInSubOrg"));
+            String json = getJSONFromAssets("org-callings.json");
+            JSONArray jsonArray = new JSONArray(json);
             orgs = orgsListRequest.extractOrgs(jsonArray);
         } catch (JSONException e) {
             e.printStackTrace();

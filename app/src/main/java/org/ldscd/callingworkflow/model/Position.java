@@ -8,15 +8,15 @@ public class Position {
     private String name;
     private int positionTypeId;
     private Boolean hidden;
-    private Boolean multiplesAllowed;
+    private Boolean allowMultiple;
 
     /* Constructors */
     public Position() {}
-    public Position(String name, int positionTypeId, Boolean hidden, Boolean multiplesAllowed) {
+    public Position(String name, int positionTypeId, Boolean hidden, Boolean allowMultiple) {
         this.name = name;
         this.positionTypeId = positionTypeId;
         this.hidden = hidden;
-        this.multiplesAllowed = multiplesAllowed;
+        this.allowMultiple = allowMultiple;
     }
 
     /* Properties */
@@ -33,11 +33,11 @@ public class Position {
         this.hidden = hidden;
     }
 
-    public Boolean getMultiplesAllowed() {
-        return multiplesAllowed;
+    public Boolean getAllowMultiple() {
+        return allowMultiple;
     }
-    public void setMultiplesAllowed(Boolean multiplesAllowed) {
-        this.multiplesAllowed = multiplesAllowed;
+    public void setAllowMultiple(Boolean allowMultiple) {
+        this.allowMultiple = allowMultiple;
     }
 
     public String toString() { return name; }

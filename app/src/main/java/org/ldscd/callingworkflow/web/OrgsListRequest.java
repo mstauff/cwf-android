@@ -1,7 +1,5 @@
 package org.ldscd.callingworkflow.web;
 
-import android.util.Log;
-
 import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkResponse;
 import com.android.volley.ParseError;
@@ -9,6 +7,9 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.toolbox.HttpHeaderParser;
 
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,10 +18,7 @@ import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.model.Position;
 
 import java.io.UnsupportedEncodingException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -31,7 +29,7 @@ public class OrgsListRequest extends Request<List<Org>> {
     private static final String positionCwfIdFieldName = "cwfId";
     private static final String defaultNameFieldName = "defaultOrgName";
     private static final String customNameFieldName = "customOrgName";
-    private static final String orgTypeIdFieldName = "orgTypeId";
+    private static final String orgTypeIdFieldName = "firstOrgTypeId";
     private static final String displayOrderFieldName = "displayOrder";
     private static final String childrenArrayName = "children";
     private static final String callingArrayName = "callings";
@@ -48,7 +46,7 @@ public class OrgsListRequest extends Request<List<Org>> {
     private static final String positionFieldName = "position";
     private static final String multiplesAllowedFieldName = "allowMultiple";
 
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
     private final Response.Listener<List<Org>> listener;
     private Map<String, String> headers;
 
@@ -105,7 +103,7 @@ public class OrgsListRequest extends Request<List<Org>> {
         } else {
             name = orgJson.getString(customNameFieldName);
         }
-        int typeId = orgJson.getInt(orgTypeIdFieldName);
+        int typeId = orgJson.has(orgTypeIdFieldName) ? orgJson.getInt(orgTypeIdFieldName) : orgJson.getInt("orgTypeId");
         int order = orgJson.getInt(displayOrderFieldName);
 
         JSONArray childOrgsJson = orgJson.getJSONArray(childrenArrayName);
@@ -145,33 +143,29 @@ public class OrgsListRequest extends Request<List<Org>> {
             position.setName(null);
         }
         if(!json.isNull(multiplesAllowedFieldName)) {
-            position.setMultiplesAllowed(json.getBoolean(multiplesAllowedFieldName));
+            position.setAllowMultiple(json.getBoolean(multiplesAllowedFieldName));
         }
-        String existingStatus = json.getString(existingStatusFieldName);
-        if(existingStatus.equals("null")) {
+        String existingStatus = json.has(existingStatusFieldName) ? json.getString(existingStatusFieldName) : null;
+        if(existingStatus != null && existingStatus.equals("null")) {
             existingStatus = null;
         }
-        Date activeDate = null;
-        if(!json.isNull(activeDateFieldName)) {
-            try {
-                activeDate = dateFormat.parse(json.getString(activeDateFieldName));
-            } catch (ParseException e) {
-                Log.e("OrgsListRequest", "Error parsing active date: " + json.getString(activeDateFieldName));
-            }
+        DateTime activeDate = null;
+        if(json.has(activeDateFieldName) && !json.getString(activeDateFieldName).equals("null")) {
+            activeDate = fmt.parseDateTime(json.getString(activeDateFieldName));
         }
         if(!json.isNull(hiddenFieldName)) {
             position.setHidden(json.getBoolean(hiddenFieldName));
         }
-        String proposedStatus = json.getString(proposedStatusFieldName);
-        if(proposedStatus.equals("null")) {
+        String proposedStatus = json.has(proposedStatusFieldName) ? json.getString(proposedStatusFieldName) : null;
+        if(proposedStatus != null && proposedStatus.equals("null")) {
             proposedStatus = null;
         }
         long proposedIndId = 0;
         if(!json.isNull(proposedIndIdFieldName)) {
             proposedIndId = json.getLong(proposedIndIdFieldName);
         }
-        String notes = json.getString(notesFieldName);
-        if(notes.equals("null")) {
+        String notes = json.has(notesFieldName) ? json.getString(notesFieldName) : null;
+        if(notes != null && notes.equals("null")) {
             notes = null;
         }
         boolean editableByOrg = false;

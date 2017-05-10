@@ -2,9 +2,9 @@ package org.ldscd.callingworkflow.model;
 
 import com.google.gson.annotations.Expose;
 
+import org.joda.time.DateTime;
 import org.ldscd.callingworkflow.constants.ConflictCause;
 
-import java.util.Date;
 import java.util.UUID;
 
 /**
@@ -18,7 +18,7 @@ public class Calling {
     private String cwfId;
     private Long memberId;
     private Long proposedIndId;
-    private Date activeDate;
+    private DateTime activeDate;
     private Position position;
     private String existingStatus;
     private String proposedStatus;
@@ -32,7 +32,7 @@ public class Calling {
     /* Constructors */
     public Calling() {}
 
-    public Calling(Long id, String cwfId, Long memberId, Long proposedIndId, Date activeDate, Position position,
+    public Calling(Long id, String cwfId, Long memberId, Long proposedIndId, DateTime activeDate, Position position,
                    String existingStatus, String proposedStatus, String notes, Boolean editableByOrg, Long parentOrg) {
         this.id = id;
         /* If we don't have a unique id then we create an internal one. */
@@ -102,8 +102,8 @@ public class Calling {
         this.editableByOrg = editableByOrg;
     }
 
-    public Date getActiveDate() { return activeDate; }
-    public void setActiveDate(Date activeDate) { this.activeDate = activeDate; }
+    public DateTime getActiveDate() { return activeDate; }
+    public void setActiveDate(DateTime activeDate) { this.activeDate = activeDate; }
 
     public Position getPosition() {
         return position;

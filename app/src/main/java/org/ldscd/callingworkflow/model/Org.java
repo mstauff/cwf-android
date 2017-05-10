@@ -123,7 +123,7 @@ public class Org {
         }
         List<Position> potentialPositions = new ArrayList<>();
         for(Position position : this.positions) {
-            if(position.getMultiplesAllowed() || !existingPositionTypeIds.contains(position.getPositionTypeId())) {
+            if(position.getAllowMultiple() || !existingPositionTypeIds.contains(position.getPositionTypeId())) {
                 potentialPositions.add(position);
             }
         }
