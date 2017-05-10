@@ -1,6 +1,7 @@
 package org.ldscd.callingworkflow.web.DataManagerImpl;
 
 import android.app.Activity;
+import android.util.Log;
 import android.widget.ProgressBar;
 
 import com.android.volley.Response;
@@ -18,6 +19,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 public class DataManagerImpl implements DataManager {
+    private static final String TAG = "DataManager";
     /* Properties */
     private CallingData callingData;
     private MemberData memberData;
@@ -44,7 +46,11 @@ public class DataManagerImpl implements DataManager {
     }
     /* Member data. */
     public String getMemberName(Long id) {
-        return memberData.getMemberName(id);
+        if(id != null) {
+            return memberData.getMemberName(id);
+        } else {
+            return "";
+        }
     }
     public void getWardList(Response.Listener<List<Member>> listener) {
         memberData.getMembers(listener);
@@ -59,5 +65,21 @@ public class DataManagerImpl implements DataManager {
     /* Google data. */
     public void saveFile(Response.Listener<Boolean> listener, Org org) {
         googleDataService.saveFile(listener, org);
+    }
+    /* Calling and Google Data */
+    public void saveCalling(final Response.Listener<Boolean> listener, final Calling calling) {
+        callingData.addNewCalling(calling);
+        Org baseOrg = callingData.getBaseOrg(calling.getParentOrg());
+        saveFile(new Response.Listener<Boolean>() {
+            @Override
+            public void onResponse(Boolean successGoogle) {
+                if(!successGoogle) {
+                    Log.e(TAG, "Failed to save new calling to Google");
+                    listener.onResponse(false);
+                } else {
+                    listener.onResponse(true);
+                }
+            }
+        }, baseOrg);
     }
 }

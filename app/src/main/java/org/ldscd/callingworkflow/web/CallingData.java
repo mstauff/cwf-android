@@ -28,6 +28,7 @@ public class CallingData {
     private Map<Long, Org> orgsById;
     private Map<Long, List<Calling>> callingsByOrg;
     private Map<String, Calling> callingsById;
+    private Map<Long, Org> baseOrgByOrgId;
 
     public CallingData(IWebResources webResources, GoogleDataService googleDataService) {
         this.webResources = webResources;
@@ -47,6 +48,7 @@ public class CallingData {
                             orgsById = new HashMap<Long, Org>();
                             callingsByOrg = new HashMap<Long, List<Calling>>();
                             callingsById = new HashMap<String, Calling>();
+                            baseOrgByOrgId = new HashMap<Long, Org>();
                             for (Org org : orgs) {
                                 callingsByOrg.put(org.getId(), new ArrayList<Calling>());
                                 extractOrg(org, org.getId());
@@ -86,6 +88,7 @@ public class CallingData {
 
     private void extractOrg(Org org, long baseOrgId) {
         orgsById.put(org.getId(), org);
+        baseOrgByOrgId.put(org.getId(), orgsById.get(baseOrgId));
         List<Calling> callingsList = callingsByOrg.get(baseOrgId);
         for(Calling calling: org.getCallings()) {
             callingsById.put(calling.getCallingId(), calling);
@@ -209,6 +212,10 @@ public class CallingData {
         return orgsById.get(orgId);
     }
 
+    public Org getBaseOrg(long orgId) {
+        return baseOrgByOrgId.get(orgId);
+    }
+
     //returns all callings in an org, including callings from subOrgs
     //this only works for base organizations
     public List<Calling> getCallings(long orgId) {
@@ -217,5 +224,12 @@ public class CallingData {
 
     public Calling getCalling(String callingId) {
         return callingsById.get(callingId);
+    }
+
+    public void addNewCalling(Calling calling) {
+        if(calling != null && calling.getParentOrg() != null && calling.getParentOrg() > 0) {
+            Org parentOrg = getOrg(calling.getParentOrg());
+            parentOrg.getCallings().add(calling);
+        }
     }
 }

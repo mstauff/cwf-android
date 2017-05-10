@@ -4,6 +4,8 @@ import android.app.Application;
 import android.content.Context;
 import android.test.ApplicationTestCase;
 import com.google.gson.Gson;
+
+import org.junit.runner.RunWith;
 import org.ldscd.callingworkflow.model.*;
 import org.junit.Test;
 import com.google.gson.*;

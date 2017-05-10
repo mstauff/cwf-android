@@ -144,6 +144,8 @@ public class OrgsListRequest extends Request<List<Org>> {
         }
         if(!json.isNull(multiplesAllowedFieldName)) {
             position.setAllowMultiple(json.getBoolean(multiplesAllowedFieldName));
+        } else {
+            position.setAllowMultiple(true);
         }
         String existingStatus = json.has(existingStatusFieldName) ? json.getString(existingStatusFieldName) : null;
         if(existingStatus != null && existingStatus.equals("null")) {

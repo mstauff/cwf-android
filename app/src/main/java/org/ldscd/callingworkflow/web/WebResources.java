@@ -32,6 +32,7 @@ public class WebResources implements IWebResources {
     private static final String UTF8 = "UTF-8";
     private static final String prefUsername = "username";
     private static final String prefPassword = "password";
+    private static final String ENCRYPT_TYPE = "";
 
     private RequestQueue requestQueue;
     private SharedPreferences preferences;
