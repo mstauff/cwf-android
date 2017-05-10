@@ -17,11 +17,13 @@ import org.ldscd.callingworkflow.model.Member;
 import org.ldscd.callingworkflow.model.Org;
 
 import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.PBEParameterSpec;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+
 import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,10 +31,12 @@ import java.util.Map;
 public class WebResources implements IWebResources {
     private static final String TAG = "WebResourcesLog";
     private static final String CONFIG_URL = "http://dev-ldscd.rhcloud.com/cwf/config?env=test";
-    private static final String UTF8 = "UTF-8";
     private static final String prefUsername = "username";
     private static final String prefPassword = "password";
-    private static final String ENCRYPT_TYPE = "";
+    private static final String UTF8 = "UTF-8";
+    private static final String ALGORITHM = "AES";
+    private static final String DIGEST = "SHA-1";
+    private static final String ENCRYPT_TYPE = "AES/CBC/PKCS5Padding";
 
     private RequestQueue requestQueue;
     private SharedPreferences preferences;
@@ -46,19 +50,17 @@ public class WebResources implements IWebResources {
 
     private String userName = null;
     private String password = null;
-    private char[] sKey = null;
-    private byte[] salt = null;
+    private static SecretKeySpec secretKey;
+    private static byte[] key;
+    private static byte[] iv;
+    private static String secret;
 
     public WebResources(Context context, RequestQueue requestQueue, SharedPreferences preferences) {
         this.requestQueue = requestQueue;
         this.preferences = preferences;
-        String key = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
-        sKey = key.toCharArray();
-        try {
-            salt = key.getBytes(UTF8);
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
+        secret = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+        iv = new byte[16];
+        Arrays.fill(iv, (byte) 0x00);
     }
 
     //load username and password which has been set previously
@@ -284,32 +286,44 @@ public class WebResources implements IWebResources {
         }
     }
 
-    private String encrypt( String value ) {
-
+    public static void setKey(String myKey)
+    {
+        MessageDigest sha = null;
         try {
-            final byte[] bytes = value!=null ? value.getBytes(UTF8) : new byte[0];
-            SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBEWithMD5AndDES");
-            SecretKey key = keyFactory.generateSecret(new PBEKeySpec(sKey));
-            Cipher pbeCipher = Cipher.getInstance("PBEWithMD5AndDES");
-            pbeCipher.init(Cipher.ENCRYPT_MODE, key, new PBEParameterSpec(salt, 20));
-            return new String(Base64.encode(pbeCipher.doFinal(bytes), Base64.NO_WRAP),UTF8);
-        } catch( Exception e ) {
-            throw new RuntimeException(e);
+            key = myKey.getBytes(UTF8);
+            sha = MessageDigest.getInstance(DIGEST);
+            key = sha.digest(key);
+            key = Arrays.copyOf(key, 16);
+            secretKey = new SecretKeySpec(key, ALGORITHM);
         }
-
+        catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
     }
 
-    private String decrypt(String value){
+    public static String encrypt(String value) {
         try {
-            final byte[] bytes = value!=null ? Base64.decode(value,Base64.DEFAULT) : new byte[0];
-            SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBEWithMD5AndDES");
-            SecretKey key = keyFactory.generateSecret(new PBEKeySpec(sKey));
-            Cipher pbeCipher = Cipher.getInstance("PBEWithMD5AndDES");
-            pbeCipher.init(Cipher.DECRYPT_MODE, key, new PBEParameterSpec(salt, 20));
-            return new String(pbeCipher.doFinal(bytes),UTF8);
-        } catch( Exception e) {
-            Log.e(this.getClass().getName(), "Warning, could not decrypt the value.  It may be stored in plaintext.  "+e.getMessage());
-            return value;
+            setKey(secret);
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
+            Cipher cipher = Cipher.getInstance(ENCRYPT_TYPE);
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec);
+            return Base64.encodeToString(cipher.doFinal(value.getBytes(UTF8)), Base64.DEFAULT);
+        } catch (Exception e) {
+            Log.e(TAG, "Could not encrypt the value");
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static String decrypt(String value) {
+        try {
+            setKey(secret);
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
+            Cipher cipher = Cipher.getInstance(ENCRYPT_TYPE);
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec);
+            return new String(cipher.doFinal(Base64.decode(value, Base64.DEFAULT)));
+        } catch (Exception e) {
+            Log.e(TAG, "Could not decrypt the value: " + e.getMessage());
+            return null;
         }
     }
 
