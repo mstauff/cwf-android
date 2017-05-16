@@ -161,28 +161,37 @@ public class CallingListAdapter extends BaseExpandableListAdapter {
         TextView callingTitle = (TextView) convertView.findViewById(R.id.calling_list_title);
         TextView current = (TextView) convertView.findViewById(R.id.calling_list_current);
         TextView proposed = (TextView) convertView.findViewById(R.id.calling_list_proposed);
+        TextView proposedStatus = (TextView) convertView.findViewById(R.id.calling_list_proposed_status);
 
         callingTitle.setText(calling.getPosition().getName());
-        current.setText("(" + dataManager.getMemberName(calling.getMemberId()) + ")");
-        final Long currentIndividualId = calling.getProposedIndId();
-        current.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(ctx instanceof CallingListActivity) {
-                    ((CallingListActivity)ctx).wireUpIndividualInformationFragments(currentIndividualId);
+
+        if(calling.getMemberId() != null && calling.getMemberId() > 0) {
+            current.setText("(" + dataManager.getMemberName(calling.getMemberId()) + ")");
+            final Long currentIndividualId = calling.getMemberId();
+            current.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (ctx instanceof CallingListActivity) {
+                        ((CallingListActivity) ctx).wireUpIndividualInformationFragments(currentIndividualId);
+                    }
                 }
-            }
-        });
-        proposed.setText(dataManager.getMemberName(calling.getProposedIndId()));
-        final Long proposedIndividualId = calling.getProposedIndId();
-        proposed.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(ctx instanceof CallingListActivity){
-                    ((CallingListActivity)ctx).wireUpIndividualInformationFragments(proposedIndividualId);
+            });
+        }
+        if(calling.getProposedIndId() != null && calling.getProposedIndId() > 0) {
+            proposed.setText(dataManager.getMemberName(calling.getProposedIndId()));
+            final Long proposedIndividualId = calling.getProposedIndId();
+            proposed.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (ctx instanceof CallingListActivity) {
+                        ((CallingListActivity) ctx).wireUpIndividualInformationFragments(proposedIndividualId);
+                    }
                 }
-            }
-        });
+            });
+        }
+        if(calling.getProposedStatus() != null) {
+            proposedStatus.setText("(" + calling.getProposedStatus() + ")");
+        }
 
         if(childView) {
             convertView.setPadding(50, 0, 0, 0);

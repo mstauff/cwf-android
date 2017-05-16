@@ -106,6 +106,18 @@ public class CallingListActivity extends AppCompatActivity {
             }
         }
 
+        callingListView.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
+            @Override
+            public boolean onGroupClick(ExpandableListView expandableListView, View groupView, int index, long id) {
+                if(index >= org.getChildren().size()) {
+                    //it's a calling so open detail
+                    String callingId = org.getCallings().get(index - org.getChildren().size()).getCallingId();
+                    openCallingDetail(groupView.getContext(), callingId);
+                    return true;
+                }
+                return false;
+            }
+        });
         callingListView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
             @Override
             public boolean onChildClick(ExpandableListView expandableListView, View view, int index, int subIndex, long id) {
@@ -120,26 +132,28 @@ public class CallingListActivity extends AppCompatActivity {
                     return true;
                 } else {
                     String callingId = subOrg.getCallings().get(subIndex).getCallingId();
-
-                    /*if (twoPane) {
-                        Bundle arguments = new Bundle();
-                        arguments.putString(CallingDetailFragment.ARG_ITEM_ID, holder.orgItem.id);
-                        CallingDetailFragment fragment = new CallingDetailFragment();
-                        fragment.setArguments(arguments);
-                        fragmentManager.beginTransaction()
-                                .replace(R.id.calling_detail_container, fragment)
-                                .commit();
-                    } else {*/
-                        Context context = view.getContext();
-                        Intent intent = new Intent(context, CallingDetailActivity.class);
-                        intent.putExtra(CallingDetailFragment.ARG_ITEM_ID, callingId);
-                        intent.putExtra(CallingListActivity.ARG_ORG_ID, org.getId());
-                        context.startActivity(intent);
-                        return true;
-                    //}
+                    openCallingDetail(view.getContext(), callingId);
+                    return true;
                 }
             }
         });
+    }
+    private void openCallingDetail(Context context, String callingId) {
+
+        /*if (twoPane) {
+            Bundle arguments = new Bundle();
+            arguments.putString(CallingDetailFragment.ARG_ITEM_ID, holder.orgItem.id);
+            CallingDetailFragment fragment = new CallingDetailFragment();
+            fragment.setArguments(arguments);
+            fragmentManager.beginTransaction()
+                    .replace(R.id.calling_detail_container, fragment)
+                    .commit();
+        } else {*/
+            Intent intent = new Intent(context, CallingDetailActivity.class);
+            intent.putExtra(CallingDetailFragment.ARG_ITEM_ID, callingId);
+            intent.putExtra(CallingListActivity.ARG_ORG_ID, orgId);
+            context.startActivity(intent);
+        //}
     }
 
     @Override
