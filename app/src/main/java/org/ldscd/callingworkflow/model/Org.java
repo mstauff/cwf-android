@@ -1,7 +1,5 @@
 package org.ldscd.callingworkflow.model;
 
-import com.google.gson.annotations.Expose;
-
 import org.ldscd.callingworkflow.constants.ConflictCause;
 import org.ldscd.callingworkflow.constants.Operation;
 
@@ -14,27 +12,23 @@ import java.util.List;
  */
 public class Org {
     /* Fields */
-    long id;
-    String orgName;
+    long subOrgId;
+    String defaultOrgName;
     int orgTypeId;
     int displayOrder;
     List<Org> children;
     List<Calling> callings;
-    @Expose(serialize = false, deserialize = false)
-    private HashSet<Position> positions;
-    @Expose(serialize = false, deserialize = false)
-    private List<Long> callingIds;
-    @Expose(serialize = false, deserialize = false)
-    private ConflictCause conflictCause;
-    @Expose(serialize = false, deserialize = false)
-    private boolean hasUnsavedChanges = false;
+    private transient HashSet<Position> positions;
+    private transient List<Long> callingIds;
+    private transient ConflictCause conflictCause;
+    private transient boolean hasUnsavedChanges = false;
 
     /* Constructors */
     public Org() {}
 
-    public Org(long id, String orgName, int orgTypeId, int displayOrder, List<Org> children, List<Calling> callings) {
-        this.id = id;
-        this.orgName = orgName;
+    public Org(long subOrgId, String defaultOrgName, int orgTypeId, int displayOrder, List<Org> children, List<Calling> callings) {
+        this.subOrgId = subOrgId;
+        this.defaultOrgName = defaultOrgName;
         this.orgTypeId = orgTypeId;
         this.displayOrder = displayOrder;
         this.children = children;
@@ -48,11 +42,11 @@ public class Org {
     }
 
     /* Properties */
-    public long getId() { return id; }
-    public void setId(long id) { this.id = id; }
+    public long getId() { return subOrgId; }
+    public void setId(long id) { this.subOrgId = subOrgId; }
 
-    public String getOrgName() { return  orgName; }
-    public void setOrgName(String orgName) { this.orgName = orgName; }
+    public String getDefaultOrgName() { return defaultOrgName; }
+    public void setDefaultOrgName(String defaultOrgName) { this.defaultOrgName = defaultOrgName; }
 
     public int getOrgTypeId() { return orgTypeId; }
     public void setOrgTypeId(int orgTypeId) { this.orgTypeId = orgTypeId; }
@@ -132,7 +126,7 @@ public class Org {
 
     /* Methods */
     public boolean equals(Org org) {
-        return this.id == org.id;
+        return this.subOrgId == org.subOrgId;
     }
 
     private Org updateWithCallingChange(Calling updatedCalling, Operation operation) {

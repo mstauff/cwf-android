@@ -8,6 +8,6 @@ public class DataUtil {
     static String fileExtension = ".json";
 
     public static String getFileName(Org org) {
-        return UnitLevelOrgType.get(org.getOrgTypeId()).name() + fileDelimiter + org.getId() + fileExtension;
+        return UnitLevelOrgType.get(org.getOrgTypeId()).getOrgName() + fileDelimiter + org.getId() + fileExtension;
     }
 }

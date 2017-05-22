@@ -22,6 +22,7 @@ import com.google.android.gms.drive.DriveResource;
 import com.google.android.gms.drive.Metadata;
 import com.google.android.gms.drive.MetadataChangeSet;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -29,8 +30,9 @@ import org.json.JSONObject;
 import org.ldscd.callingworkflow.google.ConflictUtil;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Org;
+import org.ldscd.callingworkflow.model.Serialize.PositionSerializer;
 import org.ldscd.callingworkflow.utils.DataUtil;
-import org.ldscd.callingworkflow.web.OrgsListRequest;
+import org.ldscd.callingworkflow.web.OrgCallingBuilder;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -185,7 +187,7 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
                                     /* Convert the stream into a string for usability. */
                                         String cwStr = ConflictUtil.getStringFromInputStream(inputStream);
                                     /* Convert the json string into an Org.  Then inject the org into the callback. */
-                                    OrgsListRequest orgsListRequest = new OrgsListRequest(null, null, null, null);
+                                    OrgCallingBuilder orgCallingBuilder = new OrgCallingBuilder();
                                         JSONArray jsonArray = null;
                                         JSONObject jsonObject = null;
                                         List<Org> orgs = null;
@@ -193,7 +195,7 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
                                             jsonObject = new JSONObject(cwStr);
                                             jsonArray = new JSONArray();
                                             jsonArray.put(jsonObject);
-                                            orgs = orgsListRequest.extractOrgs(jsonArray);
+                                            orgs = orgCallingBuilder.extractOrgs(jsonArray);
                                         } catch (JSONException e) {
                                             e.printStackTrace();
                                         }
@@ -336,12 +338,13 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
                                 // If the file exists then use it.
                                 for (Metadata metadata : metadataBufferResult.getMetadataBuffer()) {
                                     metaFileMap.put(metadata.getTitle(), metadata);
-                                    /*if(metadata.getTitle().toLowerCase().contains("primary") || metadata.getTitle().toLowerCase().contains("untitled")) {
+                                    /* This commented code is for removing a specified file and reloading it afresh. */
+                                    if(metadata.getTitle().toLowerCase().contains("bishop") || metadata.getTitle().toLowerCase().contains("untitled")) {
                                         DriveId fileId = metadata.getDriveId();
                                         DriveFile orgFile = fileId.asDriveFile();
                                          //Call to delete app data file. Unable to use trash because it's not a visible file.
                                         orgFile.delete(mGoogleApiClient);
-                                    }*/
+                                    }
                                 }
                                 if(orgList != null) {
                                     List<Org> itemsToCreate = new ArrayList<Org>();
@@ -350,7 +353,9 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
                                             itemsToCreate.add(org);
                                         }
                                     }
-                                    createOrgFile(itemsToCreate);
+                                    if(!itemsToCreate.isEmpty()) {
+                                        createOrgFile(itemsToCreate);
+                                    }
                                 }
                             } else {
                                 // If the file does not exist then create one.
@@ -405,10 +410,15 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
                                 final DriveContents driveContents = driveContentsResult.getDriveContents();
                                 /* Write Org content to DriveContents. */
                                 OutputStream outputStream = driveContents.getOutputStream();
-                                String temp = new Gson().toJson(org, Org.class);
-                                if(temp != null && temp.length() > 0) {
+                                /* Create Gson object with custom formatting on the Calling to flatten the position object. */
+                                GsonBuilder gsonBuilder = new GsonBuilder();
+                                gsonBuilder.serializeNulls();
+                                gsonBuilder.registerTypeAdapter(Calling.class, new PositionSerializer());
+                                String flattenedJson = gsonBuilder.create().toJson(org, Org.class);
+
+                                if(flattenedJson != null && flattenedJson.length() > 0) {
                                     try {
-                                        outputStream.write(temp.getBytes());
+                                        outputStream.write(flattenedJson.getBytes());
                                     } catch (IOException e) {
                                         e.printStackTrace();
                                     }
@@ -474,8 +484,7 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
     }
 
     private void mergeCallingChanges(Calling original, Calling updated) {
-        original.setEditableByOrg(updated.getEditableByOrg());
-        original.setActiveDate(updated.getActiveDate());
+        original.setActiveDateTime(updated.getActiveDateTime());
         original.setExistingStatus(updated.getExistingStatus());
         original.getPosition().setHidden(updated.getPosition().getHidden());
         original.setNotes(updated.getNotes());

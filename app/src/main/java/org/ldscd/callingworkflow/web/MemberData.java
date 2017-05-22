@@ -5,6 +5,7 @@ import android.widget.ProgressBar;
 
 import com.android.volley.Response;
 
+import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Member;
 
 import java.util.HashMap;
@@ -28,7 +29,9 @@ public class MemberData {
                 members = response;
                 membersByIndividualId = new HashMap<Long, Member>();
                 for(Member member: members) {
-                    membersByIndividualId.put(member.getIndividualId(), member);
+                    if(member.getIndividualId() > 0) {
+                        membersByIndividualId.put(member.getIndividualId(), member);
+                    }
                 }
                 pb.setProgress(pb.getProgress() + 20);
                 membersCallback.onResponse(true);
@@ -51,5 +54,13 @@ public class MemberData {
 
     public void getMembers(Response.Listener<List<Member>> listener) {
         listener.onResponse(this.members);
+    }
+
+    public void setMemberCallings(List<Calling> callings) {
+        for(Calling calling : callings) {
+            if(calling.getMemberId() != null && calling.getMemberId() > 0) {
+                getMember(calling.getMemberId()).setCurrentCallings(calling);
+            }
+        }
     }
 }

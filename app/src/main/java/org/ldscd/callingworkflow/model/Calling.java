@@ -1,8 +1,8 @@
 package org.ldscd.callingworkflow.model;
 
-import com.google.gson.annotations.Expose;
-
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.ldscd.callingworkflow.constants.ConflictCause;
 
 import java.util.UUID;
@@ -13,51 +13,49 @@ import java.util.UUID;
 public class Calling {
     /* Fields */
     /* id is from LCR */
-    private Long id;
+    private Long positionId;
     /* cwfId is and Id that if LCR doesn't have one we generate an Id. */
     private String cwfId;
     private Long memberId;
     private Long proposedIndId;
-    private DateTime activeDate;
+    private String activeDate;
+    private transient DateTime activeDateTime;
     private Position position;
     private String existingStatus;
     private String proposedStatus;
     private String notes;
-    private Boolean editableByOrg;
-    @Expose(serialize = false, deserialize = false)
-    private Long parentOrg;
-    @Expose(serialize = false, deserialize = false)
-    private ConflictCause conflictCause;
-
+    private transient Long parentOrg;
+    private transient ConflictCause conflictCause;
+    private transient DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
     /* Constructors */
     public Calling() {}
 
-    public Calling(Long id, String cwfId, Long memberId, Long proposedIndId, DateTime activeDate, Position position,
-                   String existingStatus, String proposedStatus, String notes, Boolean editableByOrg, Long parentOrg) {
-        this.id = id;
+    public Calling(Long positionId, String cwfId, Long memberId, Long proposedIndId, DateTime activeDateTime, Position position,
+                   String existingStatus, String proposedStatus, String notes, Long parentOrg) {
+        this.positionId = positionId;
         /* If we don't have a unique id then we create an internal one. */
-        if(id == null || id == 0) {
+        if(positionId == null || positionId == 0) {
             this.cwfId = (cwfId != null && cwfId.length() > 0) ? cwfId : UUID.randomUUID().toString();
         }
         this.memberId = memberId;
         this.proposedIndId = proposedIndId;
-        this.activeDate = activeDate;
+        this.activeDateTime = activeDateTime;
+        this.activeDate = activeDateTime != null ? fmt.print(activeDateTime) : "";
         this.position = position;
         this.existingStatus = existingStatus;
         this.proposedStatus = proposedStatus;
         this.notes = notes;
-        this.editableByOrg = editableByOrg;
         this.parentOrg = parentOrg;
     }
 
     /* Properties */
     public String getCallingId() {
-        return id != null && id > 0 ? id.toString() : cwfId;
+        return positionId != null && positionId > 0 ? positionId.toString() : cwfId;
     }
 
-    public Long getId() { return this.id; }
-    public void setId(long id) {
-        this.id = id;
+    public Long getId() { return this.positionId; }
+    public void setId(long positionId) {
+        this.positionId = positionId;
     }
 
     public String getCwfId() {
@@ -95,15 +93,12 @@ public class Calling {
         this.notes = notes;
     }
 
-    public Boolean getEditableByOrg() {
-        return editableByOrg;
-    }
-    public void setEditableByOrg(Boolean editableByOrg) {
-        this.editableByOrg = editableByOrg;
-    }
+    public DateTime getActiveDateTime() { return activeDateTime; }
+    public void setActiveDateTime(DateTime activeDate) { this.activeDateTime = activeDateTime; }
 
-    public DateTime getActiveDate() { return activeDate; }
-    public void setActiveDate(DateTime activeDate) { this.activeDate = activeDate; }
+    public String getActiveDate() { return activeDate; }
+    public void setActiveDate(DateTime activeDate) {
+        this.activeDate = fmt.print(activeDateTime); }
 
     public Position getPosition() {
         return position;
@@ -136,7 +131,7 @@ public class Calling {
     public boolean equals(Calling calling) {
         boolean result = false;
         if(this.parentOrg.equals(calling.parentOrg) && this.getPosition().equals(calling.getPosition())) {
-            if(this.id != null && this.id.equals(calling.id))  {
+            if(this.positionId != null && this.positionId.equals(calling.positionId))  {
                 result = true;
             } else if (this.cwfId != null) {
                 result = this.cwfId == calling.getCwfId();

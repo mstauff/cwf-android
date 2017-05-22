@@ -75,12 +75,12 @@ public class LocalFileResources implements IWebResources {
     }
 
     public void getOrgs(Response.Listener<List<Org>> orgsCallback) {
-        OrgsListRequest orgsListRequest = new OrgsListRequest(null, null, null, null);
+        OrgCallingBuilder orgCallingBuilder = new OrgCallingBuilder();
         List<Org> orgs = new ArrayList<>();
         try {
             String json = getJSONFromAssets("org-callings.json");
             JSONArray jsonArray = new JSONArray(json);
-            orgs = orgsListRequest.extractOrgs(jsonArray);
+            orgs = orgCallingBuilder.extractOrgs(jsonArray);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -89,7 +89,13 @@ public class LocalFileResources implements IWebResources {
 
     public void getWardList(Response.Listener<List<Member>> wardCallback) {
         MemberListRequest memberListRequest = new MemberListRequest(null, null, null, null);
-        List<Member> members = memberListRequest.getMembers(getJSONFromAssets("member-objects.json"));
+        List<Member> allMembers = memberListRequest.getMembers(getJSONFromAssets("member-objects.json"));
+        List<Member> members = new ArrayList<>();
+        for(Member member : allMembers) {
+            if(member.getIndividualId() > 0) {
+                members.add(member);
+            }
+        }
         wardCallback.onResponse(members);
     }
 

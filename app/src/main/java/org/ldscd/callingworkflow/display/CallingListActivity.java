@@ -19,11 +19,7 @@ import android.widget.ExpandableListView;
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.display.adapters.CallingListAdapter;
 import org.ldscd.callingworkflow.model.Org;
-import org.ldscd.callingworkflow.web.CallingData;
 import org.ldscd.callingworkflow.web.DataManager;
-import org.ldscd.callingworkflow.web.MemberData;
-
-import java.util.Arrays;
 
 import javax.inject.Inject;
 
@@ -67,7 +63,7 @@ public class CallingListActivity extends AppCompatActivity {
             expandId = getIntent().getLongExtra(ARG_EXPAND_ID, 0);
             if(orgId > 0){
                 Org org = dataManager.getOrg(orgId);
-                getSupportActionBar().setTitle(org.getOrgName());
+                getSupportActionBar().setTitle(org.getDefaultOrgName());
                 getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             } else {
                 Log.e("CallingListActivity", "Org id list not found or empty");
@@ -140,20 +136,20 @@ public class CallingListActivity extends AppCompatActivity {
     }
     private void openCallingDetail(Context context, String callingId) {
 
-        /*if (twoPane) {
-            Bundle arguments = new Bundle();
-            arguments.putString(CallingDetailFragment.ARG_ITEM_ID, holder.orgItem.id);
-            CallingDetailFragment fragment = new CallingDetailFragment();
-            fragment.setArguments(arguments);
-            fragmentManager.beginTransaction()
-                    .replace(R.id.calling_detail_container, fragment)
-                    .commit();
-        } else {*/
-            Intent intent = new Intent(context, CallingDetailActivity.class);
-            intent.putExtra(CallingDetailFragment.ARG_ITEM_ID, callingId);
-            intent.putExtra(CallingListActivity.ARG_ORG_ID, orgId);
-            context.startActivity(intent);
-        //}
+                    /*if (twoPane) {
+                        Bundle arguments = new Bundle();
+                        arguments.putString(CallingDetailFragment.ARG_ITEM_ID, holder.orgItem.id);
+                        CallingDetailFragment fragment = new CallingDetailFragment();
+                        fragment.setArguments(arguments);
+                        fragmentManager.beginTransaction()
+                                .replace(R.id.calling_detail_container, fragment)
+                                .commit();
+                    } else {*/
+                        Intent intent = new Intent(context, CallingDetailActivity.class);
+                        intent.putExtra(CallingDetailFragment.CALLING_ID, callingId);
+                        intent.putExtra(CallingListActivity.ARG_ORG_ID, orgId);
+                        context.startActivity(intent);
+                    //}
     }
 
     @Override

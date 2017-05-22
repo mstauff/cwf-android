@@ -4,6 +4,7 @@ import org.ldscd.callingworkflow.constants.Gender;
 import org.ldscd.callingworkflow.constants.Priesthood;
 import org.ldscd.callingworkflow.utils.JsonUtil;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -23,13 +24,14 @@ public class Member {
     Gender gender;
     Priesthood priesthood;
     List<Calling> currentCallings;
+    List<Calling> proposedCallings;
 
     /* Constructors */
     public Member() {}
 
     public Member(long individualId, String formattedName, String individualPhone, String householdPhone,
                   String individualEmail, String householdEmail, String streetAddress, Date birthDate, Gender gender,
-                  Priesthood priesthood, List<Calling> currentCallings) {
+                  Priesthood priesthood, List<Calling> currentCallings, List<Calling> proposedCallings) {
         this.individualId = individualId;
         this.formattedName = JsonUtil.evalNull(formattedName);
         this.individualPhone = JsonUtil.evalNull(individualPhone);
@@ -41,6 +43,7 @@ public class Member {
         this.gender = gender;
         this.priesthood = priesthood;
         this.currentCallings = currentCallings;
+        this.proposedCallings = proposedCallings;
     }
 
     /* Properties */
@@ -76,4 +79,19 @@ public class Member {
 
     public List<Calling> getCurrentCallings() { return currentCallings; }
     public void setCurrentCallings(List<Calling> currentCallings) { this.currentCallings = currentCallings; }
+    public void setCurrentCallings(Calling currentCalling) {
+        if(this.currentCallings == null) {
+            currentCallings = new ArrayList<>();
+        }
+        currentCallings.add(currentCalling);
+    }
+
+    public List<Calling> getProposedCallings() { return proposedCallings; }
+    public void setProposedCallings(List<Calling> proposedCallings) { this.proposedCallings = proposedCallings; }
+    public void setProposedCallings(Calling proposedCallings) {
+        if(this.currentCallings == null) {
+            currentCallings = new ArrayList<>();
+        }
+        currentCallings.add(proposedCallings);
+    }
 }

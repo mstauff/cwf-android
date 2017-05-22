@@ -24,14 +24,14 @@ public enum UnitLevelOrgType {
         this.name = name;
     }
 
-    int getValue() { return id; }
-    String getName() { return name; }
+    int getOrgTypeId() { return id; }
+    public String getOrgName() { return name; }
 
     private static final Map<Integer, UnitLevelOrgType> lookup = new HashMap<Integer, UnitLevelOrgType>();
 
     static {
         for (UnitLevelOrgType orgType : UnitLevelOrgType.values()) {
-            lookup.put(orgType.getValue(), orgType);
+            lookup.put(orgType.getOrgTypeId(), orgType);
         }
     }
 

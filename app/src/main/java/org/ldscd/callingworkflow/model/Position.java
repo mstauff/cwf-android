@@ -9,14 +9,16 @@ public class Position {
     private int positionTypeId;
     private Boolean hidden;
     private Boolean allowMultiple;
+    private long positionDisplayOrder;
 
     /* Constructors */
     public Position() {}
-    public Position(String name, int positionTypeId, Boolean hidden, Boolean allowMultiple) {
+    public Position(String name, int positionTypeId, Boolean hidden, Boolean allowMultiple, Long positionDisplayOrder) {
         this.name = name;
         this.positionTypeId = positionTypeId;
         this.hidden = hidden;
         this.allowMultiple = allowMultiple;
+        this.positionDisplayOrder = positionDisplayOrder;
     }
 
     /* Properties */
@@ -39,6 +41,9 @@ public class Position {
     public void setAllowMultiple(Boolean allowMultiple) {
         this.allowMultiple = allowMultiple;
     }
+
+    public long getPositionDisplayOrder() { return positionDisplayOrder; }
+    public void setPositionDisplayOrder(long positionDisplayOrder) { this.positionDisplayOrder = positionDisplayOrder; }
 
     public String toString() { return name; }
 

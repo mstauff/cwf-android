@@ -168,7 +168,7 @@ public class MemberListRequest extends Request<List<Member>> {
         }
 
         return new Member(id, name, phone, householdPhone, email, householdEmail, streetAddress,
-                birthdate, gender, priesthood, null);
+                birthdate, gender, priesthood, null, null);
     }
 
     private int calculateAge(Date birthdate) {

@@ -99,7 +99,7 @@ public class CreateCallingActivity extends AppCompatActivity implements CallingD
             Position position = (Position)positionDropdown.getSelectedItem();
             String status = ((CallingStatus)statusDropdown.getSelectedItem()).getStatus();
             String notes = notesBox.getText().toString();
-            Calling calling = new Calling(null, null, null, proposedIndividualId, null, position, null, status, notes, null, parentOrg.getId());
+            Calling calling = new Calling(null, null, null, proposedIndividualId, null, position, null, status, notes, parentOrg.getId());
             dataManager.saveCalling(new Response.Listener<Boolean>() {
                 @Override
                 public void onResponse(Boolean success) {

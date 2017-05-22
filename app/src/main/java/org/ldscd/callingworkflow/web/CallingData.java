@@ -23,6 +23,7 @@ public class CallingData {
 
     private IWebResources webResources;
     private GoogleDataService googleDataService;
+    private MemberData memberData;
 
     private List<Org> orgs;
     private Map<Long, Org> orgsById;
@@ -30,9 +31,10 @@ public class CallingData {
     private Map<String, Calling> callingsById;
     private Map<Long, Org> baseOrgByOrgId;
 
-    public CallingData(IWebResources webResources, GoogleDataService googleDataService) {
+    public CallingData(IWebResources webResources, GoogleDataService googleDataService, MemberData memberData) {
         this.webResources = webResources;
         this.googleDataService = googleDataService;
+        this.memberData = memberData;
     }
 
     public void loadOrgs(final Response.Listener<Boolean> orgsCallback, final ProgressBar pb, Activity activity) {
@@ -150,12 +152,14 @@ public class CallingData {
 
     private void mergeCallings(Org lcrOrg, Org cwfOrg) {
         List<Calling> lcrCallings = lcrOrg.getCallings();
+        memberData.setMemberCallings(lcrCallings);
         if(cwfOrg != null && cwfOrg.getCallings() != null) {
             for (Calling cwfCalling : cwfOrg.getCallings()) {
                 boolean matchFound = false;
 
                 //Check for a match by Id, if so import cwf data
                 for (Calling lcrCalling : lcrCallings) {
+
                     if (cwfCalling.equals(lcrCalling)) {
                         lcrCalling.importCWFData(cwfCalling);
                         matchFound = true;

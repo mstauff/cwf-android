@@ -17,7 +17,6 @@ import org.ldscd.callingworkflow.display.CreateCallingActivity;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.web.DataManager;
-import org.ldscd.callingworkflow.web.MemberData;
 
 import java.util.List;
 
@@ -137,7 +136,7 @@ public class CallingListAdapter extends BaseExpandableListAdapter {
             });
         }
         TextView orgName = (TextView) convertView.findViewById(R.id.org_list_name);
-        orgName.setText(groupOrg.getOrgName());
+        orgName.setText(groupOrg.getDefaultOrgName());
 
         if(isExpanded) {
             convertView.setBackgroundColor(ContextCompat.getColor(ctx, R.color.light_grey));

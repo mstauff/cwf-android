@@ -43,8 +43,8 @@ public class NetModule {
 
     @Provides
     @Singleton
-    CallingData providesCallingData(IWebResources webResources, GoogleDataService googleDataService) {
-        return new CallingData(webResources, googleDataService);
+    CallingData providesCallingData(IWebResources webResources, GoogleDataService googleDataService, MemberData memberData) {
+        return new CallingData(webResources, googleDataService, memberData);
     }
 
     @Provides
