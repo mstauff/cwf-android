@@ -339,12 +339,12 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
                                 for (Metadata metadata : metadataBufferResult.getMetadataBuffer()) {
                                     metaFileMap.put(metadata.getTitle(), metadata);
                                     /* This commented code is for removing a specified file and reloading it afresh. */
-                                    if(metadata.getTitle().toLowerCase().contains("bishop") || metadata.getTitle().toLowerCase().contains("untitled")) {
+                                    /*if(metadata.getTitle().toLowerCase().contains("bishop") || metadata.getTitle().toLowerCase().contains("untitled")) {
                                         DriveId fileId = metadata.getDriveId();
                                         DriveFile orgFile = fileId.asDriveFile();
                                          //Call to delete app data file. Unable to use trash because it's not a visible file.
                                         orgFile.delete(mGoogleApiClient);
-                                    }
+                                    }*/
                                 }
                                 if(orgList != null) {
                                     List<Org> itemsToCreate = new ArrayList<Org>();
