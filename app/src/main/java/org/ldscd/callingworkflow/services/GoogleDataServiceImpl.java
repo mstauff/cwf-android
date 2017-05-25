@@ -256,12 +256,18 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
                                     Log.e(TAG, "Unable to load CW data.");
                                     return;
                                 }
-                                cwFileContent = driveContentsResult.getDriveContents();
-                                OutputStream outputStream = cwFileContent.getOutputStream();
-                                Writer writer = new OutputStreamWriter(outputStream);
+                                /* Create Gson object with custom formatting on the Calling to flatten the position object. */
+                                GsonBuilder gsonBuilder = new GsonBuilder();
+                                gsonBuilder.serializeNulls();
+                                gsonBuilder.registerTypeAdapter(Calling.class, new PositionSerializer());
+                                String flattenedJson = gsonBuilder.create().toJson(org, Org.class);
+                                if(flattenedJson != null && flattenedJson.length() > 0) {
                                 try {
-                                    writer.write(new Gson().toJson(org, Org.class));
-                                    writer.close();
+                                    /* Write Org content to DriveContents. */
+                                    cwFileContent = driveContentsResult.getDriveContents();
+                                    OutputStream outputStream = cwFileContent.getOutputStream();
+                                    outputStream.write(flattenedJson.getBytes());
+                                    outputStream.close();
                                     if(mGoogleApiClient.isConnected()) {
                                         cwFileContent.commit(mGoogleApiClient, null).setResultCallback(new ResultCallback<Status>() {
                                             @Override
@@ -279,6 +285,7 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
                                 } catch (IOException e) {
                                     Log.e(TAG, e.getMessage());
                                     listener.onResponse(false);
+                                }
                                 }
                             }
                         });
@@ -408,8 +415,6 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
                                 }
                                 /* When the connection is made add data to file content. */
                                 final DriveContents driveContents = driveContentsResult.getDriveContents();
-                                /* Write Org content to DriveContents. */
-                                OutputStream outputStream = driveContents.getOutputStream();
                                 /* Create Gson object with custom formatting on the Calling to flatten the position object. */
                                 GsonBuilder gsonBuilder = new GsonBuilder();
                                 gsonBuilder.serializeNulls();
@@ -418,6 +423,8 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
 
                                 if(flattenedJson != null && flattenedJson.length() > 0) {
                                     try {
+                                        /* Write Org content to DriveContents. */
+                                        OutputStream outputStream = driveContents.getOutputStream();
                                         outputStream.write(flattenedJson.getBytes());
                                     } catch (IOException e) {
                                         e.printStackTrace();

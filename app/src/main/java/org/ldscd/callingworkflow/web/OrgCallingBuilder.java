@@ -117,7 +117,7 @@ public class OrgCallingBuilder {
             existingStatus = null;
         }
         DateTime activeDate = null;
-        if(json.has(activeDateFieldName) && !json.get(activeDateFieldName).equals("null") && !json.get(activeDateFieldName).equals(null)) {
+        if(json.has(activeDateFieldName) && !json.get(activeDateFieldName).equals("null") && !json.get(activeDateFieldName).equals(null) && !json.get(activeDateFieldName).equals("")) {
             activeDate = fmt.parseDateTime(json.getString(activeDateFieldName));
         }
         String proposedStatus = json.has(proposedStatusFieldName) ? json.getString(proposedStatusFieldName) : null;
