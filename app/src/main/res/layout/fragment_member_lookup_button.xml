@@ -1,0 +1,33 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".display.MemberLookupButtonFragment">
+    <TableLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <TableRow>
+
+            <TextView
+                android:id="@+id/member_lookup_name"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:drawablePadding="10dp"
+                android:ems="30"
+                android:gravity="left"
+                android:paddingBottom="10dp"
+                android:paddingLeft="25dp"
+                android:paddingTop="10dp" />
+            <ImageButton
+                android:id="@+id/member_lookup_button"
+                app:srcCompat="@android:drawable/ic_search_category_default"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:background="#ffffff"
+                android:paddingRight="30dp" />
+        </TableRow>
+    </TableLayout>
+</FrameLayout>

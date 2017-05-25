@@ -7,26 +7,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.Spinner;
-import android.widget.TextView;
 
 import com.android.volley.Response;
 
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.constants.CallingStatus;
 import org.ldscd.callingworkflow.model.Calling;
+import org.ldscd.callingworkflow.model.Member;
 import org.ldscd.callingworkflow.model.Org;
-import org.ldscd.callingworkflow.services.GoogleDataService;
-import org.ldscd.callingworkflow.web.CallingData;
 import org.ldscd.callingworkflow.web.DataManager;
-import org.ldscd.callingworkflow.web.MemberData;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -36,16 +25,17 @@ import javax.inject.Inject;
  * item details are presented side-by-side with a list of items
  * in a {@link CallingListActivity}.
  */
-public class CallingDetailActivity extends AppCompatActivity implements CallingDetailSearchFragment.OnFragmentInteractionListener {
+public class CallingDetailActivity extends AppCompatActivity implements MemberLookupFragment.memberLookupFragmentInteractionListener, CallingDetailFragment.OnFragmentInteractionListener {
     @Inject
     DataManager dataManager;
 
-    Spinner statusDropdown;
-    TextView notes;
     private long orgId;
     private Long individualId;
     private Calling calling;
     private Org org;
+    private Member proposedMember;
+    private String notes;
+    private CallingStatus callingStatus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,12 +45,9 @@ public class CallingDetailActivity extends AppCompatActivity implements CallingD
         /* Initialize UI */
         setContentView(R.layout.activity_calling_detail);
 
-        statusDropdown = (Spinner) findViewById(R.id.calling_detail_status_dropdown);
-        notes = (TextView) findViewById(R.id.notes_calling_detail);
-
         orgId = getIntent().getLongExtra(CallingListActivity.ARG_ORG_ID, 0);
-        String callingId = getIntent().getStringExtra(CallingDetailFragment.ARG_ITEM_ID);
-        hydrateOrg(orgId);
+        org = dataManager.getOrg(orgId);
+        String callingId = getIntent().getStringExtra(CallingDetailFragment.CALLING_ID);
         hydrateCalling(callingId);
         wireUpFragments(savedInstanceState);
     }
@@ -81,7 +68,7 @@ public class CallingDetailActivity extends AppCompatActivity implements CallingD
             // more details, see the Navigation pattern on Android Design:
             //
             // http://developer.android.com/design/patterns/navigation.html#up-vs-back
-            submitOrgChanges();
+            //submitOrgChanges();
             Intent intent = new Intent(this, CallingListActivity.class);
             intent.putExtra(CallingListActivity.ARG_ORG_ID, orgId);
             navigateUpTo(intent);
@@ -94,19 +81,13 @@ public class CallingDetailActivity extends AppCompatActivity implements CallingD
         return true;
     }
 
-    @Override
-    public void onFragmentInteraction(Long individualId) {
-        this.individualId = individualId;
-    }
-
     private void submitOrgChanges() {
         boolean hasChanges = false;
-        String status = ((CallingStatus)statusDropdown.getSelectedItem()).name();
-        if(!status.equals(calling.getProposedStatus())) {
-            calling.setProposedStatus(status);
+        if(!callingStatus.getStatus().equals(calling.getProposedStatus())) {
+            calling.setProposedStatus(callingStatus.getStatus());
             hasChanges = true;
         }
-        CharSequence extraNotes = notes.getText();
+        CharSequence extraNotes = notes;
         if(!extraNotes.equals(calling.getNotes())) {
             calling.setNotes(extraNotes.toString());
             hasChanges = true;
@@ -127,29 +108,12 @@ public class CallingDetailActivity extends AppCompatActivity implements CallingD
 
     private void hydrateCalling(String callingId) {
         calling = dataManager.getCalling(callingId);
-        if(calling != null) {
-            final TextView currentlyCalled = (TextView)findViewById(R.id.calling_detail_currently_called);
-            String name = dataManager.getMemberName(calling.getMemberId());
-            currentlyCalled.setText(name);
-            TextView notes = (TextView) findViewById(R.id.notes_calling_detail);
-            if(calling.getNotes() != null && calling.getNotes().length() > 0) {
-                notes.setText(calling.getNotes());
-            }
-            wireUpStatusDropdown();
-            wireUpToolbar();
-        }
-    }
-
-    private void hydrateOrg(long orgId) {
-        final List<Org> orgs = new ArrayList<>();
-        //TODO: get org from google drive until callingData is up to date.
-        org = dataManager.getOrg(orgId);
-        wireUpFinalizeButton();
+        wireUpToolbar();
     }
 
     private void wireUpToolbar() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
-        toolbar.setTitle(org.getOrgName() + " - " + calling.getPosition());
+        toolbar.setTitle(org.getDefaultOrgName() + " - " + calling.getPosition());
         setSupportActionBar(toolbar);
 
         // Show the Up button in the action bar.
@@ -157,25 +121,6 @@ public class CallingDetailActivity extends AppCompatActivity implements CallingD
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
-    }
-
-    private void wireUpStatusDropdown() {
-        List<CallingStatus> status = new ArrayList(Arrays.asList(CallingStatus.values()));
-        Spinner statusDropdown = (Spinner) findViewById(R.id.calling_detail_status_dropdown);
-        ArrayAdapter adapter = new ArrayAdapter<CallingStatus>(this, android.R.layout.simple_list_item_1, status);
-        statusDropdown.setSelection(adapter.getPosition(CallingStatus.get(calling.getProposedStatus())));
-        statusDropdown.setAdapter(adapter);
-    }
-
-    private void wireUpFinalizeButton() {
-        /* Finalize calling button setup */
-        Button button = (Button) findViewById(R.id.button_finalize_calling);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                submitOrgChanges();
-            }
-        });
     }
 
     private void wireUpFragments(Bundle savedInstanceState) {
@@ -187,18 +132,49 @@ public class CallingDetailActivity extends AppCompatActivity implements CallingD
         // For more information, see the Fragments API guide at:
         //
         // http://developer.android.com/guide/components/fragments.html
-        //
-        if (savedInstanceState == null) {
-            // Create the detail fragment and add it to the activity
-            // using a fragment transaction.
-            CallingDetailSearchFragment searchFragment = new CallingDetailSearchFragment();
-            if(calling != null && calling.getProposedIndId() > 0) {
+        CallingDetailFragment callingDetailFragment = new CallingDetailFragment();
+        Bundle args = new Bundle();
+        args.putLong(CallingDetailFragment.ORG_ID, orgId);
+        args.putString(CallingDetailFragment.CALLING_ID, calling.getCallingId());
+        args.putLong(CallingDetailFragment.INDIVIDUAL_ID, calling.getProposedIndId());
+        callingDetailFragment.setArguments(args);
+        getSupportFragmentManager().beginTransaction()
+                .add(R.id.calling_detail_main_fragment_container, callingDetailFragment)
+                .commit();
+    }
+
+    /***** LISTENERS ******/
+    /* This method receives data from the fragment. */
+    /* From MemberLookupFragment. */
+    @Override
+    public void onFragmentInteraction(Member member) {
+        this.proposedMember = member;
+        CallingDetailFragment callingDetailFragment = new CallingDetailFragment();
+        Bundle args = new Bundle();
+        args.putLong(CallingDetailFragment.ORG_ID, orgId);
+        args.putString(CallingDetailFragment.CALLING_ID, calling.getCallingId());
+        if(this.proposedMember != null && this.proposedMember.getFormattedName() != null) {
+            args.putLong(CallingDetailFragment.INDIVIDUAL_ID, this.proposedMember.getIndividualId());
+        }
+        callingDetailFragment.setArguments(args);
+        getSupportFragmentManager().beginTransaction()
+            .replace(R.id.calling_detail_main_fragment_container, callingDetailFragment)
+            .commit();
+    }
+
+    /* From CallingDetailFragment. */
+    @Override
+    public void onFragmentInteraction(boolean search) {
+        if(search) {
+            MemberLookupFragment memberLookupFragment = new MemberLookupFragment();
+            if(this.proposedMember != null && this.proposedMember.getIndividualId() > 0) {
                 Bundle args = new Bundle();
-                args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, calling.getProposedIndId());
-                searchFragment.setArguments(args);
+                args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, this.proposedMember.getIndividualId());
+                memberLookupFragment.setArguments(args);
             }
             getSupportFragmentManager().beginTransaction()
-                .add(R.id.calling_detail_search_container, searchFragment)
+                .replace(R.id.calling_detail_main_fragment_container, memberLookupFragment, null)
+                .addToBackStack(null)
                 .commit();
         }
     }

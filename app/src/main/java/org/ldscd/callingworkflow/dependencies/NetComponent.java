@@ -2,9 +2,11 @@ package org.ldscd.callingworkflow.dependencies;
 
 import dagger.Component;
 import org.ldscd.callingworkflow.display.CallingDetailActivity;
+import org.ldscd.callingworkflow.display.CallingDetailFragment;
 import org.ldscd.callingworkflow.display.CallingDetailSearchFragment;
 import org.ldscd.callingworkflow.display.CreateCallingActivity;
 import org.ldscd.callingworkflow.display.IndividualInformationFragment;
+import org.ldscd.callingworkflow.display.MemberLookupFragment;
 import org.ldscd.callingworkflow.display.SettingsActivity;
 import org.ldscd.callingworkflow.display.CallingListActivity;
 import org.ldscd.callingworkflow.display.OrgListActivity;
@@ -21,6 +23,8 @@ public interface NetComponent {
     void inject(SettingsActivity activity);
     void inject(CallingDetailActivity activity);
     void inject(CallingDetailSearchFragment activity);
+    void inject(CallingDetailFragment activity);
     void inject(IndividualInformationFragment activity);
     void inject(CreateCallingActivity activity);
+    void inject(MemberLookupFragment activity);
 }

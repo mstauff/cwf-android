@@ -38,6 +38,14 @@
     <string name="currently_called">Currently Called</string>
     <string name="select_status">Select Status</string>
     <string name="member_lookup">Member Lookup</string>
+    <string name="search_filters">Search Filters</string>
+    <string name="time_in_calling">Time in Calling</string>
+    <string name="twelve_to_eighteen">12&#8211;18</string>
+    <string name="eighteen_plus">18+</string>
+    <string name="male">Male</string>
+    <string name="female">Female</string>
+    <string name="age">Age</string>
+    <string name="gender">Gender</string>
     <!-- Test Info. -->
     <string name="cw_heading">File Data</string>
     <string name="action_settings">setting</string>

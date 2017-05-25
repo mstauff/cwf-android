@@ -1,0 +1,56 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:elevation="1dp"
+    android:id="@+id/member_lookup_fragment"
+    android:orientation="vertical"
+    tools:context="org.ldscd.callingworkflow.display.MemberLookupFragment">
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="5dp"
+            android:weightSum="1">
+
+            <EditText
+                android:id="@+id/member_lookup_search_box"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:drawableLeft="@android:drawable/ic_search_category_default"
+                android:drawablePadding="10dp"
+                android:ems="30"
+                android:hint="Name"
+                android:inputType="textPersonName"
+                android:padding="3dp" />
+
+            <ImageButton
+                android:id="@+id/member_lookup_filter_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:background="#ffffff"
+                android:contentDescription="Lookup filter button"
+                android:padding="3dp"
+                app:srcCompat="@drawable/filter_horizontal_blue" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:weightSum="1">
+            <ListView
+                android:id="@+id/member_lookup_member_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+        </TableRow>
+    </TableLayout>
+
+</RelativeLayout>
