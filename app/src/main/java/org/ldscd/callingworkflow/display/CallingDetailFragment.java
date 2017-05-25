@@ -156,6 +156,8 @@ public class CallingDetailFragment extends Fragment {
     private void hydrateCalling(String callingId) {
         calling = dataManager.getCalling(callingId);
         if(calling != null) {
+            TextView callingName = (TextView)view.findViewById(R.id.label_calling_detail_position);
+            callingName.setText(calling.getPosition().getName());
             final TextView currentlyCalled = (TextView)view.findViewById(R.id.calling_detail_currently_called);
             String name = dataManager.getMemberName(calling.getMemberId());
             currentlyCalled.setText(name);
