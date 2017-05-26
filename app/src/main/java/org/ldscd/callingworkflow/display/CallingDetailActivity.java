@@ -1,7 +1,9 @@
 package org.ldscd.callingworkflow.display;
 
+import android.support.v4.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -29,13 +31,12 @@ public class CallingDetailActivity extends AppCompatActivity implements MemberLo
     @Inject
     DataManager dataManager;
 
+    private static String TAG = "CALLING_FRAGMENT";
     private long orgId;
-    private Long individualId;
     private Calling calling;
     private Org org;
     private Member proposedMember;
-    private String notes;
-    private CallingStatus callingStatus;
+    private boolean hasChanges;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +69,7 @@ public class CallingDetailActivity extends AppCompatActivity implements MemberLo
             // more details, see the Navigation pattern on Android Design:
             //
             // http://developer.android.com/design/patterns/navigation.html#up-vs-back
-            //submitOrgChanges();
+            submitOrgChanges();
             Intent intent = new Intent(this, CallingListActivity.class);
             intent.putExtra(CallingListActivity.ARG_ORG_ID, orgId);
             navigateUpTo(intent);
@@ -82,20 +83,12 @@ public class CallingDetailActivity extends AppCompatActivity implements MemberLo
     }
 
     private void submitOrgChanges() {
-        boolean hasChanges = false;
-        if(!callingStatus.getStatus().equals(calling.getProposedStatus())) {
-            calling.setProposedStatus(callingStatus.getStatus());
+        CallingDetailFragment callingDetailFragment = (CallingDetailFragment)getSupportFragmentManager().findFragmentByTag(TAG);
+        if(!calling.getNotes().equals(callingDetailFragment.getNotes())) {
             hasChanges = true;
+            calling.setNotes(callingDetailFragment.getNotes());
         }
-        CharSequence extraNotes = notes;
-        if(!extraNotes.equals(calling.getNotes())) {
-            calling.setNotes(extraNotes.toString());
-            hasChanges = true;
-        }
-        if(individualId.equals(calling.getProposedIndId())) {
-            calling.setProposedIndId(individualId);
-            hasChanges = true;
-        }
+
         if(hasChanges) {
             dataManager.saveFile(new Response.Listener<Boolean>() {
                 @Override
@@ -106,9 +99,16 @@ public class CallingDetailActivity extends AppCompatActivity implements MemberLo
         }
     }
 
+    private void hydrateProposedIndividual() {
+        if(calling.getProposedIndId() != null) {
+            proposedMember = dataManager.getMember(calling.getProposedIndId());
+        }
+    }
+
     private void hydrateCalling(String callingId) {
         calling = dataManager.getCalling(callingId);
         wireUpToolbar();
+        hydrateProposedIndividual();
     }
 
     private void wireUpToolbar() {
@@ -138,8 +138,9 @@ public class CallingDetailActivity extends AppCompatActivity implements MemberLo
         args.putString(CallingDetailFragment.CALLING_ID, calling.getCallingId());
         args.putLong(CallingDetailFragment.INDIVIDUAL_ID, calling.getProposedIndId());
         callingDetailFragment.setArguments(args);
-        getSupportFragmentManager().beginTransaction()
-                .add(R.id.calling_detail_main_fragment_container, callingDetailFragment)
+        FragmentManager manager = getSupportFragmentManager();
+                manager.beginTransaction()
+                .add(R.id.calling_detail_main_fragment_container, callingDetailFragment, TAG)
                 .commit();
     }
 
@@ -149,6 +150,7 @@ public class CallingDetailActivity extends AppCompatActivity implements MemberLo
     @Override
     public void onFragmentInteraction(Member member) {
         this.proposedMember = member;
+        setProposedMember();
         CallingDetailFragment callingDetailFragment = new CallingDetailFragment();
         Bundle args = new Bundle();
         args.putLong(CallingDetailFragment.ORG_ID, orgId);
@@ -158,13 +160,18 @@ public class CallingDetailActivity extends AppCompatActivity implements MemberLo
         }
         callingDetailFragment.setArguments(args);
         getSupportFragmentManager().beginTransaction()
-            .replace(R.id.calling_detail_main_fragment_container, callingDetailFragment)
+            .replace(R.id.calling_detail_main_fragment_container, callingDetailFragment, TAG)
             .commit();
     }
 
+
     /* From CallingDetailFragment. */
     @Override
-    public void onFragmentInteraction(boolean search) {
+    public void onFragmentInteraction(boolean search, Calling calling, boolean hasChanges) {
+        this.calling.setNotes(calling.getNotes());
+        this.calling.setProposedStatus(calling.getProposedStatus());
+        setProposedMember();
+        this.hasChanges = hasChanges;
         if(search) {
             MemberLookupFragment memberLookupFragment = new MemberLookupFragment();
             if(this.proposedMember != null && this.proposedMember.getIndividualId() > 0) {
@@ -176,6 +183,14 @@ public class CallingDetailActivity extends AppCompatActivity implements MemberLo
                 .replace(R.id.calling_detail_main_fragment_container, memberLookupFragment, null)
                 .addToBackStack(null)
                 .commit();
+        }
+    }
+
+    private void setProposedMember() {
+        if(proposedMember != null && proposedMember.getIndividualId() > 0) {
+            this.calling.setProposedIndId(proposedMember.getIndividualId());
+        } else {
+            this.calling.setProposedIndId(0);
         }
     }
 }

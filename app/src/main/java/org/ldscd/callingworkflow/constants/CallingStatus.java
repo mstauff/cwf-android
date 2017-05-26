@@ -36,7 +36,7 @@ public enum CallingStatus {
 
     static {
         for (CallingStatus status : CallingStatus.values()) {
-            lookup.put(status.getStatus(), status);
+            lookup.put(status.name(), status);
         }
     }
 

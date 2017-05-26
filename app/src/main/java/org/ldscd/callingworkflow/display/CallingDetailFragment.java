@@ -1,22 +1,20 @@
 package org.ldscd.callingworkflow.display;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
-import android.nfc.Tag;
+
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.android.volley.Response;
 
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.constants.CallingStatus;
@@ -76,7 +74,7 @@ public class CallingDetailFragment extends Fragment {
     }
 
     public interface OnFragmentInteractionListener {
-        public void onFragmentInteraction(boolean search);
+        public void onFragmentInteraction(boolean search, Calling calling, boolean hasChanges);
     }
 
     @Override
@@ -128,8 +126,7 @@ public class CallingDetailFragment extends Fragment {
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                submitOrgChanges();
-                mListener.onFragmentInteraction(true);
+                submitOrgChanges(true);
             }
         });
     }
@@ -168,14 +165,30 @@ public class CallingDetailFragment extends Fragment {
         }
     }
 
+    public String getNotes() {
+        TextView notes = (TextView) view.findViewById(R.id.notes_calling_detail);
+        return notes.getText().toString();
+    }
+
     private void wireUpStatusDropdown() {
         List<CallingStatus> status = new ArrayList(Arrays.asList(CallingStatus.values()));
         Spinner statusDropdown = (Spinner)view.findViewById(R.id.calling_detail_status_dropdown);
         ArrayAdapter adapter = new ArrayAdapter<CallingStatus>(this.getContext(), android.R.layout.simple_list_item_1, status);
+        statusDropdown.setAdapter(adapter);
+        statusDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                submitOrgChanges(false);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
         if(calling != null && calling.getProposedStatus() != null) {
             statusDropdown.setSelection(adapter.getPosition(CallingStatus.get(calling.getProposedStatus())));
         }
-        statusDropdown.setAdapter(adapter);
     }
 
     private void wireUpFinalizeButton() {
@@ -184,12 +197,12 @@ public class CallingDetailFragment extends Fragment {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                submitOrgChanges();
+                submitOrgChanges(false);
             }
         });
     }
 
-    private void submitOrgChanges() {
+    private void submitOrgChanges(boolean search) {
         boolean hasChanges = false;
         CallingStatus callingStatus = (CallingStatus)statusDropdown.getSelectedItem();
         String status = null;
@@ -209,14 +222,7 @@ public class CallingDetailFragment extends Fragment {
             calling.setProposedIndId(individualId);
             hasChanges = true;
         }
-        if(hasChanges) {
-            dataManager.saveFile(new Response.Listener<Boolean>() {
-                @Override
-                public void onResponse(Boolean response) {
-
-                }
-            }, org);
-        }
+        mListener.onFragmentInteraction(search, calling, hasChanges);
     }
 
     private void wireUpFragments(Bundle savedInstanceState) {
