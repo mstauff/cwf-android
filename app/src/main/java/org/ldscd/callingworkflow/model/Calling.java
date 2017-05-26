@@ -131,10 +131,10 @@ public class Calling {
     public boolean equals(Calling calling) {
         boolean result = false;
         if(this.parentOrg.equals(calling.parentOrg) && this.getPosition().equals(calling.getPosition())) {
-            if(this.positionId != null && this.positionId.equals(calling.positionId))  {
+            if((this.positionId != null && this.positionId.equals(calling.positionId)) || !this.position.getAllowMultiple())  {
                 result = true;
             } else if (this.cwfId != null) {
-                result = this.cwfId == calling.getCwfId();
+                result = this.cwfId.equals(calling.getCwfId());
             }
         }
         return result;

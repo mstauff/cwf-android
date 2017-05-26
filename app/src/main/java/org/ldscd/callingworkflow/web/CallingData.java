@@ -51,10 +51,6 @@ public class CallingData {
                             callingsByOrg = new HashMap<Long, List<Calling>>();
                             callingsById = new HashMap<String, Calling>();
                             baseOrgByOrgId = new HashMap<Long, Org>();
-                            for (Org org : orgs) {
-                                callingsByOrg.put(org.getId(), new ArrayList<Calling>());
-                                extractOrg(org, org.getId());
-                            }
                             pb.setProgress(pb.getProgress() + 20);
                             googleDataService.syncDriveIds(new Response.Listener<Boolean>() {
                                 @Override
@@ -65,6 +61,10 @@ public class CallingData {
                                             @Override
                                             public void onResponse(Boolean mergeSucceeded) {
                                                 if(mergeSucceeded){
+                                                    for (Org org : orgs) {
+                                                        callingsByOrg.put(org.getId(), new ArrayList<Calling>());
+                                                        extractOrg(org, org.getId());
+                                                    }
                                                     pb.setProgress(pb.getProgress() + 10);
                                                     orgsCallback.onResponse(true);
                                                 } else {
