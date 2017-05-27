@@ -45,9 +45,12 @@ public class Position {
     public long getPositionDisplayOrder() { return positionDisplayOrder; }
     public void setPositionDisplayOrder(long positionDisplayOrder) { this.positionDisplayOrder = positionDisplayOrder; }
 
-    public String toString() { return name; }
-
     public boolean equals(Position position) {
         return this.getPositionTypeId() == position.getPositionTypeId();
+    }
+
+    @Override
+    public String toString() {
+        return this.name;
     }
 }

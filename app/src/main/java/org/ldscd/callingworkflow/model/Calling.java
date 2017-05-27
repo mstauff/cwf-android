@@ -147,4 +147,9 @@ public class Calling {
         proposedStatus = sourceCalling.getProposedStatus();
         notes = sourceCalling.getNotes();
     }
+
+    @Override
+    public String toString() {
+        return this.position.getName();
+    }
 }
