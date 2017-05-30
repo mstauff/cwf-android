@@ -110,6 +110,8 @@ public class CallingData {
                 @Override
                 public void onResponse(Org cwfOrg) {
                     mergeOrgs(org, cwfOrg);
+                    // todo - this should be enhanced to make use of promises, potential threading issues
+                    // if multiple threads handle responses the ++ may not be correct
                     orgsFinishedImporting[0]++;
                     if (orgsFinishedImporting[0] == orgs.size()) {
                         mergeFinishedCallback.onResponse(true);
@@ -161,6 +163,9 @@ public class CallingData {
                 for (Calling lcrCalling : lcrCallings) {
 
                     if (cwfCalling.equals(lcrCalling)) {
+                        // todo - test, but probably should not merge in every case. If the potential
+                        // became actual then no need to merge
+                        // todo - also this needs to be persisted to google drive
                         lcrCalling.importCWFData(cwfCalling);
                         matchFound = true;
                         break;
@@ -203,6 +208,8 @@ public class CallingData {
                         }
                         lcrCallings.add(cwfCalling);
                     }
+                    // todo - what about EQ Instructor that allows multiples - same positionTypeId but both have a diff
+                    // cwfId - they don't ever get matched up and we end up with duplicates
                 }
             }
         }
