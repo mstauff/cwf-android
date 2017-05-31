@@ -31,7 +31,7 @@ import javax.inject.Inject;
 
 /**
  * A fragment representing a single Calling detail screen.
- * This fragment is either contained in a {@link CallingListActivity}
+ * This fragment is either contained in a {@link ExpandableOrgsListActivity}
  * in two-pane mode (on tablets) or a {@link CallingDetailActivity}
  * on handsets.
  */

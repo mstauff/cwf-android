@@ -27,9 +27,9 @@ public class CallingData {
 
     private List<Org> orgs;
     private Map<Long, Org> orgsById;
-    private Map<Long, List<Calling>> callingsByOrg;
     private Map<String, Calling> callingsById;
     private Map<Long, Org> baseOrgByOrgId;
+    private List<Calling> allCallings;
 
     public CallingData(IWebResources webResources, GoogleDataService googleDataService, MemberData memberData) {
         this.webResources = webResources;
@@ -48,9 +48,9 @@ public class CallingData {
                         public void onResponse(List<Org> response) {
                             orgs = response;
                             orgsById = new HashMap<Long, Org>();
-                            callingsByOrg = new HashMap<Long, List<Calling>>();
                             callingsById = new HashMap<String, Calling>();
                             baseOrgByOrgId = new HashMap<Long, Org>();
+                            allCallings = new ArrayList<Calling>();
                             pb.setProgress(pb.getProgress() + 20);
                             googleDataService.syncDriveIds(new Response.Listener<Boolean>() {
                                 @Override
@@ -62,7 +62,6 @@ public class CallingData {
                                             public void onResponse(Boolean mergeSucceeded) {
                                                 if(mergeSucceeded){
                                                     for (Org org : orgs) {
-                                                        callingsByOrg.put(org.getId(), new ArrayList<Calling>());
                                                         extractOrg(org, org.getId());
                                                     }
                                                     pb.setProgress(pb.getProgress() + 10);
@@ -91,10 +90,9 @@ public class CallingData {
     private void extractOrg(Org org, long baseOrgId) {
         orgsById.put(org.getId(), org);
         baseOrgByOrgId.put(org.getId(), orgsById.get(baseOrgId));
-        List<Calling> callingsList = callingsByOrg.get(baseOrgId);
         for(Calling calling: org.getCallings()) {
+            allCallings.add(calling);
             callingsById.put(calling.getCallingId(), calling);
-            callingsList.add(calling);
         }
         for(Org subOrg: org.getChildren()) {
             extractOrg(subOrg, baseOrgId);
@@ -227,10 +225,14 @@ public class CallingData {
         return baseOrgByOrgId.get(orgId);
     }
 
-    //returns all callings in an org, including callings from subOrgs
-    //this only works for base organizations
-    public List<Calling> getCallings(long orgId) {
-        return callingsByOrg.get(orgId);
+    public List<Calling> getUnfinallizedCallings() {
+        List<Calling> result = new ArrayList<>();
+        for(Calling calling: allCallings) {
+            if((calling.getProposedIndId() != null && calling.getProposedIndId() > 0) || calling.getProposedStatus() != null) {
+                result.add(calling);
+            }
+        }
+        return result;
     }
 
     public Calling getCalling(String callingId) {

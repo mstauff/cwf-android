@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -17,28 +16,15 @@ import android.view.MenuItem;
 import android.view.View;
 
 import org.ldscd.callingworkflow.R;
-import org.ldscd.callingworkflow.display.adapters.OrgListAdapter;
-import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.web.DataManager;
-
-import java.util.List;
 
 import javax.inject.Inject;
 
-// Default startup view is a list of Org's
-// Initial login is not yet designed.  Needs google id etc.
-// Post initial launch allow them to startup where left off.(This would require having the org structure.)
-// Need to create a splash screen as a startup.
-// Need to determine location of retrieved and shared data.
-// TODO: Start up activity data sync. all this should start up on a background thread.
-// 1. App Config setup call.
-// 2. Login Information
-// 3. User Information(Permissions, callings to determine permissions)
-// 4. Query church services for org's
-// 5. WardMember List
-// 6. Query google drive for syncing.  Read and cache DriveId's
+/**
+ * Created by Adam on 5/19/2017.
+ */
 
-public class OrgListActivity extends AppCompatActivity
+public class DirectoryActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     /**
@@ -55,7 +41,7 @@ public class OrgListActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ((CWFApplication)getApplication()).getNetComponent().inject(this);
-        setContentView(R.layout.activity_org_list);
+        setContentView(R.layout.activity_directory);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -69,9 +55,9 @@ public class OrgListActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-        navigationView.setCheckedItem(R.id.nav_orgs);
+        navigationView.setCheckedItem(R.id.nav_directory);
 
-        View recyclerView = findViewById(R.id.org_list);
+        View recyclerView = findViewById(R.id.directory);
         assert recyclerView != null;
         setupRecyclerView((RecyclerView) recyclerView);
 
@@ -85,9 +71,7 @@ public class OrgListActivity extends AppCompatActivity
     }
 
     private void setupRecyclerView(@NonNull final RecyclerView recyclerView) {
-        List<Org> orgs = dataManager.getOrgs();
-        FragmentManager fragmentManager = twoPane ? getSupportFragmentManager() : null;
-        recyclerView.setAdapter(new OrgListAdapter(orgs, twoPane, fragmentManager));
+
     }
 
     @Override
@@ -151,11 +135,11 @@ public class OrgListActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if(id == R.id.nav_callings) {
-            Intent intent = new Intent(this, CallingListActivity.class);
+        if(id == R.id.nav_orgs) {
+            Intent intent = new Intent(this, OrgListActivity.class);
             startActivity(intent);
-        } else if(id == R.id.nav_directory) {
-            Intent intent = new Intent(this, DirectoryActivity.class);
+        } else if(id == R.id.nav_callings) {
+            Intent intent = new Intent(this, CallingListActivity.class);
             startActivity(intent);
         } else if (id == R.id.nav_settings) {
             Intent intent = new Intent(this, SettingsActivity.class);

@@ -25,7 +25,7 @@ import javax.inject.Inject;
  * An activity representing a single Calling detail screen. This
  * activity is only used narrow width devices. On tablet-size devices,
  * item details are presented side-by-side with a list of items
- * in a {@link CallingListActivity}.
+ * in a {@link ExpandableOrgsListActivity}.
  */
 public class CallingDetailActivity extends AppCompatActivity implements MemberLookupFragment.memberLookupFragmentInteractionListener, CallingDetailFragment.OnFragmentInteractionListener {
     @Inject
@@ -46,7 +46,7 @@ public class CallingDetailActivity extends AppCompatActivity implements MemberLo
         /* Initialize UI */
         setContentView(R.layout.activity_calling_detail);
 
-        orgId = getIntent().getLongExtra(CallingListActivity.ARG_ORG_ID, 0);
+        orgId = getIntent().getLongExtra(ExpandableOrgsListActivity.ARG_ORG_ID, 0);
         org = dataManager.getOrg(orgId);
         String callingId = getIntent().getStringExtra(CallingDetailFragment.CALLING_ID);
         hydrateCalling(callingId);
@@ -70,8 +70,8 @@ public class CallingDetailActivity extends AppCompatActivity implements MemberLo
             //
             // http://developer.android.com/design/patterns/navigation.html#up-vs-back
             submitOrgChanges();
-            Intent intent = new Intent(this, CallingListActivity.class);
-            intent.putExtra(CallingListActivity.ARG_ORG_ID, orgId);
+            Intent intent = new Intent(this, ExpandableOrgsListActivity.class);
+            intent.putExtra(ExpandableOrgsListActivity.ARG_ORG_ID, orgId);
             navigateUpTo(intent);
             return true;
         } else if(id == R.id.calling_detail_release_current_in_lcr) {

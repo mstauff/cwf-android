@@ -3,9 +3,14 @@
 
     <group android:checkableBehavior="single">
         <item
+            android:id="@+id/nav_orgs"
+            android:title="@string/navigation_drawer_orgs" />
+        <item
             android:id="@+id/nav_callings"
-            android:title="@string/navigation_drawer_callings"
-            android:checked="true"/>
+            android:title="@string/navigation_drawer_callings" />
+        <item
+            android:id="@+id/nav_directory"
+            android:title="@string/navigation_drawer_directory" />
         <item
             android:id="@+id/nav_settings"
             android:title="@string/navigation_drawer_settings" />

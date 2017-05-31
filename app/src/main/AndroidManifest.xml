@@ -39,22 +39,30 @@
         <activity
             android:name=".display.CallingListActivity"
             android:label="@string/app_name"
+            android:theme="@style/AppTheme.NoActionBar"/>
+        <activity
+            android:name=".display.DirectoryActivity"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.NoActionBar"/>
+        <activity
+            android:name=".display.ExpandableOrgsListActivity"
+            android:label="@string/app_name"
             android:parentActivityName=".display.OrgListActivity"
             android:theme="@style/AppTheme.NoActionBar"/>
         <activity
             android:name=".display.CallingDetailActivity"
             android:label="@string/title_calling_detail"
-            android:parentActivityName=".display.CallingListActivity"
+            android:parentActivityName=".display.ExpandableOrgsListActivity"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="adjustPan">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".display.CallingListActivity" />
+                android:value=".display.ExpandableOrgsListActivity" />
         </activity>
         <activity android:name=".display.SettingsActivity" />
         <activity android:name=".display.AboutActivity" />
         <activity android:name=".display.CreateCallingActivity"
-            android:parentActivityName=".display.CallingListActivity"
+            android:parentActivityName=".display.ExpandableOrgsListActivity"
             android:windowSoftInputMode="adjustPan"/>
 
         <service

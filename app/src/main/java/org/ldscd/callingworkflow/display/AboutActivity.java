@@ -32,7 +32,7 @@ public class AboutActivity extends AppCompatActivity {
             //
             // http://developer.android.com/design/patterns/navigation.html#up-vs-back
             //
-            navigateUpTo(new Intent(this, CallingListActivity.class));
+            navigateUpTo(new Intent(this, ExpandableOrgsListActivity.class));
             return true;
         }
         return super.onOptionsItemSelected(item);

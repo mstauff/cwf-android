@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/calling_list_calling"
+    android:id="@+id/calling_item"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
@@ -17,13 +17,13 @@
         android:layout_weight="3">
 
         <TextView
-            android:id="@+id/calling_list_title"
+            android:id="@+id/calling_item_title"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceListItem"
             android:layout_width="wrap_content" />
 
         <TextView
-            android:id="@+id/calling_list_current"
+            android:id="@+id/calling_item_current"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
     </LinearLayout>
@@ -38,14 +38,14 @@
         android:layout_weight="2">
 
         <TextView
-            android:id="@+id/calling_list_proposed"
+            android:id="@+id/calling_item_proposed"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="end"
             android:textAppearance="?attr/textAppearanceListItem"
             android:textColor="@color/highlight_name"/>
         <TextView
-            android:id="@+id/calling_list_proposed_status"
+            android:id="@+id/calling_item_proposed_status"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="end"/>

@@ -9,7 +9,7 @@
     android:divider="?android:attr/dividerHorizontal"
     android:orientation="horizontal"
     android:showDividers="middle"
-    tools:context="org.ldscd.callingworkflow.display.CallingListActivity">
+    tools:context="org.ldscd.callingworkflow.display.ExpandableOrgsListActivity">
 
     <!--
     This layout is a two-pane layout for the Callings
@@ -19,15 +19,15 @@
 
     <android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/calling_list"
+        android:id="@+id/expandable_org_list"
         android:name="org.ldscd.callingworkflow.CallingListFragment"
         android:layout_width="@dimen/item_width"
         android:layout_height="match_parent"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
         app:layoutManager="LinearLayoutManager"
-        tools:context="org.ldscd.callingworkflow.display.CallingListActivity"
-        tools:listitem="@layout/calling_list_content" />
+        tools:context="org.ldscd.callingworkflow.display.ExpandableOrgsListActivity"
+        tools:listitem="@layout/list_calling_item" />
 
     <FrameLayout
         android:id="@+id/calling_detail_container"

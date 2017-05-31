@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import org.ldscd.callingworkflow.R;
-import org.ldscd.callingworkflow.display.CallingListActivity;
+import org.ldscd.callingworkflow.display.ExpandableOrgsListActivity;
 import org.ldscd.callingworkflow.model.Org;
 
 import java.util.List;
@@ -44,7 +44,7 @@ public class OrgListAdapter extends RecyclerView.Adapter<OrgListAdapter.ViewHold
             public void onClick(View v) {
                 /*if (twoPane) {
                     Bundle arguments = new Bundle();
-                    arguments.putString(CallingDetailFragment.ARG_ITEM_ID, holder.orgItem.id);
+                    arguments.putString(CallingDetailFragment.CALLING_ID, holder.orgItem.id);
                     CallingDetailFragment fragment = new CallingDetailFragment();
                     fragment.setArguments(arguments);
                     fragmentManager.beginTransaction()
@@ -52,8 +52,8 @@ public class OrgListAdapter extends RecyclerView.Adapter<OrgListAdapter.ViewHold
                             .commit();
                 } else {*/
                 Context context = v.getContext();
-                Intent intent = new Intent(context, CallingListActivity.class);
-                intent.putExtra(CallingListActivity.ARG_ORG_ID, holder.orgItem.getId());
+                Intent intent = new Intent(context, ExpandableOrgsListActivity.class);
+                intent.putExtra(ExpandableOrgsListActivity.ARG_ORG_ID, holder.orgItem.getId());
 
                 context.startActivity(intent);
                 //}

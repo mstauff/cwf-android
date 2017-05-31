@@ -82,4 +82,10 @@ public class DataManagerImpl implements DataManager {
             }
         }, baseOrg);
     }
+
+    @Override
+    public List<Calling> getUnfinalizedCallings() {
+        return callingData.getUnfinallizedCallings();
+    }
+
 }

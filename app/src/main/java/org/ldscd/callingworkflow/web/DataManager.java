@@ -25,4 +25,5 @@ public interface DataManager {
     /* Google data. */
     public void saveFile(Response.Listener<Boolean> listener, Org org);
     public void saveCalling(Response.Listener<Boolean> listener, Calling calling);
+    public List<Calling> getUnfinalizedCallings();
 }

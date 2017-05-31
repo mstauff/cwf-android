@@ -62,5 +62,7 @@
     <string name="new_calling_label_proposed">Select Person for Calling</string>
     <string name="new_calling_saved">Calling Created</string>
     <string name="new_calling_failed">Save Failed - please try again later</string>
+    <string name="navigation_drawer_orgs">Organizations</string>
+    <string name="navigation_drawer_directory">Directory</string>
 
 </resources>

@@ -21,7 +21,6 @@ import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.google.ConflictResolver;
 import org.ldscd.callingworkflow.google.ConflictUtil;
 import org.ldscd.callingworkflow.web.IWebResources;
-import org.ldscd.callingworkflow.web.WebResources;
 
 import javax.inject.Inject;
 import java.io.*;
@@ -302,7 +301,7 @@ public class SettingsActivity extends BaseActivity {
             //
             // http://developer.android.com/design/patterns/navigation.html#up-vs-back
             //
-            navigateUpTo(new Intent(this, CallingListActivity.class));
+            navigateUpTo(new Intent(this, ExpandableOrgsListActivity.class));
             return true;
         }
         return super.onOptionsItemSelected(item);
