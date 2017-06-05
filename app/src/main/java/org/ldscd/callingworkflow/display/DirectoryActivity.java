@@ -44,8 +44,8 @@ public class DirectoryActivity extends AppCompatActivity
         setContentView(R.layout.activity_directory);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitle(getString(R.string.navigation_drawer_directory));
         setSupportActionBar(toolbar);
-        toolbar.setTitle(getTitle());
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(

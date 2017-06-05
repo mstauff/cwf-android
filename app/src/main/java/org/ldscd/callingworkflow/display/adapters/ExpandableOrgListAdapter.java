@@ -21,6 +21,8 @@ import org.ldscd.callingworkflow.web.DataManager;
 import java.util.List;
 
 public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
+    private static final int GROUP_INDENT = 50;
+    private static final int CHILD_INDENT = 100;
     private final Context ctx;
     private Org org;
     private List<Org> subOrgs;
@@ -144,8 +146,10 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
             convertView.setBackgroundColor(ContextCompat.getColor(ctx, android.R.color.white));
         }
         if(childView) {
-            convertView.setPadding(50, 0, 0, 0);
+            convertView.setPadding(CHILD_INDENT, 0, 0, 0);
             convertView.setBackgroundColor(ContextCompat.getColor(ctx, R.color.light_grey));
+        } else {
+            convertView.setPadding(GROUP_INDENT, 0, 0, 0);
         }
 
         return convertView;
@@ -160,45 +164,39 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
         TextView callingTitle = (TextView) convertView.findViewById(R.id.calling_item_title);
         TextView current = (TextView) convertView.findViewById(R.id.calling_item_current);
         TextView proposed = (TextView) convertView.findViewById(R.id.calling_item_proposed);
-        TextView proposedStatus = (TextView) convertView.findViewById(R.id.calling_item_proposed_status);
 
         //set calling name
         callingTitle.setText(calling.getPosition().getName());
 
-        //set current called
-        if(calling.getMemberId() != null && calling.getMemberId() > 0) {
-            current.setText("(" + dataManager.getMemberName(calling.getMemberId()) + ")");
-            final Long currentIndividualId = calling.getMemberId();
-            current.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (ctx instanceof ExpandableOrgsListActivity) {
-                        ((ExpandableOrgsListActivity) ctx).wireUpIndividualInformationFragments(currentIndividualId);
-                    }
-                }
-            });
-        }
-        //set proposed member
+        //set proposed member and status
+        String proposedName = "";
         if(calling.getProposedIndId() != null && calling.getProposedIndId() > 0) {
-            proposed.setText(dataManager.getMemberName(calling.getProposedIndId()));
-            final Long proposedIndividualId = calling.getProposedIndId();
-            proposed.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (ctx instanceof ExpandableOrgsListActivity) {
-                        ((ExpandableOrgsListActivity) ctx).wireUpIndividualInformationFragments(proposedIndividualId);
-                    }
-                }
-            });
+            proposedName = dataManager.getMemberName(calling.getProposedIndId());
         }
-        //set proposed status
-        if(calling.getProposedStatus() != null) {
-            proposedStatus.setText("(" + calling.getProposedStatus() + ")");
+        String proposedStatus = calling.getProposedStatus() != null ? calling.getProposedStatus() : "";
+        if(!proposedName.equals("") && !proposedStatus.equals("")) {
+            proposed.setText(proposedName + " - " + proposedStatus);
+        } else if(proposedName.equals("") && proposedStatus.equals("")) {
+            proposed.setVisibility(View.GONE);
+        } else {
+            proposed.setText(proposedName + proposedStatus);
         }
 
+        //set current called
+        if(calling.getMemberId() != null && calling.getMemberId() > 0) {
+            String currentName = dataManager.getMemberName(calling.getMemberId());
+            String callingAge = calling.getActiveDate();
+            current.setText(currentName + " (" + callingAge + ")");
+        } else {
+            current.setVisibility(View.GONE);
+        }
+
+        //indent if this is a child
         if(childView) {
-            convertView.setPadding(50, 0, 0, 0);
+            convertView.setPadding(CHILD_INDENT, 0, 0, 0);
             convertView.setBackgroundColor(ContextCompat.getColor(ctx, R.color.light_grey));
+        } else {
+            convertView.setPadding(GROUP_INDENT, 0, 0, 0);
         }
 
         return convertView;

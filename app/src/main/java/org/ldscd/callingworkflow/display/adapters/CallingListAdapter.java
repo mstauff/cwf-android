@@ -14,6 +14,7 @@ import org.ldscd.callingworkflow.display.CallingDetailActivity;
 import org.ldscd.callingworkflow.display.CallingDetailFragment;
 import org.ldscd.callingworkflow.display.ExpandableOrgsListActivity;
 import org.ldscd.callingworkflow.model.Calling;
+import org.ldscd.callingworkflow.utils.DataUtil;
 import org.ldscd.callingworkflow.web.DataManager;
 
 import java.util.List;
@@ -46,43 +47,36 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
         //set calling name
         holder.callingTitleView.setText(holder.callingItem.getPosition().getName());
 
-        //set current called
-        final Long currentId = holder.callingItem.getMemberId();
-        if(currentId != null && currentId > 0) {
-            holder.currentCalledView.setText("(" + dataManager.getMemberName(currentId) + ")");
-            holder.currentCalledView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    //if (holder.view.getContext() instanceof ExpandableOrgsListActivity) {
-                    //    ((ExpandableOrgsListActivity) ctx).wireUpIndividualInformationFragments(currentIndividualId);
-                    //}
-                }
-            });
-        } else {
-            holder.currentCalledView.setText("");
-        }
-
-        //set proposed member
-        final Long proposedId = holder.callingItem.getProposedIndId();
+        //set proposed member and status
+        String proposedName = "";
+        Long proposedId = holder.callingItem.getProposedIndId();
         if(proposedId != null && proposedId > 0) {
-            holder.proposedMemberView.setText(dataManager.getMemberName(proposedId));
-            holder.proposedMemberView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    //if (ctx instanceof ExpandableOrgsListActivity) {
-                    //    ((ExpandableOrgsListActivity) ctx).wireUpIndividualInformationFragments(proposedIndividualId);
-                    //}
-                }
-            });
+            proposedName = dataManager.getMemberName(proposedId);
+        }
+        String proposedStatus = holder.callingItem.getProposedStatus();
+        if(proposedStatus == null) {
+            proposedStatus = "";
+        }
+        if(!proposedName.equals("") && !proposedStatus.equals("")) {
+            holder.proposedMemberView.setVisibility(View.VISIBLE);
+            holder.proposedMemberView.setText(proposedName + " - " + proposedStatus);
+        } else if(proposedName.equals("") && proposedStatus.equals("")) {
+            holder.proposedMemberView.setVisibility(View.GONE);
         } else {
-            holder.proposedMemberView.setText("");
+            holder.proposedMemberView.setVisibility(View.VISIBLE);
+            holder.proposedMemberView.setText(proposedName + proposedStatus);
         }
 
-        //set proposed status
-        if(holder.callingItem.getProposedStatus() != null) {
-            holder.proposedStatusView.setText("(" + holder.callingItem.getProposedStatus() + ")");
+        //set current called
+        Long currentId = holder.callingItem.getMemberId();
+        if(currentId != null && currentId > 0) {
+            String memberName = dataManager.getMemberName(currentId);
+            int callingAge = DataUtil.getMonthsSinceActiveDate(holder.callingItem.getActiveDate());
+            String monthsLabel = holder.view.getResources().getString(R.string.months);
+            holder.currentCalledView.setVisibility(View.VISIBLE);
+            holder.currentCalledView.setText(memberName + " (" + callingAge + " " + monthsLabel + ")");
         } else {
-            holder.proposedStatusView.setText("");
+            holder.currentCalledView.setVisibility(View.GONE);
         }
 
         holder.view.setOnClickListener(new View.OnClickListener() {
@@ -117,7 +111,6 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
         public final TextView callingTitleView;
         public final TextView currentCalledView;
         public final TextView proposedMemberView;
-        public final TextView proposedStatusView;
         public Calling callingItem;
 
         public ViewHolder(View view) {
@@ -126,7 +119,6 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
             callingTitleView = (TextView) view.findViewById(R.id.calling_item_title);
             currentCalledView = (TextView) view.findViewById(R.id.calling_item_current);
             proposedMemberView = (TextView) view.findViewById(R.id.calling_item_proposed);
-            proposedStatusView = (TextView) view.findViewById(R.id.calling_item_proposed_status);
         }
 
         @Override

@@ -64,5 +64,6 @@
     <string name="new_calling_failed">Save Failed - please try again later</string>
     <string name="navigation_drawer_orgs">Organizations</string>
     <string name="navigation_drawer_directory">Directory</string>
+    <string name="months">months</string>
 
 </resources>

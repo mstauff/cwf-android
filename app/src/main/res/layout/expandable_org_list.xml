@@ -6,8 +6,6 @@
     android:name="org.ldscd.callingworkflow.CallingListFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginLeft="16dp"
-    android:layout_marginRight="16dp"
     app:layoutManager="LinearLayoutManager"
     tools:context="org.ldscd.callingworkflow.display.ExpandableOrgsListActivity"
     tools:listitem="@layout/list_calling_item"/>
