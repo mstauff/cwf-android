@@ -186,11 +186,60 @@ public class DataManagerTests {
 
     @Test
     public void mergeMatchingTypeWithMultipleMatches() {
-        //this time ids shouldn't match so we'll change them and remove the subOrg different calling types
+        //this time ids shouldn't match so we'll change them and remove the subOrg with different calling types
         sampleCWFOrg.getChildren().get(1).getCallings().get(0).setId(111L);
         sampleCWFOrg.getChildren().get(1).getCallings().get(1).setId(222L);
         sampleCWFOrg.getChildren().remove(0);
         sampleLCROrgs.get(0).getChildren().remove(0);
+
+        final int startingSize = sampleLCROrgs.get(0).getChildren().size();
+        dataManager.loadOrgs(new Response.Listener<Boolean>(){
+            @Override
+            public void onResponse(Boolean response) {
+                //loadOrgs should return true on success
+                assertTrue(response);
+                Org resultOrg = dataManager.getOrgs().get(0);
+
+                //orgs should match so we should have the same number of orgs, but the result should include more callings
+                assertEquals(resultOrg.getChildren().size(), startingSize);
+                Org resultSubOrg = resultOrg.getChildren().get(0);
+                Org cwfSubOrg = sampleCWFOrg.getChildren().get(0);
+                assertTrue(resultSubOrg.getCallings().size() > cwfSubOrg.getCallings().size());
+
+                //The cwf callings should have been added to the list so we should have 2 flagged callings with CWF data
+                //and 2 without flags or CWF data
+                int flaggedCount = 0;
+                int nonFlaggedCount = 0;
+                for(int callingIndex=0; callingIndex < resultSubOrg.getCallings().size(); callingIndex++) {
+                    Calling resultCalling = resultSubOrg.getCallings().get(callingIndex);
+                    if(resultCalling.getConflictCause() == null) {
+                        assertNull(resultCalling.getCwfId());
+                        assertNull(resultCalling.getProposedIndId());
+                        assertNull(resultCalling.getProposedStatus());
+                        assertNull(resultCalling.getNotes());
+                        nonFlaggedCount++;
+                    } else {
+                        assertNotNull(resultCalling.getCwfId());
+                        assertNotNull(resultCalling.getProposedIndId());
+                        assertNotNull(resultCalling.getProposedStatus());
+                        assertNotNull(resultCalling.getNotes());
+                        flaggedCount++;
+                    }
+                }
+                assertEquals(nonFlaggedCount, 2);
+                assertEquals(flaggedCount, 2);
+            }
+        }, mockProgressBar, mockActivity);
+    }
+
+    @Test
+    public void mergeNonMatchingType() {
+        //they shouldn't match at all so we'll change the ids and positions
+        List<Calling> subOrgCallings = sampleCWFOrg.getChildren().get(0).getCallings();
+        subOrgCallings.get(0).setId(111L);
+        subOrgCallings.get(0).setPosition(new Position("Primary Pianist", 215, false, true, 0L));
+        subOrgCallings.get(1).setId(222L);
+        subOrgCallings.get(1).setPosition(new Position("Primary Music Leader", 214, false, true, 0L));
 
         final int startingSize = sampleLCROrgs.get(0).getChildren().size();
         dataManager.loadOrgs(new Response.Listener<Boolean>(){
