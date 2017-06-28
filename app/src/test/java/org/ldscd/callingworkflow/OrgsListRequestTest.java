@@ -62,10 +62,11 @@ public class OrgsListRequestTest {
     }
 
     private void evaluateOrg(Org org) {
-        evaluateLong(org.getId(), "OrgId");
+        evaluateNumber(org.getId(), "OrgId");
         evaluateString(org.getDefaultOrgName(), "OrgName");
-        evaluateInt(org.getOrgTypeId(), "OrgTypeId");
-        evaluateInt(org.getDisplayOrder(), "DisplayOrder");
+        evaluateNumber(org.getOrgTypeId(), "OrgTypeId");
+        evaluateNumber(org.getDisplayOrder(), "DisplayOrder");
+        evaluateCalling(org.getCallings());
         evaluateCalling(org.getCallings());
         for(Org child : org.getChildren()) {
             evaluateOrg(child);
@@ -75,20 +76,18 @@ public class OrgsListRequestTest {
     private void evaluateCalling(List<Calling> callings) {
         if(callings != null) {
             for(Calling calling : callings) {
-                evaluateString(calling.getCallingId(), "calling.getCallingId");
+                //evaluateString(calling.getCallingId(), "calling.getCallingId");
                 assertNotNull("the Field: calling.getPosition", calling.getPosition());
-                if(calling.getCwfId() == null || calling.getCwfId().length() == 0 || calling.getCwfId().equals("null")) {
-                    evaluateLong(calling.getId(), "calling.getId");
-                } else {
-                    evaluateString(calling.getCwfId(), "calling.getCwfId");
-                }
+                evaluateNumber(calling.getId(), "calling.getId");
+                //evaluateString(calling.getCwfId(), "calling.getCwfId");
+
                 if(calling.getActiveDate() != null) {
                     assertTrue("the Field: calling.activeDate after 20 years ago", calling.getActiveDateTime().isAfter(DateTime.now().minusYears(20)));
                     assertTrue("the Field: calling.activeDate before current date", calling.getActiveDateTime().isBefore(DateTime.now()));
                 }
 
                 if(calling.getCwfId() == null || calling.getCwfId().length() == 0) {
-                    evaluateLong(calling.getMemberId(), "calling.getMemberId. Calling.ID = " + calling.getCallingId());
+                    evaluateNumber(calling.getMemberId(), "calling.getMemberId. Calling.ID = " + calling.getCallingId());
                 }
                 evaluatePosition(calling.getPosition());
             }
@@ -101,19 +100,15 @@ public class OrgsListRequestTest {
        assertTrue(position.getPositionTypeId() > 0);
    }
 
-    private void evaluateInt(Integer field, String fieldName) {
+   
+    private void evaluateNumber(Number field, String fieldName) {
         assertNotNull("the Field: " + fieldName, field);
-        assertTrue("the Field: " + fieldName, field > 0);
-    }
-
-    private void evaluateLong(Long field, String fieldName) {
-        assertNotNull("the Field: " + fieldName, field);
-        assertTrue("the Field: " + fieldName, field > 0);
+        assertTrue("the Field: " + fieldName, field.longValue() > 0);
     }
 
     private void evaluateString(String field, String fieldName) {
-        assertFalse("the Field: " + fieldName, field.equals("null"));
         assertNotNull("the Field: " + fieldName, field);
+        assertFalse("the Field: " + fieldName, field.equals("null"));
         assertTrue("the Field: " + fieldName, field.length() > 0);
     }
 

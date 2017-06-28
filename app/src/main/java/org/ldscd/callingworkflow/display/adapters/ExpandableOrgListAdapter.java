@@ -12,6 +12,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import org.ldscd.callingworkflow.R;
+import org.ldscd.callingworkflow.constants.CallingStatus;
 import org.ldscd.callingworkflow.display.ExpandableOrgsListActivity;
 import org.ldscd.callingworkflow.display.CreateCallingActivity;
 import org.ldscd.callingworkflow.model.Calling;
@@ -173,7 +174,9 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
         if(calling.getProposedIndId() != null && calling.getProposedIndId() > 0) {
             proposedName = dataManager.getMemberName(calling.getProposedIndId());
         }
-        String proposedStatus = calling.getProposedStatus() != null ? calling.getProposedStatus() : "";
+        String proposedStatus = calling.getProposedStatus() != null &&
+                                CallingStatus.get(calling.getProposedStatus()) != null ?
+                                CallingStatus.get(calling.getProposedStatus()).toString() : "";
         if(!proposedName.equals("") && !proposedStatus.equals("")) {
             proposed.setText(proposedName + " - " + proposedStatus);
         } else if(proposedName.equals("") && proposedStatus.equals("")) {

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/member_lookup_filter_options_priesthood"
+        android:checkable="true"
+        android:enabled="true"
+        android:title="Priesthood"
+        android:visible="true" />
+</menu>

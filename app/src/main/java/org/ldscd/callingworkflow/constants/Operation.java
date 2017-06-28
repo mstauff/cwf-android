@@ -1,7 +1,7 @@
 package org.ldscd.callingworkflow.constants;
 
 /**
- * CRUD event enum.  Create, Read, Update, Delete
+ * CRUD event enum.  Create, Read, Update, Delete, Release
  */
 public enum Operation {
     CREATE("Create"),

@@ -46,6 +46,21 @@
     <string name="female">Female</string>
     <string name="age">Age</string>
     <string name="gender">Gender</string>
+    <string name="priesthood">Priesthood</string>
+    <string name="high_priest">High Priest</string>
+    <string name="elders_quorum">Elders Quorum</string>
+    <string name="priest">Priest</string>
+    <string name="teacher">Teacher</string>
+    <string name="deacon">Deacon</string>
+    <string name="relief_society">Relief Society</string>
+    <string name="laurel">Laurel</string>
+    <string name="mia_maid">Mia Maid</string>
+    <string name="beehive">Behive</string>
+    <string name="zero">0</string>
+    <string name="one">1</string>
+    <string name="two">2</string>
+    <string name="three_plus">3+</string>
+    <string name="done">Done</string>
     <!-- Test Info. -->
     <string name="cw_heading">File Data</string>
     <string name="action_settings">setting</string>

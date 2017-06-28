@@ -109,8 +109,8 @@ public class OrgCallingBuilder {
         if(!json.isNull(hiddenFieldName)) {
             position.setHidden(json.getBoolean(hiddenFieldName));
         }
-        if(json.has(positionDisplayOrderFieldName) && !json.getString(positionDisplayOrderFieldName).equals("null")) {
-            position.setPositionDisplayOrder(json.getLong(positionDisplayOrderFieldName));
+        if(json.has(positionDisplayOrderFieldName)) {
+            position.setPositionDisplayOrder(json.optLong(positionDisplayOrderFieldName));
         }
         String existingStatus = json.has(existingStatusFieldName) ? json.getString(existingStatusFieldName) : null;
         if(existingStatus != null && existingStatus.equals("null")) {

@@ -16,6 +16,8 @@ import android.view.View;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
 
+import com.android.volley.Response;
+
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.display.adapters.ExpandableOrgListAdapter;
 import org.ldscd.callingworkflow.model.Org;
@@ -43,6 +45,7 @@ public class ExpandableOrgsListActivity extends AppCompatActivity {
     AppCompatActivity activity = this;
     long orgId;
     long expandId;
+    Org org;
     ExpandableListView callingListView;
 
     @Inject
@@ -59,9 +62,18 @@ public class ExpandableOrgsListActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         if(actionBar != null) {
             orgId = getIntent().getLongExtra(ARG_ORG_ID, 0) == 0  ? savedInstanceState.getLong(ARG_ORG_ID) : getIntent().getLongExtra(ARG_ORG_ID, 0);
+            org = dataManager.getOrg(orgId);
             expandId = getIntent().getLongExtra(ARG_EXPAND_ID, 0);
             if(orgId > 0){
-                Org org = dataManager.getOrg(orgId);
+                dataManager.loadOrg(new Response.Listener<Boolean>() {
+                    @Override
+                    public void onResponse(Boolean response) {
+                        callingListView = (ExpandableListView) findViewById(R.id.expandable_org_list);
+                        assert callingListView != null;
+                        setupListView(callingListView);
+                    }
+                }, org);
+
                 getSupportActionBar().setTitle(org.getDefaultOrgName());
                 getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             } else {
@@ -71,10 +83,6 @@ public class ExpandableOrgsListActivity extends AppCompatActivity {
                 context.startActivity(intent);
             }
         }
-
-        callingListView = (ExpandableListView) findViewById(R.id.expandable_org_list);
-        assert callingListView != null;
-        setupListView(callingListView);
 
         if (findViewById(R.id.calling_detail_container) != null) {
             // The detail container view will be present only in the
@@ -86,7 +94,7 @@ public class ExpandableOrgsListActivity extends AppCompatActivity {
     }
 
     private void setupListView(@NonNull final ExpandableListView callingListView) {
-        final Org org = dataManager.getOrg(getIntent().getLongExtra(ARG_ORG_ID, 0));
+        org = dataManager.getOrg(getIntent().getLongExtra(ARG_ORG_ID, 0));
         FragmentManager fragmentManager = twoPane ? getSupportFragmentManager() : null;
         ExpandableListAdapter adapter = new ExpandableOrgListAdapter(org, dataManager, twoPane, fragmentManager, activity);
         callingListView.setAdapter(adapter);

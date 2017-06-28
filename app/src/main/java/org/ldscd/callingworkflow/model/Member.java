@@ -1,11 +1,11 @@
 package org.ldscd.callingworkflow.model;
 
+import org.joda.time.DateTime;
 import org.ldscd.callingworkflow.constants.Gender;
 import org.ldscd.callingworkflow.constants.Priesthood;
 import org.ldscd.callingworkflow.utils.JsonUtil;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -20,7 +20,7 @@ public class Member {
     String individualEmail;
     String householdEmail;
     String streetAddress;
-    Date birthDate;
+    DateTime birthDate;
     Gender gender;
     Priesthood priesthood;
     List<Calling> currentCallings;
@@ -30,7 +30,7 @@ public class Member {
     public Member() {}
 
     public Member(long individualId, String formattedName, String individualPhone, String householdPhone,
-                  String individualEmail, String householdEmail, String streetAddress, Date birthDate, Gender gender,
+                  String individualEmail, String householdEmail, String streetAddress, DateTime birthDate, Gender gender,
                   Priesthood priesthood, List<Calling> currentCallings, List<Calling> proposedCallings) {
         this.individualId = individualId;
         this.formattedName = JsonUtil.evalNull(formattedName);
@@ -68,8 +68,8 @@ public class Member {
     public String getStreetAddress() { return streetAddress; }
     public void setStreetAddress(String streetAddress) { this.streetAddress = JsonUtil.evalNull(streetAddress); }
 
-    public Date getBirthDate() { return birthDate; }
-    public void setBirthDate(Date birthDate) { this.birthDate = birthDate; }
+    public DateTime getBirthDate() { return birthDate; }
+    public void setBirthDate(DateTime birthDate) { this.birthDate = birthDate; }
 
     public Gender getGender() { return gender; }
     public void setGender(Gender gender) { this.gender = gender; }

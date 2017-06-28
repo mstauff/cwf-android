@@ -9,6 +9,10 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.toolbox.HttpHeaderParser;
 
+import org.joda.time.DateTime;
+import org.joda.time.Years;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -42,7 +46,7 @@ public class MemberListRequest extends Request<List<Member>> {
     private static final String genderFieldName = "gender";
     private static final String priesthoodFieldName = "priesthoodOffice";
 
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     private static final int minimumChildAge = 11;
 
     private final Response.Listener<List<Member>> listener;
@@ -96,11 +100,11 @@ public class MemberListRequest extends Request<List<Member>> {
                 for(int x=0; x < children.length(); x++) {
                     JSONObject child = children.getJSONObject(x);
                     try {
-                        Date birthdate = dateFormat.parse(child.getString(birthdateFieldName));
+                        DateTime birthdate = dateTimeFormatter.parseDateTime(child.getString(birthdateFieldName));
                         if(calculateAge(birthdate) >= minimumChildAge) {
                             memberList.add(extractMember(child, householdPhone, householdEmail, address));
                         }
-                    } catch (ParseException e) {
+                    } catch (Exception e) {
                         Log.e(TAG, "Error Parsing Child Birthdate: " + child.getString(birthdateFieldName));
                     }
                 }
@@ -119,10 +123,10 @@ public class MemberListRequest extends Request<List<Member>> {
         String phone = json.getString(phoneFieldName);
         String email = json.getString(emailFieldName);
 
-        Date birthdate;
+        DateTime birthdate;
         try {
-            birthdate = dateFormat.parse(json.getString(birthdateFieldName));
-        } catch (ParseException e) {
+            birthdate = dateTimeFormatter.parseDateTime(json.getString(birthdateFieldName));
+        } catch (Exception e) {
             Log.e(TAG, "Error parsing birthdate: " + json.getString(birthdateFieldName));
             birthdate = null;
         }
@@ -171,19 +175,7 @@ public class MemberListRequest extends Request<List<Member>> {
                 birthdate, gender, priesthood, null, null);
     }
 
-    private int calculateAge(Date birthdate) {
-        Calendar cal = Calendar.getInstance();
-        int currYear = cal.get(Calendar.YEAR);
-        int currMonth = cal.get(Calendar.MONTH);
-        int currDate = cal.get(Calendar.DATE);
-
-        cal.setTime(birthdate);
-        int age = currYear - cal.get(Calendar.YEAR);
-        //if they haven't had their birthday yet this year subtract 1
-        if(currMonth < cal.get(Calendar.MONTH) ||
-                (currDate == cal.get(Calendar.MONTH) && currDate < cal.get(Calendar.DATE))) {
-            age--;
-        }
-        return age;
+    private int calculateAge(DateTime birthdate) {
+        return Years.yearsBetween(birthdate, DateTime.now()).getYears();
     }
 }

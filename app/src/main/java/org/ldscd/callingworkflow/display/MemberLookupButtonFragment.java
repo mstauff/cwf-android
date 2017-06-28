@@ -30,7 +30,7 @@ public class MemberLookupButtonFragment extends Fragment implements
         // Required empty public constructor
     }
 
-    /* Methods */
+    /* Methods. */
 
     /**
      * Use this factory method to create a new instance of
@@ -127,9 +127,6 @@ public class MemberLookupButtonFragment extends Fragment implements
                 args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, member.getIndividualId());
                 searchFragment.setArguments(args);
             }
-           /* getFragmentManager().beginTransaction()
-                    .add(R.id.calling_detail_member_lookup_fragment, searchFragment)
-                    .commit();*/
         }
     }
 }
