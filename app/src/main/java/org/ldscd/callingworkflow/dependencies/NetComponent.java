@@ -4,6 +4,7 @@ import dagger.Component;
 import org.ldscd.callingworkflow.display.CallingDetailActivity;
 import org.ldscd.callingworkflow.display.CallingDetailFragment;
 import org.ldscd.callingworkflow.display.CallingDetailSearchFragment;
+import org.ldscd.callingworkflow.display.CallingFiltersFragment;
 import org.ldscd.callingworkflow.display.CallingListActivity;
 import org.ldscd.callingworkflow.display.CreateCallingActivity;
 import org.ldscd.callingworkflow.display.DirectoryActivity;
@@ -31,4 +32,5 @@ public interface NetComponent {
     void inject(IndividualInformationFragment activity);
     void inject(CreateCallingActivity activity);
     void inject(MemberLookupFragment activity);
+    void inject(CallingFiltersFragment activity);
 }

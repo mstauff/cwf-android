@@ -19,8 +19,6 @@ public class DataUtil {
         int result = 0;
         DateTime activeDateTime = getDateTime(activeDate);
         if(activeDateTime != null) {
-            Log.i("TEST*************",activeDate);
-            Log.i("TEST*************",String.valueOf(Months.monthsBetween(activeDateTime, new DateTime()).getMonths()));
             result = Months.monthsBetween(activeDateTime, new DateTime()).getMonths();
         }
         return result;

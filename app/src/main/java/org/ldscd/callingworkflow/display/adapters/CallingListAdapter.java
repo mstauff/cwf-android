@@ -10,27 +10,38 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import org.ldscd.callingworkflow.R;
+import org.ldscd.callingworkflow.constants.CallingStatus;
 import org.ldscd.callingworkflow.display.CallingDetailActivity;
 import org.ldscd.callingworkflow.display.CallingDetailFragment;
 import org.ldscd.callingworkflow.display.ExpandableOrgsListActivity;
 import org.ldscd.callingworkflow.model.Calling;
+import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.utils.DataUtil;
 import org.ldscd.callingworkflow.web.DataManager;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.ViewHolder> {
+public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.ViewHolder>
+        implements  CallingFiltersAdapter {
 
     private FragmentManager fragmentManager;
-    private final List<Calling> mValues;
     private boolean twoPane;
     private DataManager dataManager;
 
+    private List<Calling> allValues;
+    private List<Calling> displayValues;
+    private List<CallingStatus> statusFilters;
+    private List<Org> orgFilters;
+
     public CallingListAdapter(List<Calling> items, DataManager dataManager, boolean twoPane, FragmentManager fragmentManager) {
-        mValues = items;
+        allValues = items;
+        displayValues = items;
         this.dataManager = dataManager;
         this.twoPane = twoPane;
         this.fragmentManager = fragmentManager;
+        statusFilters = new ArrayList<>();
+        orgFilters = new ArrayList<>();
     }
 
     @Override
@@ -42,7 +53,7 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
-        holder.callingItem = mValues.get(position);
+        holder.callingItem = displayValues.get(position);
 
         //set calling name
         holder.callingTitleView.setText(holder.callingItem.getPosition().getName());
@@ -103,7 +114,7 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
 
     @Override
     public int getItemCount() {
-        return mValues == null ? 0 : mValues.size();
+        return displayValues == null ? 0 : displayValues.size();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -125,5 +136,62 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
         public String toString() {
             return super.toString() + " '" + callingTitleView.getText() + "'";
         }
+    }
+
+    @Override
+    public void setStatusList(List<CallingStatus> statusList) {
+        statusFilters = statusList;
+    }
+
+    @Override
+    public List<CallingStatus> getStatusList() {
+        return statusFilters;
+    }
+
+    @Override
+    public void setOrgList(List<Org> orgList) {
+        orgFilters = orgList;
+    }
+
+    @Override
+    public List<Org> getOrgList() {
+        return orgFilters;
+    }
+
+    @Override
+    public void filterCallings() {
+        displayValues = new ArrayList<>();
+        for(Calling calling: allValues) {
+            boolean addCalling = true;
+
+            //if there are values in statusFilters than only include callings with a matching proposedStatus
+            if(statusFilters.size() > 0) {
+                addCalling = false;
+                for(CallingStatus callingStatus: statusFilters) {
+                    if(calling.getProposedStatus().equals(callingStatus.name())) {
+                        addCalling = true;
+                        break;
+                    }
+                }
+            }
+
+            //if there are values in orgFilters and the calling hasn't already been removed by another filter
+            //only include it if it resides in one of the filter orgs
+            if(addCalling && orgFilters.size() > 0) {
+                addCalling = false;
+                for(Org org: orgFilters) {
+                    List<String> orgCallings = org.allOrgCallingIds();
+                    if(orgCallings.contains(calling.getCallingId())) {
+                        addCalling = true;
+                        break;
+                    }
+                }
+            }
+
+            if(addCalling) {
+                displayValues.add(calling);
+            }
+        }
+        notifyDataSetChanged();
     }
 }

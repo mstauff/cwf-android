@@ -65,5 +65,6 @@
     <string name="navigation_drawer_orgs">Organizations</string>
     <string name="navigation_drawer_directory">Directory</string>
     <string name="months">months</string>
+    <string name="filters_heading">View By</string>
 
 </resources>
