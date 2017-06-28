@@ -149,6 +149,9 @@ public class DataManagerTests {
         }, mockProgressBar, mockActivity);
     }
 
+    //case: the position is deleted in lcr and still exists in gd
+    //case: current released from position in lcr
+    //both with multiples allowed and without
     @Test
     public void mergeMatchingTypeWithOneMatch() {
         //this time ids shouldn't match so we'll change them and remove the subOrg which has callings of the same type

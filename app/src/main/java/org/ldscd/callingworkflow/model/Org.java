@@ -19,7 +19,7 @@ public class Org {
     List<Org> children;
     List<Calling> callings;
     private transient HashSet<Position> positions;
-    private transient List<Long> callingIds;
+    private transient List<String> callingIds;
     private transient ConflictCause conflictCause;
     private transient boolean hasUnsavedChanges = false;
 
@@ -66,11 +66,11 @@ public class Org {
     public boolean hasUnsavedChanges() { return hasUnsavedChanges; }
     public void setHasUnsavedChanges(boolean hasUnsavedChanges) { this.hasUnsavedChanges = hasUnsavedChanges; }
 
-    public List<Long> allOrgCallingIds() {
+    public List<String> allOrgCallingIds() {
         if(callingIds == null || callingIds.size() == 0) {
             callingIds = new ArrayList<>(allOrgCallings().size());
             for(Calling calling : allOrgCallings()) {
-                callingIds.add(calling.getId());
+                callingIds.add(calling.getCallingId());
             }
         }
         return callingIds;

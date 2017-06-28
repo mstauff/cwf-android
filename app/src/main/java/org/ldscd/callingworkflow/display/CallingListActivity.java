@@ -17,6 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import org.ldscd.callingworkflow.R;
+import org.ldscd.callingworkflow.display.adapters.CallingFiltersAdapter;
 import org.ldscd.callingworkflow.display.adapters.CallingListAdapter;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.web.DataManager;
@@ -33,7 +34,9 @@ public class CallingListActivity extends AppCompatActivity
      * device.
      */
     private boolean twoPane;
+    FragmentManager fragmentManager = getSupportFragmentManager();
     AppCompatActivity activity = this;
+    CallingListAdapter adapter;
 
     @Inject
     DataManager dataManager;
@@ -74,7 +77,8 @@ public class CallingListActivity extends AppCompatActivity
     private void setupRecyclerView(@NonNull final RecyclerView recyclerView) {
         List<Calling> callings = dataManager.getUnfinalizedCallings();
         FragmentManager fragmentManager = twoPane ? getSupportFragmentManager() : null;
-        recyclerView.setAdapter(new CallingListAdapter(callings, dataManager, twoPane, fragmentManager));
+        adapter = new CallingListAdapter(callings, dataManager, twoPane, fragmentManager);
+        recyclerView.setAdapter(adapter);
     }
 
     @Override
@@ -90,7 +94,7 @@ public class CallingListActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.list_display_options, menu);
+        getMenuInflater().inflate(R.menu.filter, menu);
         return true;
     }
 
@@ -102,32 +106,11 @@ public class CallingListActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.display_view_organization) {
-            item.setChecked(true);
-        } else if(id == R.id.display_view_indvidual) {
-            item.setChecked(true);
-        } else if(id == R.id.display_filter_proposed) {
-            item.setChecked(!item.isChecked());
-        } else if(id == R.id.display_filter_approved) {
-            item.setChecked(!item.isChecked());
-        } else if(id == R.id.display_filter_extended) {
-            item.setChecked(!item.isChecked());
+        if (id == R.id.edit_filters) {
+            CallingFiltersFragment filtersFragment = new CallingFiltersFragment();
+            filtersFragment.setAdapter(adapter);
+            filtersFragment.show(fragmentManager, "Calling Filters");
         }
-
-        //This section keeps the menu from closing when items are selected
-        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
-        item.setActionView(new View(activity.getApplicationContext()));
-        MenuItemCompat.setOnActionExpandListener(item, new MenuItemCompat.OnActionExpandListener() {
-            @Override
-            public boolean onMenuItemActionExpand(MenuItem item) {
-                return false;
-            }
-
-            @Override
-            public boolean onMenuItemActionCollapse(MenuItem item) {
-                return false;
-            }
-        });
 
         return false;
     }
