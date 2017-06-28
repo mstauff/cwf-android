@@ -64,7 +64,7 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
         if(proposedId != null && proposedId > 0) {
             proposedName = dataManager.getMemberName(proposedId);
         }
-        String proposedStatus = holder.callingItem.getProposedStatus();
+        String proposedStatus = CallingStatus.get(holder.callingItem.getProposedStatus()).toString();
         if(proposedStatus == null) {
             proposedStatus = "";
         }

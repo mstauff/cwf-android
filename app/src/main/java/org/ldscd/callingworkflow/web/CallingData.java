@@ -9,6 +9,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 
 import org.ldscd.callingworkflow.constants.ConflictCause;
+import org.ldscd.callingworkflow.constants.Operation;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.services.GoogleDataService;
@@ -225,7 +226,7 @@ public class CallingData {
         return baseOrgByOrgId.get(orgId);
     }
 
-    public List<Calling> getUnfinallizedCallings() {
+    public List<Calling> getUnfinalizedCallings() {
         List<Calling> result = new ArrayList<>();
         for(Calling calling: allCallings) {
             if((calling.getProposedIndId() != null && calling.getProposedIndId() > 0) || calling.getProposedStatus() != null) {
@@ -243,6 +244,31 @@ public class CallingData {
         if(calling != null && calling.getParentOrg() != null && calling.getParentOrg() > 0) {
             Org parentOrg = getOrg(calling.getParentOrg());
             parentOrg.getCallings().add(calling);
+        }
+    }
+
+    public void loadOrg(final Response.Listener<Boolean> listener, Org org) {
+        googleDataService.getOrgData(new Response.Listener<Org>() {
+            @Override
+            public void onResponse(Org response) {
+                orgsById.put(response.getId(), response);
+                listener.onResponse(true);
+            }
+        }, null, org);
+    }
+
+    public void harmonizeCachedItems(Org org, Calling calling, Operation operation) {
+        switch (operation) {
+            case CREATE:
+                callingsById.put(calling.getCallingId(), calling);
+                //callingsByOrg.put(org.getId(), org.allOrgCallings());
+                break;
+            case UPDATE:
+                break;
+            case DELETE:
+                break;
+            default:
+                break;
         }
     }
 }

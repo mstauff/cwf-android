@@ -43,7 +43,7 @@ public class CallingFiltersFragment extends DialogFragment {
         FlexboxLayout statusFilters = (FlexboxLayout) callingFilters.findViewById(R.id.status_filters);
         for(final CallingStatus status: CallingStatus.values()) {
             TextView statusView = new TextView(statusFilters.getContext());
-            statusView.setText(status.getStatus());
+            statusView.setText(status.toString());
             statusView.setPadding(16, 16, 16, 16);
             if(selectedStatus.contains(status)) {
                 statusView.setBackgroundColor(getResources().getColor(R.color.ldstools_blue));

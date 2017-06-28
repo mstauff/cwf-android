@@ -5,7 +5,9 @@ import android.util.Log;
 import android.widget.ProgressBar;
 
 import com.android.volley.Response;
+import com.android.volley.VolleyError;
 
+import org.ldscd.callingworkflow.constants.Operation;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Member;
 import org.ldscd.callingworkflow.model.Org;
@@ -15,8 +17,6 @@ import org.ldscd.callingworkflow.web.DataManager;
 import org.ldscd.callingworkflow.web.MemberData;
 
 import java.util.List;
-
-import javax.inject.Inject;
 
 public class DataManagerImpl implements DataManager {
     private static final String TAG = "DataManager";
@@ -44,6 +44,9 @@ public class DataManagerImpl implements DataManager {
     public void loadOrgs(Response.Listener<Boolean> listener, ProgressBar progressBar, Activity activity) {
         callingData.loadOrgs(listener, progressBar, activity);
     }
+    public void loadOrg(Response.Listener<Boolean> listener, Org org) {
+        callingData.loadOrg(listener, org);
+    }
     /* Member data. */
     public String getMemberName(Long id) {
         if(id != null) {
@@ -62,30 +65,43 @@ public class DataManagerImpl implements DataManager {
     public void loadMembers(Response.Listener<Boolean> listener, ProgressBar progressBar) {
         memberData.loadMembers(listener, progressBar);
     }
+
     /* Google data. */
-    public void saveFile(Response.Listener<Boolean> listener, Org org) {
-        googleDataService.saveFile(listener, org);
-    }
-    /* Calling and Google Data */
-    public void saveCalling(final Response.Listener<Boolean> listener, final Calling calling) {
+    @Override
+    public void addCalling(Response.Listener<Boolean> listener, Calling calling, Org org) {
         callingData.addNewCalling(calling);
         Org baseOrg = callingData.getBaseOrg(calling.getParentOrg());
-        saveFile(new Response.Listener<Boolean>() {
+        saveCalling(listener, baseOrg, calling, Operation.CREATE);
+    }
+    @Override
+    public void updateCalling(Response.Listener<Boolean> listener, Calling calling, Org org) {
+        saveCalling(listener, org, calling, Operation.UPDATE);
+    }
+    @Override
+    public void deleteCalling(Response.Listener<Boolean> listener, Calling calling, Org org) {
+        saveCalling(listener, org, calling, Operation.DELETE);
+
+    }
+    /* Calling and Google Data */
+    private void saveCalling(final Response.Listener<Boolean> listener, final Org org,  final Calling calling, Operation operation) {
+        googleDataService.getOrgData(new Response.Listener<Org>() {
             @Override
-            public void onResponse(Boolean successGoogle) {
-                if(!successGoogle) {
-                    Log.e(TAG, "Failed to save new calling to Google");
-                    listener.onResponse(false);
-                } else {
-                    listener.onResponse(true);
-                }
+            public void onResponse(Org response) {
+                response.updateWithCallingChange(calling, Operation.UPDATE);
+                googleDataService.saveFile(listener, response);
             }
-        }, baseOrg);
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e(TAG, "Failed to save new calling to Google");
+                listener.onResponse(false);
+            }
+        }, org);
     }
 
     @Override
     public List<Calling> getUnfinalizedCallings() {
-        return callingData.getUnfinallizedCallings();
+        return callingData.getUnfinalizedCallings();
     }
 
 }

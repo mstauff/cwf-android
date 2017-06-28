@@ -97,10 +97,10 @@ public class CreateCallingActivity extends AppCompatActivity implements CallingD
             return true;
         } else if(id == R.id.confirm_action) {
             Position position = (Position)positionDropdown.getSelectedItem();
-            String status = ((CallingStatus)statusDropdown.getSelectedItem()).getStatus();
+            String status = ((CallingStatus)statusDropdown.getSelectedItem()).toString();
             String notes = notesBox.getText().toString();
             Calling calling = new Calling(null, null, null, proposedIndividualId, null, position, null, status, notes, parentOrg.getId());
-            dataManager.saveCalling(new Response.Listener<Boolean>() {
+            dataManager.addCalling(new Response.Listener<Boolean>() {
                 @Override
                 public void onResponse(Boolean success) {
                     if(success) {
@@ -112,7 +112,7 @@ public class CreateCallingActivity extends AppCompatActivity implements CallingD
                         toast.show();
                     }
                 }
-            }, calling);
+            }, calling, parentOrg);
             return true;
         }
         return super.onOptionsItemSelected(item);

@@ -4,6 +4,7 @@ import android.support.v4.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -14,7 +15,9 @@ import com.android.volley.Response;
 
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.constants.CallingStatus;
+import org.ldscd.callingworkflow.display.adapters.MemberLookupAdapter;
 import org.ldscd.callingworkflow.model.Calling;
+import org.ldscd.callingworkflow.model.FilterOption;
 import org.ldscd.callingworkflow.model.Member;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.web.DataManager;
@@ -27,7 +30,11 @@ import javax.inject.Inject;
  * item details are presented side-by-side with a list of items
  * in a {@link ExpandableOrgsListActivity}.
  */
-public class CallingDetailActivity extends AppCompatActivity implements MemberLookupFragment.memberLookupFragmentInteractionListener, CallingDetailFragment.OnFragmentInteractionListener {
+public class CallingDetailActivity
+        extends AppCompatActivity
+        implements MemberLookupFragment.memberLookupFragmentInteractionListener,
+                   CallingDetailFragment.OnFragmentInteractionListener,
+                   MemberLookupFilterFragment.OnFragmentInteractionListener {
     @Inject
     DataManager dataManager;
 
@@ -90,12 +97,12 @@ public class CallingDetailActivity extends AppCompatActivity implements MemberLo
         }
 
         if(hasChanges) {
-            dataManager.saveFile(new Response.Listener<Boolean>() {
+            dataManager.updateCalling(new Response.Listener<Boolean>() {
                 @Override
                 public void onResponse(Boolean response) {
 
                 }
-            }, org);
+            }, calling,  org);
         }
     }
 
@@ -180,9 +187,50 @@ public class CallingDetailActivity extends AppCompatActivity implements MemberLo
                 memberLookupFragment.setArguments(args);
             }
             getSupportFragmentManager().beginTransaction()
-                .replace(R.id.calling_detail_main_fragment_container, memberLookupFragment, null)
+                .replace(R.id.calling_detail_main_fragment_container, memberLookupFragment, MemberLookupFragment.FRAG_NAME)
                 .addToBackStack(null)
                 .commit();
+        }
+    }
+
+    @Override
+    public void onFragmentInteraction(FilterOption filterOption) {
+        FilterOption newOptions = filterOption;
+        MemberLookupFragment memberLookupFragment = (MemberLookupFragment) getSupportFragmentManager().findFragmentByTag(MemberLookupFragment.FRAG_NAME);
+        if (memberLookupFragment != null) {
+            /* If memberLookupFragment is available, we're in two-pane layout. */
+            /*  Call a method in the memberLookupFragment to update its content. */
+            memberLookupFragment.onFragmentInteraction(newOptions);
+        } else {
+            /* Otherwise, we're in the one-pane layout and must swap frags. */
+            /* Create fragment and give it an argument for the selected article. */
+            memberLookupFragment = new MemberLookupFragment();
+            Bundle args = new Bundle();
+            if(this.proposedMember != null && this.proposedMember.getIndividualId() > 0) {
+                args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, this.proposedMember.getIndividualId());
+            }
+            if(newOptions != null) {
+                args.putBooleanArray(MemberLookupFilterFragment.NUMBER_OF_CALLINGS, filterOption.getNumberCallings());
+                args.putDouble(MemberLookupFilterFragment.TIME_IN_CALLING, filterOption.getTimeInCalling());
+                args.putBoolean(MemberLookupFilterFragment.HIGH_PRIEST, filterOption.isHighPriest());
+                args.putBoolean(MemberLookupFilterFragment.ELDERS, filterOption.isElders());
+                args.putBoolean(MemberLookupFilterFragment.PRIESTS, filterOption.isPriests());
+                args.putBoolean(MemberLookupFilterFragment.TEACHERS, filterOption.isTeachers());
+                args.putBoolean(MemberLookupFilterFragment.DEACONS, filterOption.isDeacons());
+                args.putBoolean(MemberLookupFilterFragment.RELIEF_SOCIETY, filterOption.isReliefSociety());
+                args.putBoolean(MemberLookupFilterFragment.LAUREL, filterOption.isLaurel());
+                args.putBoolean(MemberLookupFilterFragment.MIA_MAID, filterOption.isMiaMaid());
+                args.putBoolean(MemberLookupFilterFragment.BEEHIVE, filterOption.isBeehive());
+                args.putBoolean(MemberLookupFilterFragment.TWELVE_EIGHTEEN, filterOption.isTwelveEighteen());
+                args.putBoolean(MemberLookupFilterFragment.EIGHTEEN_PLUS, filterOption.isEighteenPlus());
+                args.putBoolean(MemberLookupFilterFragment.MALE, filterOption.isMale());
+                args.putBoolean(MemberLookupFilterFragment.FEMALE, filterOption.isFemale());
+            }
+            memberLookupFragment.setArguments(args);
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.calling_detail_main_fragment_container, memberLookupFragment, null)
+                    .addToBackStack(null)
+                    .commit();
         }
     }
 

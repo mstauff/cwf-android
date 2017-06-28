@@ -56,13 +56,13 @@ public class DataManagerTests {
 
         List<Org> sampleSubOrgs = new ArrayList<>();
         List<Calling> sampleCallings = new ArrayList<>();
-        sampleCallings.add(new Calling(734820L, null, 11111L, null, null, new Position("Primary Teacher", 1481, false, true, 0L), "ACTIVE", null, null, 38432972L));
-        sampleCallings.add(new Calling(275893L, null, 22222L, null, null, new Position("Varsity Coach", 1459, false, true, 0L), "ACTIVE", null, null, 38432972L));
+        sampleCallings.add(new Calling(734820L, null, 11111L, null, null, new Position("Primary Teacher", 1481, false, true, 0L, 0L), "ACTIVE", null, null, 38432972L));
+        sampleCallings.add(new Calling(275893L, null, 22222L, null, null, new Position("Varsity Coach", 1459, false, true, 0L, 0L), "ACTIVE", null, null, 38432972L));
         sampleSubOrgs.add(new Org(38432972L, "CTR 7", 35, 320, new ArrayList<Org>(), sampleCallings));
 
         sampleCallings = new ArrayList<>();
-        sampleCallings.add(new Calling(728160L, null, null, null, null, new Position("Primary Teacher", 1482, false, true, 0L), "ACTIVE", null, null, 752892L));
-        sampleCallings.add(new Calling(728220L, null, 678L, null, null, new Position("Primary Teacher", 1482, false, true, 0L), "ACTIVE", null, null, 752892L));
+        sampleCallings.add(new Calling(728160L, null, null, null, null, new Position("Primary Teacher", 1482, false, true, 0L, 0L), "ACTIVE", null, null, 752892L));
+        sampleCallings.add(new Calling(728220L, null, 678L, null, null, new Position("Primary Teacher", 1482, false, true, 0L, 0L), "ACTIVE", null, null, 752892L));
         sampleSubOrgs.add(new Org(752892L, "CTR 8", 40, 350, new ArrayList<Org>(), sampleCallings));
 
         sampleLCROrgs = new ArrayList<>();
@@ -70,16 +70,16 @@ public class DataManagerTests {
 
         sampleSubOrgs = new ArrayList<>();
         sampleCallings = new ArrayList<>();
-        sampleCallings.add(new Calling(734820L, null, 11111L, 1L, null, new Position("Primary Teacher", 1481, false, true, 0L), "ExistingStatus1", "ProposedStatus1", "notes1", 38432972L));
+        sampleCallings.add(new Calling(734820L, null, 11111L, 1L, null, new Position("Primary Teacher", 1481, false, true, 0L, 0L), "ExistingStatus1", "ProposedStatus1", "notes1", 38432972L));
         sampleCallings.get(0).setCwfId("cwfId1"); //this has to be set separately because the constructor doesn't set it when there's a regular id
-        sampleCallings.add(new Calling(275893L, null, 22222L, 2L, null, new Position("Varsity Coach", 1459, false, true, 0L), "ExistingStatus2", "ProposedStatus2", "notes2", 38432972L));
+        sampleCallings.add(new Calling(275893L, null, 22222L, 2L, null, new Position("Varsity Coach", 1459, false, true, 0L, 0L), "ExistingStatus2", "ProposedStatus2", "notes2", 38432972L));
         sampleCallings.get(1).setCwfId("cwfId2"); //this has to be set separately because the constructor doesn't set it when there's a regular id
         sampleSubOrgs.add(new Org(38432972L, "CTR 7", 35, 320, new ArrayList<Org>(), sampleCallings));
 
         sampleCallings = new ArrayList<>();
-        sampleCallings.add(new Calling(728160L, null, null, 3L, null, new Position("Primary Teacher", 1482, false, true, 0L), "ExistingStatus3", "ProposedStatus3", "notes3", 752892L));
+        sampleCallings.add(new Calling(728160L, null, null, 3L, null, new Position("Primary Teacher", 1482, false, true, 0L, 0L), "ExistingStatus3", "ProposedStatus3", "notes3", 752892L));
         sampleCallings.get(0).setCwfId("cwfId3"); //this has to be set separately because the constructor doesn't set it when there's a regular id
-        sampleCallings.add(new Calling(728220L, null, 678L, 4L, null, new Position("Primary Teacher", 1482, false, true, 0L), "ExistingStatus4", "ProposedStatus4", "notes4", 752892L));
+        sampleCallings.add(new Calling(728220L, null, 678L, 4L, null, new Position("Primary Teacher", 1482, false, true, 0L, 0L), "ExistingStatus4", "ProposedStatus4", "notes4", 752892L));
         sampleCallings.get(1).setCwfId("cwfId4"); //this has to be set separately because the constructor doesn't set it when there's a regular id
         sampleSubOrgs.add(new Org(752892L, "CTR 8", 40, 350, new ArrayList<Org>(), sampleCallings));
 
@@ -240,9 +240,9 @@ public class DataManagerTests {
         //they shouldn't match at all so we'll change the ids and positions
         List<Calling> subOrgCallings = sampleCWFOrg.getChildren().get(0).getCallings();
         subOrgCallings.get(0).setId(111L);
-        subOrgCallings.get(0).setPosition(new Position("Primary Pianist", 215, false, true, 0L));
+        subOrgCallings.get(0).setPosition(new Position("Primary Pianist", 215, false, true, 0L, 0L));
         subOrgCallings.get(1).setId(222L);
-        subOrgCallings.get(1).setPosition(new Position("Primary Music Leader", 214, false, true, 0L));
+        subOrgCallings.get(1).setPosition(new Position("Primary Music Leader", 214, false, true, 0L, 0L));
 
         final int startingSize = sampleLCROrgs.get(0).getChildren().size();
         dataManager.loadOrgs(new Response.Listener<Boolean>(){
