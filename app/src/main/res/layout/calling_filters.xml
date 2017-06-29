@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/text_margin"
-        android:text="View By"
+        android:text="@string/calling_filters_heading"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"/>
 
     <TextView
@@ -17,7 +17,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/text_margin"
         android:layout_marginLeft="@dimen/text_margin"
-        android:text="Calling Status"
+        android:text="@string/calling_filters_status_heading"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"/>
 
     <com.google.android.flexbox.FlexboxLayout
@@ -32,7 +32,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/text_margin"
         android:layout_marginLeft="@dimen/text_margin"
-        android:text="Organization"
+        android:text="@string/calling_filters_orgs_heading"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"/>
     <com.google.android.flexbox.FlexboxLayout
         android:id="@+id/org_filters"
@@ -50,6 +50,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/text_margin"
         android:gravity="center"
-        android:text="Done"/>
+        android:text="@string/calling_filters_confirm"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"/>
 
 </LinearLayout>
