@@ -37,7 +37,6 @@ public class CallingFiltersFragment extends DialogFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         ((CWFApplication)getActivity().getApplication()).getNetComponent().inject(this);
 
-        getDialog().setTitle("test R.string.filters_heading");
         View callingFilters = inflater.inflate(R.layout.calling_filters, container, false);
 
         FlexboxLayout statusFilters = (FlexboxLayout) callingFilters.findViewById(R.id.status_filters);
@@ -46,7 +45,9 @@ public class CallingFiltersFragment extends DialogFragment {
             statusView.setText(status.toString());
             statusView.setPadding(16, 16, 16, 16);
             if(selectedStatus.contains(status)) {
-                statusView.setBackgroundColor(getResources().getColor(R.color.ldstools_blue));
+                giveSelectedAppearance(statusView);
+            } else {
+                removeSelectedAppearance(statusView);
             }
 
             statusView.setOnClickListener(new View.OnClickListener() {
@@ -54,10 +55,10 @@ public class CallingFiltersFragment extends DialogFragment {
                 public void onClick(View view) {
                     if(selectedStatus.contains(status)){
                         selectedStatus.remove(status);
-                        view.setBackgroundColor(getResources().getColor(R.color.white_background));
+                        removeSelectedAppearance((TextView)view);
                     } else {
                         selectedStatus.add(status);
-                        view.setBackgroundColor(getResources().getColor(R.color.ldstools_blue));
+                        giveSelectedAppearance((TextView)view);
                     }
                 }
             });
@@ -72,7 +73,9 @@ public class CallingFiltersFragment extends DialogFragment {
             orgView.setText(org.getDefaultOrgName());
             orgView.setPadding(16, 16, 16, 16);
             if(selectedOrgs.contains(org)) {
-                orgView.setBackgroundColor(getResources().getColor(R.color.ldstools_blue));
+                giveSelectedAppearance(orgView);
+            } else {
+                removeSelectedAppearance(orgView);
             }
 
             orgView.setOnClickListener(new View.OnClickListener() {
@@ -80,10 +83,10 @@ public class CallingFiltersFragment extends DialogFragment {
                 public void onClick(View view) {
                     if(selectedOrgs.contains(org)) {
                         selectedOrgs.remove(org);
-                        view.setBackgroundColor(getResources().getColor(R.color.white));
+                        removeSelectedAppearance((TextView)view);
                     } else {
                         selectedOrgs.add(org);
-                        view.setBackgroundColor(getResources().getColor(R.color.ldstools_blue));
+                        giveSelectedAppearance((TextView)view);
                     }
                 }
             });
@@ -100,6 +103,14 @@ public class CallingFiltersFragment extends DialogFragment {
         });
 
         return callingFilters;
+    }
+    private void giveSelectedAppearance(TextView view) {
+        view.setTextColor(getResources().getColor(R.color.default_text_light));
+        view.setBackground(getResources().getDrawable(R.drawable.selected_filter_background));
+    }
+    private void removeSelectedAppearance(TextView view) {
+        view.setTextColor(getResources().getColor(R.color.ldstools_gray_dark));
+        view.setBackground(null);
     }
 
     @Override

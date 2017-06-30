@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -64,10 +65,9 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
         if(proposedId != null && proposedId > 0) {
             proposedName = dataManager.getMemberName(proposedId);
         }
-        String proposedStatus = CallingStatus.get(holder.callingItem.getProposedStatus()).toString();
-        if(proposedStatus == null) {
-            proposedStatus = "";
-        }
+        CallingStatus status = CallingStatus.get(holder.callingItem.getProposedStatus());
+        String proposedStatus = status == null ? "" : status.toString();
+
         if(!proposedName.equals("") && !proposedStatus.equals("")) {
             holder.proposedMemberView.setVisibility(View.VISIBLE);
             holder.proposedMemberView.setText(proposedName + " - " + proposedStatus);
