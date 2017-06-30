@@ -327,4 +327,5 @@ public class WebResources implements IWebResources {
         }
     }
 
+    public void getPositionMetaData(Response.Listener<String> callback) {}
 }

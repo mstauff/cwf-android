@@ -99,6 +99,10 @@ public class LocalFileResources implements IWebResources {
         wardCallback.onResponse(members);
     }
 
+    public void getPositionMetaData(Response.Listener<String> callback) {
+        callback.onResponse(getJSONFromAssets("position-metadata.json"));
+    }
+
     private String getJSONFromAssets(String fileName) {
         String json = null;
         try {

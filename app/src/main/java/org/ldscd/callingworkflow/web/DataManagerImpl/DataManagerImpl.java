@@ -11,6 +11,7 @@ import org.ldscd.callingworkflow.constants.Operation;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Member;
 import org.ldscd.callingworkflow.model.Org;
+import org.ldscd.callingworkflow.model.PositionMetaData;
 import org.ldscd.callingworkflow.services.GoogleDataService;
 import org.ldscd.callingworkflow.web.CallingData;
 import org.ldscd.callingworkflow.web.DataManager;
@@ -43,10 +44,18 @@ public class DataManagerImpl implements DataManager {
     }
     public void loadOrgs(Response.Listener<Boolean> listener, ProgressBar progressBar, Activity activity) {
         callingData.loadOrgs(listener, progressBar, activity);
+        callingData.loadPositionMetadata();
     }
     public void loadOrg(Response.Listener<Boolean> listener, Org org) {
         callingData.loadOrg(listener, org);
     }
+    public List<PositionMetaData> getAllPositionMetadata() {
+        return callingData.getAllPositionMetadata();
+    }
+    public PositionMetaData getPositionMetadata(int positionTypeId) {
+        return callingData.getPositionMetadata(positionTypeId);
+    }
+
     /* Member data. */
     public String getMemberName(Long id) {
         if(id != null) {

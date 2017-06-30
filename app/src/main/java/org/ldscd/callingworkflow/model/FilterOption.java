@@ -263,11 +263,11 @@ public class FilterOption {
             }
             /****** Is Male *******/
             if (this.isMale()) {
-                showMember = member.getGender().equals(Gender.M);
+                showMember = member.getGender().equals(Gender.MALE);
             }
             /****** Is Female *******/
             if(this.isFemale()) {
-                showMember = member.getGender().equals(Gender.F);
+                showMember = member.getGender().equals(Gender.FEMALE);
             }
             /****** Is High Priest *******/
             if(this.isHighPriest()) {
@@ -292,25 +292,25 @@ public class FilterOption {
             /****** Is Relief Society *******/
             if(this.isReliefSociety()) {
                 showMember = getCurrentAge(member.getBirthDate()) >= 18 &&
-                             member.getGender().equals(Gender.F);
+                             member.getGender().equals(Gender.FEMALE);
             }
             /****** Is Laurel *******/
             if(this.isLaurel()) {
                 showMember = getCurrentAge(member.getBirthDate()) == 16 ||
                              getCurrentAge(member.getBirthDate()) == 17 &&
-                             member.getGender().equals(Gender.F);
+                             member.getGender().equals(Gender.FEMALE);
             }
             /****** Is MiaMaid *******/
             if(this.isMiaMaid()) {
                 showMember = getCurrentAge(member.getBirthDate()) == 14 ||
                              getCurrentAge(member.getBirthDate()) == 15 &&
-                             member.getGender().equals(Gender.F);
+                             member.getGender().equals(Gender.FEMALE);
             }
             /****** Is Beehive *******/
             if(this.isBeehive()) {
                 showMember = getCurrentAge(member.getBirthDate()) == 12 ||
                              getCurrentAge(member.getBirthDate()) == 13 &&
-                             member.getGender().equals(Gender.F);
+                             member.getGender().equals(Gender.FEMALE);
             }
         }
         return showMember;

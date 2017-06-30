@@ -1,0 +1,63 @@
+[{
+  "positionTypeId" : 4,
+  "shortName" : null,
+  "requirements" : {
+    "age" : null,
+    "gender" : "MALE",
+    "priesthood" : ["HIGH_PRIEST"]
+  }
+}, {
+  "positionTypeId" : 54,
+  "shortName" : "1st Counselor",
+  "requirements" : {
+    "age" : null,
+    "gender" : "MALE",
+    "priesthood" : ["HIGH_PRIEST"]
+  }
+}, {
+  "positionTypeId" : 56,
+  "shortName" : "Exec. Secretary",
+  "requirements" : {
+    "age" : null,
+    "gender" : "MALE",
+    "priesthood" : ["ELDER", "HIGH_PRIEST"],
+    "memberClasses" : []
+  }
+}, {
+  "positionTypeId" : 1395,
+  "shortName" : "District Supervisor",
+  "requirements" : {
+    "age" : null,
+    "gender" : "MALE",
+    "priesthood" : ["DEACON", "TEACHER", "PRIEST", "ELDER", "HIGH_PRIEST"],
+    "memberClasses" : []
+  }
+}, {
+  "positionTypeId" : 138,
+  "shortName" : "President",
+  "requirements" : {
+    "age" : null,
+    "gender" : "MALE",
+    "priesthood" : ["ELDER"],
+    "memberClasses" : []
+  }
+}, {
+  "positionTypeId" : 143,
+  "shortName" : "President",
+  "requirements" : {
+    "age" : null,
+    "gender" : "FEMALE",
+    "priesthood" : null,
+    "memberClasses" : ["RELIEF_SOCIETY"]
+  }
+}, {
+  "positionTypeId" : 215,
+  "shortName" : "Pianist",
+  "requirements" : {
+    "age" : null,
+    "gender" : null,
+    "priesthood" : null,
+    "memberClasses" : []
+  }
+}
+]

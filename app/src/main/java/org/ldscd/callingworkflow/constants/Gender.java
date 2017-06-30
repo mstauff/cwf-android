@@ -2,9 +2,9 @@ package org.ldscd.callingworkflow.constants;
 
 public enum Gender {
     /** Male. */
-    M("Male"),
+    MALE("Male"),
     /** Female. */
-    F("Female"),
+    FEMALE("Female"),
     /** Gender is not known, or not specified. */
     UNKNOWN("Unknown");
 

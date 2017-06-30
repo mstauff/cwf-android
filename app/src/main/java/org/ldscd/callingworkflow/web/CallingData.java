@@ -8,11 +8,17 @@ import android.widget.ProgressBar;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.ldscd.callingworkflow.constants.ConflictCause;
+import org.ldscd.callingworkflow.constants.Gender;
+import org.ldscd.callingworkflow.constants.MemberClass;
 import org.ldscd.callingworkflow.constants.Operation;
-import org.ldscd.callingworkflow.model.Calling;
-import org.ldscd.callingworkflow.model.Org;
+import org.ldscd.callingworkflow.constants.Priesthood;
+import org.ldscd.callingworkflow.model.*;
 import org.ldscd.callingworkflow.services.GoogleDataService;
+import org.ldscd.callingworkflow.utils.JsonUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,6 +27,14 @@ import java.util.Map;
 
 public class CallingData {
     private static final String TAG = "CallingData";
+
+    private static final String AGE = "age";
+    private static final String GENDER = "gender";
+    private static final String PRIESTHOOD = "priesthood";
+    private static final String MEMBER_CLASS = "memberClasses";
+    private static final String POSITION_TYPE_ID = "positionTypeId";
+    private static final String SHORT_NAME = "shortName";
+    private static final String REQUIREMENTS = "requirements";
 
     private IWebResources webResources;
     private GoogleDataService googleDataService;
@@ -31,6 +45,8 @@ public class CallingData {
     private Map<String, Calling> callingsById;
     private Map<Long, Org> baseOrgByOrgId;
     private List<Calling> allCallings;
+    private List<PositionMetaData> allPositionMetadata;
+    private Map<Integer, PositionMetaData> positionMetaDataByPositionTypeId;
 
     public CallingData(IWebResources webResources, GoogleDataService googleDataService, MemberData memberData) {
         this.webResources = webResources;
@@ -236,6 +252,16 @@ public class CallingData {
         return result;
     }
 
+    public void loadOrg(final Response.Listener<Boolean> listener, Org org) {
+        googleDataService.getOrgData(new Response.Listener<Org>() {
+            @Override
+            public void onResponse(Org response) {
+                orgsById.put(response.getId(), response);
+                listener.onResponse(true);
+            }
+        }, null, org);
+    }
+
     public Calling getCalling(String callingId) {
         return callingsById.get(callingId);
     }
@@ -245,16 +271,6 @@ public class CallingData {
             Org parentOrg = getOrg(calling.getParentOrg());
             parentOrg.getCallings().add(calling);
         }
-    }
-
-    public void loadOrg(final Response.Listener<Boolean> listener, Org org) {
-        googleDataService.getOrgData(new Response.Listener<Org>() {
-            @Override
-            public void onResponse(Org response) {
-                orgsById.put(response.getId(), response);
-                listener.onResponse(true);
-            }
-        }, null, org);
     }
 
     public void harmonizeCachedItems(Org org, Calling calling, Operation operation) {
@@ -270,5 +286,60 @@ public class CallingData {
             default:
                 break;
         }
+    }
+
+    public void loadPositionMetadata() {
+        webResources.getPositionMetaData(new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    if(allPositionMetadata == null) {
+                        allPositionMetadata = new ArrayList<PositionMetaData>();
+                    }
+                    if(positionMetaDataByPositionTypeId == null) {
+                        positionMetaDataByPositionTypeId = new HashMap<Integer, PositionMetaData>();
+                    }
+                    JSONArray jsonArray = new JSONArray(response);
+                    for(int i = 0; i < jsonArray.length(); i++) {
+                        JSONObject json = jsonArray.getJSONObject(i);
+
+                        JSONObject jsonRequirements = json.has(REQUIREMENTS) ? json.getJSONObject(REQUIREMENTS) : null;
+                        PositionRequirements requirement = null;
+                        if(jsonRequirements != null) {
+                            List<Priesthood> priesthoodList = jsonRequirements.has(PRIESTHOOD)
+                                    ? JsonUtil.toEnumListFromJSONArray(Priesthood.class, new JSONArray(jsonRequirements.optString(PRIESTHOOD)))
+                                    : JsonUtil.toEnumListFromJSONArray(Priesthood.class, null);
+
+                            List<MemberClass> memberCallingList = jsonRequirements.has(MEMBER_CLASS)
+                                    ? JsonUtil.toEnumListFromJSONArray(MemberClass.class, jsonRequirements.getJSONArray(MEMBER_CLASS))
+                                    : JsonUtil.toEnumListFromJSONArray(MemberClass.class, null);
+
+                            requirement = new PositionRequirements(
+                                    jsonRequirements.has(GENDER) ? Gender.valueOf(jsonRequirements.optString(GENDER)) : null,
+                                    jsonRequirements.has(AGE) ? json.optInt(AGE) : 0,
+                                    priesthoodList,
+                                    memberCallingList);
+                        }
+                        PositionMetaData positionMetaData = new PositionMetaData(
+                                json.has(POSITION_TYPE_ID) ? json.getInt(POSITION_TYPE_ID) : 0,
+                                json.has(SHORT_NAME) ? json.getString(SHORT_NAME) : null,
+                                requirement);
+
+                        allPositionMetadata.add(positionMetaData);
+                        positionMetaDataByPositionTypeId.put(positionMetaData.getPositionTypeId(), positionMetaData);
+                    }
+                } catch (JSONException | NoSuchFieldException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    public List<PositionMetaData> getAllPositionMetadata() {
+        return this.allPositionMetadata;
+    }
+
+    public PositionMetaData getPositionMetadata(int positionTypeId) {
+        return positionMetaDataByPositionTypeId.get(positionTypeId);
     }
 }

@@ -135,10 +135,10 @@ public class MemberListRequest extends Request<List<Member>> {
         Gender gender;
         switch (genderString) {
             case "MALE":
-                gender = Gender.M;
+                gender = Gender.MALE;
                 break;
             case "FEMALE":
-                gender = Gender.F;
+                gender = Gender.FEMALE;
                 break;
             default:
                 gender = Gender.UNKNOWN;

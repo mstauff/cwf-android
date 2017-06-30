@@ -23,4 +23,6 @@ public interface IWebResources {
     void getOrgs(Response.Listener<List<Org>> orgsCallback);
 
     void getWardList(Response.Listener<List<Member>> wardCallback);
+
+    void getPositionMetaData(Response.Listener<String> callback);
 }
