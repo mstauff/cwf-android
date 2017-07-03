@@ -153,8 +153,11 @@ public class ExpandableOrgsListActivity extends AppCompatActivity {
                     .commit();
         } else {*/
             Intent intent = new Intent(context, CallingDetailActivity.class);
-            intent.putExtra(CallingDetailFragment.CALLING_ID, callingId);
-            intent.putExtra(ExpandableOrgsListActivity.ARG_ORG_ID, orgId);
+            /* Must use bundle rather than directly inserting the data into the intent extra. */
+            Bundle bundle = new Bundle();
+            bundle.putString(CallingDetailFragment.CALLING_ID, callingId);
+            bundle.putLong(ExpandableOrgsListActivity.ARG_ORG_ID, orgId);
+            intent.putExtras(bundle);
             context.startActivity(intent);
         //}
     }
