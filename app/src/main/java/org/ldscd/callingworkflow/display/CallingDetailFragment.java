@@ -44,7 +44,7 @@ public class CallingDetailFragment extends Fragment {
     public static final String CALLING_ID = "calling_id";
     public static final String INDIVIDUAL_ID = "individualId";
 
-    private static long orgId;
+    private long orgId;
     private Member member;
     private Long individualId;
     private Calling calling;
