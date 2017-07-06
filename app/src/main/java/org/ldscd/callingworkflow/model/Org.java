@@ -128,28 +128,4 @@ public class Org {
     public boolean equals(Org org) {
         return this.subOrgId == org.subOrgId;
     }
-
-    public void updateWithCallingChange(Calling updatedCalling, Operation operation) {
-        if(updatedCalling != null && operation != null) {
-            for(Calling calling : allOrgCallings()) {
-                if(calling.equals(updatedCalling)) {
-
-                    switch(operation) {
-                        case UPDATE :
-                            calling.setNotes(updatedCalling.getNotes());
-                            calling.setProposedIndId(updatedCalling.getProposedIndId());
-                            calling.setProposedStatus(updatedCalling.getProposedStatus());
-                            break;
-                        case CREATE :
-                            this.callings.add(updatedCalling);
-                            break;
-                        case DELETE :
-
-                            break;
-                    }
-                    break;
-                }
-            }
-        }
-    }
 }

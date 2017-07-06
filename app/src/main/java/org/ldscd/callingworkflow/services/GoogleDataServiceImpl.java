@@ -267,7 +267,8 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
                                     outputStream.write(flattenedJson.getBytes());
                                     outputStream.close();
                                     if(mGoogleApiClient.isConnected()) {
-                                        cwFileContent.commit(mGoogleApiClient, null).setResultCallback(new ResultCallback<Status>() {
+                                        cwFileContent.commit(mGoogleApiClient, null)
+                                                .setResultCallback(new ResultCallback<Status>() {
                                             @Override
                                             public void onResult(@NonNull Status status) {
                                                 listener.onResponse(status.getStatus().isSuccess());
@@ -428,20 +429,23 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
                                         e.printStackTrace();
                                     }
                                     /* If the update was successful, acquire the metadata of the newly updated file. */
-                                    com.google.android.gms.common.api.Status status =
-                                            driveContents.commit(mGoogleApiClient, null).await();
-                                    Log.i("Save File", status.getStatusMessage());
-                                    /* Add files meta data to metaFileMap. */
-                                    driveFileResult.getDriveFile().getMetadata(mGoogleApiClient).setResultCallback(new ResultCallback<DriveResource.MetadataResult>() {
+
+                                    driveContents.commit(mGoogleApiClient, null).setResultCallback(new ResultCallback<Status>() {
                                         @Override
-                                        public void onResult(@NonNull DriveResource.MetadataResult metadataResult) {
-                                            if(metadataResult != null && metadataResult.getMetadata() != null) {
+                                        public void onResult(@NonNull Status status) {
+                                            Log.e("Save File", status.getStatusCode() == 0 ? "Successfully saved file" : "failed to save file");
+                                            /* Add files meta data to metaFileMap. */
+                                            driveFileResult.getDriveFile().getMetadata(mGoogleApiClient).setResultCallback(new ResultCallback<DriveResource.MetadataResult>() {
+                                                @Override
+                                                public void onResult(@NonNull DriveResource.MetadataResult metadataResult) {
+                                                    if(metadataResult != null && metadataResult.getMetadata() != null) {
                                                 /* Add meta data to quick lookup hashmap. */
-                                                metaFileMap.put(DataUtil.getFileName(org), metadataResult.getMetadata());
-                                            }
+                                                        metaFileMap.put(DataUtil.getFileName(org), metadataResult.getMetadata());
+                                                    }
+                                                }
+                                            });
                                         }
                                     });
-
                                 }
                             }
                         });

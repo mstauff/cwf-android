@@ -93,17 +93,10 @@ public class DataManagerImpl implements DataManager {
     }
     /* Calling and Google Data */
     private void saveCalling(final Response.Listener<Boolean> listener, final Org org,  final Calling calling, Operation operation) {
-        googleDataService.getOrgData(new Response.Listener<Org>() {
+        callingData.loadOrg(new Response.Listener<Boolean>() {
             @Override
-            public void onResponse(Org response) {
-                response.updateWithCallingChange(calling, Operation.UPDATE);
-                googleDataService.saveFile(listener, response);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "Failed to save new calling to Google");
-                listener.onResponse(false);
+            public void onResponse(Boolean response) {
+                googleDataService.saveFile(listener, callingData.getOrg(org.getId()));
             }
         }, org);
     }

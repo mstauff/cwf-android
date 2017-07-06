@@ -54,6 +54,8 @@ public class CallingData {
         this.memberData = memberData;
     }
 
+    /* Org Data */
+
     public void loadOrgs(final Response.Listener<Boolean> orgsCallback, final ProgressBar pb, Activity activity) {
         googleDataService.init(new Response.Listener<Boolean>() {
             @Override
@@ -104,6 +106,43 @@ public class CallingData {
         }, activity);
     }
 
+    public void loadOrg(final Response.Listener<Boolean> listener, final Org org) {
+        googleDataService.getOrgData(new Response.Listener<Org>() {
+            @Override
+            public void onResponse(Org googleOrg) {
+                if(googleOrg != null) {
+                    webResources.getOrgs(new Response.Listener<List<Org>>() {
+                        @Override
+                        public void onResponse(List<Org> lcrOrgs) {
+                            if(lcrOrgs != null) {
+                                for(Org lcrOrg : lcrOrgs) {
+                                    if(lcrOrg.equals(org)) {
+                                        mergeOrgs(lcrOrg, org);
+                                        extractOrg(lcrOrg, org.getId());
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+                listener.onResponse(true);
+            }
+        }, null, org);
+    }
+
+    public List<Org> getOrgs() {
+        return orgs;
+    }
+
+    public Org getOrg(long orgId) {
+        return orgsById.get(orgId);
+    }
+
+    public Org getBaseOrg(long orgId) {
+        return baseOrgByOrgId.get(orgId);
+    }
+
     private void extractOrg(Org org, long baseOrgId) {
         orgsById.put(org.getId(), org);
         baseOrgByOrgId.put(org.getId(), orgsById.get(baseOrgId));
@@ -115,6 +154,8 @@ public class CallingData {
             extractOrg(subOrg, baseOrgId);
         }
     }
+
+    /* Import and Merge Data */
 
     private void importAndMergeGoogleData(final Response.Listener<Boolean> mergeFinishedCallback) {
         final int[] orgsFinishedImporting = {0};
@@ -230,17 +271,7 @@ public class CallingData {
         }
     }
 
-    public List<Org> getOrgs() {
-        return orgs;
-    }
-
-    public Org getOrg(long orgId) {
-        return orgsById.get(orgId);
-    }
-
-    public Org getBaseOrg(long orgId) {
-        return baseOrgByOrgId.get(orgId);
-    }
+    /* Calling Data */
 
     public List<Calling> getUnfinalizedCallings() {
         List<Calling> result = new ArrayList<>();
@@ -250,16 +281,6 @@ public class CallingData {
             }
         }
         return result;
-    }
-
-    public void loadOrg(final Response.Listener<Boolean> listener, Org org) {
-        googleDataService.getOrgData(new Response.Listener<Org>() {
-            @Override
-            public void onResponse(Org response) {
-                orgsById.put(response.getId(), response);
-                listener.onResponse(true);
-            }
-        }, null, org);
     }
 
     public Calling getCalling(String callingId) {
@@ -273,20 +294,7 @@ public class CallingData {
         }
     }
 
-    public void harmonizeCachedItems(Org org, Calling calling, Operation operation) {
-        switch (operation) {
-            case CREATE:
-                callingsById.put(calling.getCallingId(), calling);
-                //callingsByOrg.put(org.getId(), org.allOrgCallings());
-                break;
-            case UPDATE:
-                break;
-            case DELETE:
-                break;
-            default:
-                break;
-        }
-    }
+    /* Position Meta Data */
 
     public void loadPositionMetadata() {
         webResources.getPositionMetaData(new Response.Listener<String>() {
