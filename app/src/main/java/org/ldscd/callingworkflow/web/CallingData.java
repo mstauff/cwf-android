@@ -111,20 +111,8 @@ public class CallingData {
             @Override
             public void onResponse(Org googleOrg) {
                 if(googleOrg != null) {
-                    webResources.getOrgs(new Response.Listener<List<Org>>() {
-                        @Override
-                        public void onResponse(List<Org> lcrOrgs) {
-                            if(lcrOrgs != null) {
-                                for(Org lcrOrg : lcrOrgs) {
-                                    if(lcrOrg.equals(org)) {
-                                        mergeOrgs(lcrOrg, org);
-                                        extractOrg(lcrOrg, org.getId());
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    });
+                    mergeOrgs(org, googleOrg);
+                    extractOrg(org, org.getId());
                 }
                 listener.onResponse(true);
             }

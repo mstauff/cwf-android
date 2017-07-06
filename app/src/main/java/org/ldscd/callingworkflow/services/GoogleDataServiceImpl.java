@@ -30,7 +30,7 @@ import org.json.JSONObject;
 import org.ldscd.callingworkflow.google.ConflictUtil;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Org;
-import org.ldscd.callingworkflow.model.Serialize.PositionSerializer;
+import org.ldscd.callingworkflow.model.serialize.PositionSerializer;
 import org.ldscd.callingworkflow.utils.DataUtil;
 import org.ldscd.callingworkflow.web.OrgCallingBuilder;
 

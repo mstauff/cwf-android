@@ -93,9 +93,17 @@ public class DataManagerImpl implements DataManager {
     }
     /* Calling and Google Data */
     private void saveCalling(final Response.Listener<Boolean> listener, final Org org,  final Calling calling, Operation operation) {
+        final Calling newCalling = new Calling(
+                calling.getProposedIndId(), calling.getCwfId(), calling.getMemberId(),
+                calling.getProposedIndId(), calling.getActiveDateTime(), calling.getPosition(),
+                calling.getExistingStatus(), calling.getProposedStatus(), calling.getNotes(),
+                calling.getParentOrg());
         callingData.loadOrg(new Response.Listener<Boolean>() {
             @Override
             public void onResponse(Boolean response) {
+                calling.setNotes(newCalling.getNotes());
+                calling.setProposedIndId(newCalling.getProposedIndId());
+                calling.setProposedStatus(newCalling.getProposedStatus());
                 googleDataService.saveFile(listener, callingData.getOrg(org.getId()));
             }
         }, org);

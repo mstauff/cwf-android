@@ -1,4 +1,4 @@
-package org.ldscd.callingworkflow.model.Serialize;
+package org.ldscd.callingworkflow.model.serialize;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
