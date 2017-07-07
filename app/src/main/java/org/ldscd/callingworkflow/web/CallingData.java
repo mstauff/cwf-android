@@ -106,15 +106,26 @@ public class CallingData {
         }, activity);
     }
 
-    public void loadOrg(final Response.Listener<Boolean> listener, final Org org) {
+    /*public void loadOrg(final Response.Listener<Boolean> listener, final Org org) {
         googleDataService.getOrgData(new Response.Listener<Org>() {
             @Override
             public void onResponse(Org googleOrg) {
                 if(googleOrg != null) {
-                    mergeOrgs(org, googleOrg);
-                    extractOrg(org, org.getId());
+                    extractOrg(googleOrg, googleOrg.getId());
                 }
                 listener.onResponse(true);
+            }
+        }, null, org);
+    }*/
+
+    public void getOrgFromGoogleDrive(final Response.Listener<Org> listener, final Org org, final boolean cacheData) {
+        googleDataService.getOrgData(new Response.Listener<Org>() {
+            @Override
+            public void onResponse(Org googleOrg) {
+                if(cacheData) {
+                    extractOrg(googleOrg, googleOrg.getId());
+                }
+                listener.onResponse(googleOrg);
             }
         }, null, org);
     }
@@ -131,11 +142,10 @@ public class CallingData {
         return baseOrgByOrgId.get(orgId);
     }
 
-    private void extractOrg(Org org, long baseOrgId) {
+    public void extractOrg(Org org, long baseOrgId) {
         orgsById.put(org.getId(), org);
         baseOrgByOrgId.put(org.getId(), orgsById.get(baseOrgId));
         for(Calling calling: org.getCallings()) {
-            allCallings.add(calling);
             callingsById.put(calling.getCallingId(), calling);
         }
         for(Org subOrg: org.getChildren()) {
@@ -261,6 +271,7 @@ public class CallingData {
 
     /* Calling Data */
 
+    //TODO: need to use the Org get all callings method.
     public List<Calling> getUnfinalizedCallings() {
         List<Calling> result = new ArrayList<>();
         for(Calling calling: allCallings) {

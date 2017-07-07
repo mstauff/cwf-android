@@ -18,7 +18,7 @@ public interface DataManager {
     Org getOrg(long id);
     List<Org> getOrgs();
     void loadOrgs(Response.Listener<Boolean> listener, ProgressBar progressBar, Activity activity);
-    void loadOrg(Response.Listener<Boolean> listener, Org org);
+    void loadOrg(Response.Listener<Org> listener, Org org);
     List<PositionMetaData> getAllPositionMetadata();
     PositionMetaData getPositionMetadata(int positionTypeId);
     /* Member data. */

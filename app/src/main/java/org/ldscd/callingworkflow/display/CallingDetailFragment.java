@@ -5,6 +5,8 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,6 +45,7 @@ public class CallingDetailFragment extends Fragment {
     public static final String ORG_ID = "orgId";
     public static final String CALLING_ID = "calling_id";
     public static final String INDIVIDUAL_ID = "individualId";
+    public static final String CALLING = "calling";
 
     private long orgId;
     private Member member;
@@ -74,7 +77,8 @@ public class CallingDetailFragment extends Fragment {
     }
 
     public interface OnFragmentInteractionListener {
-        public void onFragmentInteraction(boolean search, Calling calling, boolean hasChanges);
+        public void onFragmentInteraction(Calling calling, boolean hasChanges);
+        public void openMemberLookup();
     }
 
     @Override
@@ -104,12 +108,13 @@ public class CallingDetailFragment extends Fragment {
             /* Initialize UI */
             orgId = bundle.getLong(ORG_ID, 0);
             org = dataManager.getOrg(orgId);
-            String callingId = bundle.getString(CALLING_ID);
-            hydrateCalling(callingId);
+            calling = (Calling)bundle.getSerializable(CALLING);
+            hydrateCalling();
             individualId = bundle.getLong(INDIVIDUAL_ID, 0);
             wireUpFinalizeButton();
             wireUpStatusDropdown();
             wireUpMemberSearch();
+            wireUpNotes();
         }
         return view;
     }
@@ -126,7 +131,7 @@ public class CallingDetailFragment extends Fragment {
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                submitOrgChanges(true);
+                mListener.openMemberLookup();
             }
         });
     }
@@ -150,8 +155,7 @@ public class CallingDetailFragment extends Fragment {
         }
     }
 
-    private void hydrateCalling(String callingId) {
-        calling = dataManager.getCalling(callingId);
+    private void hydrateCalling() {
         if(calling != null) {
             TextView callingName = (TextView)view.findViewById(R.id.label_calling_detail_position);
             callingName.setText(calling.getPosition().getName());
@@ -165,20 +169,18 @@ public class CallingDetailFragment extends Fragment {
         }
     }
 
-    public String getNotes() {
-        TextView notes = (TextView) view.findViewById(R.id.notes_calling_detail);
-        return notes.getText().toString();
-    }
-
     private void wireUpStatusDropdown() {
         List<CallingStatus> status = new ArrayList(Arrays.asList(CallingStatus.values()));
         Spinner statusDropdown = (Spinner)view.findViewById(R.id.calling_detail_status_dropdown);
         ArrayAdapter adapter = new ArrayAdapter<CallingStatus>(this.getContext(), android.R.layout.simple_list_item_1, status);
         statusDropdown.setAdapter(adapter);
+        if(calling != null && calling.getProposedStatus() != null) {
+            statusDropdown.setSelection(adapter.getPosition(CallingStatus.get(calling.getProposedStatus())));
+        }
         statusDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                submitOrgChanges(false);
+                submitOrgChanges();
             }
 
             @Override
@@ -186,10 +188,36 @@ public class CallingDetailFragment extends Fragment {
 
             }
         });
-        if(calling != null && calling.getProposedStatus() != null) {
-            statusDropdown.setSelection(adapter.getPosition(CallingStatus.get(calling.getProposedStatus())));
-        }
     }
+
+    private void wireUpNotes() {
+        TextView notes = (TextView) view.findViewById(R.id.notes_calling_detail);
+        notes.addTextChangedListener(textWatcherNotesListener);
+    }
+
+    private final TextWatcher textWatcherNotesListener = new TextWatcher() {
+        final android.os.Handler handler = new android.os.Handler();
+        Runnable runnable;
+
+        public void onTextChanged(final CharSequence s, int start, final int before, int count) {
+            handler.removeCallbacks(runnable);
+        }
+
+        @Override
+        public void afterTextChanged(final Editable s) {
+            //show some progress, because you can access UI here
+            runnable = new Runnable() {
+                @Override
+                public void run() {
+                    submitOrgChanges();
+                }
+            };
+            handler.postDelayed(runnable, 1000);
+        }
+
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+    };
 
     private void wireUpFinalizeButton() {
         /* Finalize calling button setup */
@@ -197,12 +225,12 @@ public class CallingDetailFragment extends Fragment {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                submitOrgChanges(false);
+                submitOrgChanges();
             }
         });
     }
 
-    private void submitOrgChanges(boolean search) {
+    private void submitOrgChanges() {
         boolean hasChanges = false;
         CallingStatus callingStatus = (CallingStatus)statusDropdown.getSelectedItem();
         String status = null;
@@ -222,7 +250,7 @@ public class CallingDetailFragment extends Fragment {
             calling.setProposedIndId(individualId);
             hasChanges = true;
         }
-        mListener.onFragmentInteraction(search, calling, hasChanges);
+        mListener.onFragmentInteraction(calling, hasChanges);
     }
 
     private void wireUpFragments(Bundle savedInstanceState) {
@@ -250,13 +278,6 @@ public class CallingDetailFragment extends Fragment {
                     .replace(R.id.calling_detail_main_fragment_container, memberLookupFragment, null)
                     .addToBackStack(null)
                     .commit();
-
-            /*MemberLookupButtonFragment searchFragment = new MemberLookupButtonFragment();
-            if(calling != null && calling.getProposedIndId() > 0) {
-                Bundle args = new Bundle();
-                args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, calling.getProposedIndId());
-                searchFragment.setArguments(args);
-            }*/
         }
     }
 }

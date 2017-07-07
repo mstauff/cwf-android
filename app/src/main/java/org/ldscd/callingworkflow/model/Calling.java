@@ -3,14 +3,17 @@ package org.ldscd.callingworkflow.model;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.ldscd.callingworkflow.constants.CallingStatus;
 import org.ldscd.callingworkflow.constants.ConflictCause;
 
+import java.io.Serializable;
 import java.util.UUID;
 
 /**
  * Represents a possible calling to be made.
  */
-public class Calling {
+public class Calling implements Serializable {
+    private static final long serialVersionUID = 1393285656423297834L;
     /* Fields */
     /* id is from LCR */
     private Long positionId;
@@ -29,6 +32,12 @@ public class Calling {
     private transient DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
     /* Constructors */
     public Calling() {}
+
+    public Calling(Calling calling) {
+        this(calling.getId(), calling.getCwfId(), calling.getMemberId(), calling.getProposedIndId(),
+                calling.getActiveDateTime(), calling.getPosition(), calling.getExistingStatus(),
+                CallingStatus.valueOf(calling.getProposedStatus().toString()).toString(), calling.getNotes(), calling.getParentOrg());
+    }
 
     public Calling(Long positionId, String cwfId, Long memberId, Long proposedIndId, DateTime activeDateTime, Position position,
                    String existingStatus, String proposedStatus, String notes, Long parentOrg) {

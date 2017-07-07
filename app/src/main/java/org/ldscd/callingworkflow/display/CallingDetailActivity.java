@@ -79,6 +79,7 @@ public class CallingDetailActivity
             submitOrgChanges();
             Intent intent = new Intent(this, ExpandableOrgsListActivity.class);
             intent.putExtra(ExpandableOrgsListActivity.ARG_ORG_ID, orgId);
+            intent.putExtra(ExpandableOrgsListActivity.GET_DATA, false);
             navigateUpTo(intent);
             return true;
         } else if(id == R.id.calling_detail_release_current_in_lcr) {
@@ -90,12 +91,6 @@ public class CallingDetailActivity
     }
 
     private void submitOrgChanges() {
-        CallingDetailFragment callingDetailFragment = (CallingDetailFragment)getSupportFragmentManager().findFragmentByTag(TAG);
-        if(!calling.getNotes().equals(callingDetailFragment.getNotes())) {
-            hasChanges = true;
-            calling.setNotes(callingDetailFragment.getNotes());
-        }
-
         if(hasChanges) {
             dataManager.updateCalling(new Response.Listener<Boolean>() {
                 @Override
@@ -141,8 +136,8 @@ public class CallingDetailActivity
         // http://developer.android.com/guide/components/fragments.html
         CallingDetailFragment callingDetailFragment = new CallingDetailFragment();
         Bundle args = new Bundle();
+        args.putSerializable(CallingDetailFragment.CALLING, calling);
         args.putLong(CallingDetailFragment.ORG_ID, orgId);
-        args.putString(CallingDetailFragment.CALLING_ID, calling.getCallingId());
         args.putLong(CallingDetailFragment.INDIVIDUAL_ID, calling.getProposedIndId());
         callingDetailFragment.setArguments(args);
         FragmentManager manager = getSupportFragmentManager();
@@ -161,7 +156,7 @@ public class CallingDetailActivity
         CallingDetailFragment callingDetailFragment = new CallingDetailFragment();
         Bundle args = new Bundle();
         args.putLong(CallingDetailFragment.ORG_ID, orgId);
-        args.putString(CallingDetailFragment.CALLING_ID, calling.getCallingId());
+        args.putSerializable(CallingDetailFragment.CALLING, calling);
         if(this.proposedMember != null && this.proposedMember.getFormattedName() != null) {
             args.putLong(CallingDetailFragment.INDIVIDUAL_ID, this.proposedMember.getIndividualId());
         }
@@ -174,33 +169,33 @@ public class CallingDetailActivity
 
     /* From CallingDetailFragment. */
     @Override
-    public void onFragmentInteraction(boolean search, Calling calling, boolean hasChanges) {
-        this.calling.setNotes(calling.getNotes());
-        this.calling.setProposedStatus(calling.getProposedStatus());
+    public void onFragmentInteraction(Calling newCalling, boolean newChanges) {
+        calling = newCalling;
         setProposedMember();
-        this.hasChanges = hasChanges;
-        if(search) {
-            MemberLookupFragment memberLookupFragment = new MemberLookupFragment();
-            if(this.proposedMember != null && this.proposedMember.getIndividualId() > 0) {
-                Bundle args = new Bundle();
-                args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, this.proposedMember.getIndividualId());
-                memberLookupFragment.setArguments(args);
-            }
-            getSupportFragmentManager().beginTransaction()
+        hasChanges = newChanges;
+    }
+
+    @Override
+    public void openMemberLookup() {
+        MemberLookupFragment memberLookupFragment = new MemberLookupFragment();
+        if(this.proposedMember != null && this.proposedMember.getIndividualId() > 0) {
+            Bundle args = new Bundle();
+            args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, this.proposedMember.getIndividualId());
+            memberLookupFragment.setArguments(args);
+        }
+        getSupportFragmentManager().beginTransaction()
                 .replace(R.id.calling_detail_main_fragment_container, memberLookupFragment, MemberLookupFragment.FRAG_NAME)
                 .addToBackStack(null)
                 .commit();
-        }
     }
 
     @Override
     public void onFragmentInteraction(FilterOption filterOption) {
-        FilterOption newOptions = filterOption;
         MemberLookupFragment memberLookupFragment = (MemberLookupFragment) getSupportFragmentManager().findFragmentByTag(MemberLookupFragment.FRAG_NAME);
         if (memberLookupFragment != null) {
             /* If memberLookupFragment is available, we're in two-pane layout. */
             /*  Call a method in the memberLookupFragment to update its content. */
-            memberLookupFragment.onFragmentInteraction(newOptions);
+            memberLookupFragment.onFragmentInteraction(filterOption);
         } else {
             /* Otherwise, we're in the one-pane layout and must swap frags. */
             /* Create fragment and give it an argument for the selected article. */
@@ -209,7 +204,7 @@ public class CallingDetailActivity
             if(this.proposedMember != null && this.proposedMember.getIndividualId() > 0) {
                 args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, this.proposedMember.getIndividualId());
             }
-            if(newOptions != null) {
+            if(filterOption != null) {
                 args.putBooleanArray(MemberLookupFilterFragment.NUMBER_OF_CALLINGS, filterOption.getNumberCallings());
                 args.putDouble(MemberLookupFilterFragment.TIME_IN_CALLING, filterOption.getTimeInCalling());
                 args.putBoolean(MemberLookupFilterFragment.HIGH_PRIEST, filterOption.isHighPriest());

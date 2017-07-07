@@ -54,7 +54,7 @@ public class OrgListAdapter extends RecyclerView.Adapter<OrgListAdapter.ViewHold
                 Context context = v.getContext();
                 Intent intent = new Intent(context, ExpandableOrgsListActivity.class);
                 intent.putExtra(ExpandableOrgsListActivity.ARG_ORG_ID, holder.orgItem.getId());
-
+                intent.putExtra(ExpandableOrgsListActivity.GET_DATA, true);
                 context.startActivity(intent);
                 //}
             }

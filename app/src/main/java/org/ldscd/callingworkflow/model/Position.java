@@ -1,9 +1,12 @@
 package org.ldscd.callingworkflow.model;
 
+import java.io.Serializable;
+
 /**
  * Represents a calling position.  i.e. CTR B teacher.
  */
-public class Position {
+public class Position implements Serializable {
+    private static final long serialVersionUID = 3580444395442974459L;
     /* Fields */
     private String name;
     private int positionTypeId;

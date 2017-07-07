@@ -92,9 +92,9 @@ public class Org {
         return subOrgs;
     }
 
-    public Calling find(Long param) {
+    public Calling getCallingById(String param) {
         for(Calling calling : allOrgCallings()) {
-            if(calling.equals(param)) {
+            if(calling.getCallingId().equals(param)) {
                 return calling;
             }
         }

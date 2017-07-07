@@ -35,15 +35,19 @@ public enum CallingStatus {
     }
 
     private static final Map<String, CallingStatus> lookup = new HashMap<String, CallingStatus>();
-
+    private static final Map<String, CallingStatus> byValueLookup = new HashMap<>();
     static {
         for (CallingStatus status : CallingStatus.values()) {
             lookup.put(status.name(), status);
+            byValueLookup.put(status.toString(), status);
         }
     }
 
     public static CallingStatus get(String status) {
         return lookup.get(status);
+    }
+    public static CallingStatus getByValue(String status) {
+        return byValueLookup.get(status);
     }
 
     @Override public String toString() {

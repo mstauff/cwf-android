@@ -25,6 +25,8 @@ public class DataManagerImpl implements DataManager {
     private CallingData callingData;
     private MemberData memberData;
     private GoogleDataService googleDataService;
+    private static final boolean cacheData = true;
+
     /* Constructor */
     public DataManagerImpl(CallingData callingData, MemberData memberData, GoogleDataService googleDataService) {
         this.callingData = callingData;
@@ -46,8 +48,8 @@ public class DataManagerImpl implements DataManager {
         callingData.loadOrgs(listener, progressBar, activity);
         callingData.loadPositionMetadata();
     }
-    public void loadOrg(Response.Listener<Boolean> listener, Org org) {
-        callingData.loadOrg(listener, org);
+    public void loadOrg(Response.Listener<Org> listener, Org org) {
+        callingData.getOrgFromGoogleDrive(listener, org, cacheData);
     }
     public List<PositionMetaData> getAllPositionMetadata() {
         return callingData.getAllPositionMetadata();
@@ -93,20 +95,21 @@ public class DataManagerImpl implements DataManager {
     }
     /* Calling and Google Data */
     private void saveCalling(final Response.Listener<Boolean> listener, final Org org,  final Calling calling, Operation operation) {
-        final Calling newCalling = new Calling(
-                calling.getProposedIndId(), calling.getCwfId(), calling.getMemberId(),
-                calling.getProposedIndId(), calling.getActiveDateTime(), calling.getPosition(),
-                calling.getExistingStatus(), calling.getProposedStatus(), calling.getNotes(),
-                calling.getParentOrg());
-        callingData.loadOrg(new Response.Listener<Boolean>() {
+        callingData.getOrgFromGoogleDrive(new Response.Listener<Org>() {
             @Override
-            public void onResponse(Boolean response) {
-                calling.setNotes(newCalling.getNotes());
-                calling.setProposedIndId(newCalling.getProposedIndId());
-                calling.setProposedStatus(newCalling.getProposedStatus());
-                googleDataService.saveFile(listener, callingData.getOrg(org.getId()));
+            public void onResponse(Org newOrg) {
+                updateCalling(newOrg, calling);
+                googleDataService.saveFile(listener, newOrg);
+                callingData.extractOrg(newOrg, newOrg.getId());
             }
-        }, org);
+        }, org, !cacheData);
+    }
+
+    private void updateCalling(Org org, Calling updatedCalling) {
+        Calling original = org.getCallingById(updatedCalling.getCallingId());
+        original.setNotes(updatedCalling.getNotes());
+        original.setProposedIndId(updatedCalling.getProposedIndId());
+        original.setProposedStatus(updatedCalling.getProposedStatus());
     }
 
     @Override

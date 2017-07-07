@@ -36,6 +36,7 @@ import javax.inject.Inject;
 public class ExpandableOrgsListActivity extends AppCompatActivity {
     public static final String ARG_ORG_ID = "orgId";
     public static final String ARG_EXPAND_ID = "expandOrgId";
+    public static final String GET_DATA = "load";
 
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
@@ -45,8 +46,8 @@ public class ExpandableOrgsListActivity extends AppCompatActivity {
     AppCompatActivity activity = this;
     long orgId;
     long expandId;
-    Org org;
     ExpandableListView callingListView;
+    boolean loadData;
 
     @Inject
     DataManager dataManager;
@@ -62,25 +63,32 @@ public class ExpandableOrgsListActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         if(actionBar != null) {
             orgId = getIntent().getLongExtra(ARG_ORG_ID, 0) == 0  ? savedInstanceState.getLong(ARG_ORG_ID) : getIntent().getLongExtra(ARG_ORG_ID, 0);
-            org = dataManager.getOrg(orgId);
+            Org org = dataManager.getOrg(orgId);
             expandId = getIntent().getLongExtra(ARG_EXPAND_ID, 0);
-            if(orgId > 0){
-                dataManager.loadOrg(new Response.Listener<Boolean>() {
+            loadData = orgId > 0 && getIntent().getBooleanExtra(GET_DATA, false);
+            if(loadData) {
+                dataManager.loadOrg(new Response.Listener<Org>() {
                     @Override
-                    public void onResponse(Boolean response) {
+                    public void onResponse(Org response) {
                         callingListView = (ExpandableListView) findViewById(R.id.expandable_org_list);
                         assert callingListView != null;
-                        setupListView(callingListView);
+                        setupListView(callingListView, response);
                     }
                 }, org);
 
                 getSupportActionBar().setTitle(org.getDefaultOrgName());
                 getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            } else {
+            } else if(org == null) {
                 Log.e("CallingListActivity", "Org id list not found or empty");
                 Context context = getApplicationContext();
                 Intent intent = new Intent(context, OrgListActivity.class);
                 context.startActivity(intent);
+            } else {
+                callingListView = (ExpandableListView) findViewById(R.id.expandable_org_list);
+                assert callingListView != null;
+                setupListView(callingListView, org);
+                getSupportActionBar().setTitle(org.getDefaultOrgName());
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             }
         }
 
@@ -93,8 +101,7 @@ public class ExpandableOrgsListActivity extends AppCompatActivity {
         }
     }
 
-    private void setupListView(@NonNull final ExpandableListView callingListView) {
-        org = dataManager.getOrg(getIntent().getLongExtra(ARG_ORG_ID, 0));
+    private void setupListView(@NonNull final ExpandableListView callingListView, final Org org) {
         FragmentManager fragmentManager = twoPane ? getSupportFragmentManager() : null;
         ExpandableListAdapter adapter = new ExpandableOrgListAdapter(org, dataManager, twoPane, fragmentManager, activity);
         callingListView.setAdapter(adapter);
