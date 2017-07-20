@@ -44,7 +44,6 @@ public class CallingData {
     private Map<Long, Org> orgsById;
     private Map<String, Calling> callingsById;
     private Map<Long, Org> baseOrgByOrgId;
-    private List<Calling> allCallings;
     private List<PositionMetaData> allPositionMetadata;
     private Map<Integer, PositionMetaData> positionMetaDataByPositionTypeId;
 
@@ -69,7 +68,6 @@ public class CallingData {
                             orgsById = new HashMap<Long, Org>();
                             callingsById = new HashMap<String, Calling>();
                             baseOrgByOrgId = new HashMap<Long, Org>();
-                            allCallings = new ArrayList<Calling>();
                             pb.setProgress(pb.getProgress() + 20);
                             googleDataService.syncDriveIds(new Response.Listener<Boolean>() {
                                 @Override
@@ -180,7 +178,8 @@ public class CallingData {
         }
     }
 
-    private void mergeOrgs(Org lcrOrg, Org cwfOrg) {
+    //This merges the orgs and callings from the cwfOrg into the lcrOrg so when completed the lcrOrg will have both
+    public void mergeOrgs(Org lcrOrg, Org cwfOrg) {
         if(cwfOrg != null && cwfOrg.getChildren() != null) {
             for (Org cwfSubOrg : cwfOrg.getChildren()) {
                 boolean matchFound = false;
@@ -227,43 +226,22 @@ public class CallingData {
                 }
 
                 if (!matchFound) {
-                    //Ids don't match so check for position matches
-                    List<Calling> positionMatches = new ArrayList<>();
+                    //see if there's position type match
+                    boolean positionTypeMatch = false;
                     for (Calling lcrCalling : lcrCallings) {
                         if (lcrCalling.getPosition().equals(cwfCalling.getPosition())) {
-                            positionMatches.add(lcrCalling);
+                            positionTypeMatch = true;
                         }
                     }
-                    //no matches, we'll mark it as deleted and add it to the list
-                    if (positionMatches.size() == 0) {
-                        //if there's no id than it didn't exist in lcr to begin with and shouldn't be marked
-                        if (cwfCalling.getId() != null) {
-                            cwfCalling.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
-                        }
-                        lcrCallings.add(cwfCalling);
+
+                    //if there's no match we can mark it as deleted since we know it no longer exists in lcr
+                    // else we'll mark it as conflicted since we can't tell for sure why it doesn't match up
+                    if (!positionTypeMatch) {
+                        cwfCalling.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
+                    } else {
+                        cwfCalling.setConflictCause(ConflictCause.EQUIVALENT_POTENTIAL_AND_ACTUAL);
                     }
-                    //exactly one match so we'll check and copy proposed data if it doesn't match the new current id
-                    else if (positionMatches.size() == 1) {
-                        Calling lcrCalling = positionMatches.get(0);
-                        if (cwfCalling.getProposedIndId() != null && !cwfCalling.getProposedIndId().equals(lcrCalling.getMemberId())) {
-                            lcrCalling.importCWFData(cwfCalling);
-                        }
-                    }
-                    //multiple matches by position type, if the potential id matches any current ids we'll mark it as changed and add it otherwise we'll mark it as deleted and add it
-                    else if (positionMatches.size() > 1) {
-                        if (cwfCalling.getId() != null) {
-                            cwfCalling.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
-                        }
-                        for (Calling lcrCalling : positionMatches) {
-                            if (cwfCalling.getProposedIndId() != null && cwfCalling.getProposedIndId().equals(lcrCalling.getMemberId())) {
-                                cwfCalling.setConflictCause(ConflictCause.EQUIVALENT_POTENTIAL_AND_ACTUAL);
-                                break;
-                            }
-                        }
-                        lcrCallings.add(cwfCalling);
-                    }
-                    // todo - what about EQ Instructor that allows multiples - same positionTypeId but both have a diff
-                    // cwfId - they don't ever get matched up and we end up with duplicates
+                    lcrCallings.add(cwfCalling);
                 }
             }
         }
@@ -271,12 +249,13 @@ public class CallingData {
 
     /* Calling Data */
 
-    //TODO: need to use the Org get all callings method.
     public List<Calling> getUnfinalizedCallings() {
         List<Calling> result = new ArrayList<>();
-        for(Calling calling: allCallings) {
-            if((calling.getProposedIndId() != null && calling.getProposedIndId() > 0) || calling.getProposedStatus() != null) {
-                result.add(calling);
+        for(Org org : getOrgs()) {
+            for(Calling calling: org.allOrgCallings()) {
+                if ((calling.getProposedIndId() != null && calling.getProposedIndId() > 0) || calling.getProposedStatus() != null) {
+                    result.add(calling);
+                }
             }
         }
         return result;
