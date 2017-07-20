@@ -46,44 +46,44 @@
             <FrameLayout
                 android:layout_height="wrap_content"
                 android:layout_width="50dp">
-                <ToggleButton
+                <TextView
                     android:id="@+id/member_lookup_filter_calling_zero"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:width="10dp"
                     android:height="20dp"
-                    android:textOff="@string/zero"
-                    android:textOn="@string/zero" />
+                    android:padding="16dp"
+                    android:text="@string/zero" />
             </FrameLayout>
             <FrameLayout
                 android:layout_height="wrap_content"
                 android:layout_width="50dp">
-                <ToggleButton
+                <TextView
                     android:id="@+id/member_lookup_filter_calling_one"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textOff="@string/one"
-                    android:textOn="@string/one" />
+                    android:padding="16dp"
+                    android:text="@string/one" />
             </FrameLayout>
             <FrameLayout
                 android:layout_height="wrap_content"
                 android:layout_width="50dp">
-                <ToggleButton
+                <TextView
                     android:id="@+id/member_lookup_filter_calling_two"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textOff="@string/two"
-                    android:textOn="@string/two"/>
+                    android:padding="16dp"
+                    android:text="@string/two"/>
             </FrameLayout>
             <FrameLayout
                 android:layout_height="wrap_content"
                 android:layout_width="50dp">
-                <ToggleButton
+                <TextView
                     android:id="@+id/member_lookup_filter_calling_three_plus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textOff="@string/three_plus"
-                    android:textOn="@string/three_plus"/>
+                    android:padding="16dp"
+                    android:text="@string/three_plus" />
             </FrameLayout>
         </TableRow>
     </TableLayout>
@@ -134,20 +134,20 @@
                 android:textStyle="bold"
                 android:textSize="15sp"
                 android:text="@string/age" />
-            <ToggleButton
+            <TextView
                 android:id="@+id/member_lookup_filter_twelve_to_eighteen"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="40dp"
                 android:layout_marginLeft="40dp"
-                android:textOff="@string/twelve_to_eighteen"
-                android:textOn="@string/twelve_to_eighteen" />
-            <ToggleButton
+                android:padding="16dp"
+                android:text="@string/twelve_to_eighteen" />
+            <TextView
                 android:id="@+id/member_lookup_filter_eighteen_plus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textOff="@string/eighteen_plus"
-                android:textOn="@string/eighteen_plus" />
+                android:padding="16dp"
+                android:text="@string/eighteen_plus" />
         </TableRow>
     </TableLayout>
     <TableLayout
@@ -164,20 +164,20 @@
                 android:textStyle="bold"
                 android:textSize="15sp"
                 android:text="@string/gender" />
-            <ToggleButton
+            <TextView
                 android:id="@+id/member_lookup_filter_male"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="40dp"
                 android:layout_marginLeft="40dp"
-                android:textOff="@string/male"
-                android:textOn="@string/male" />
-            <ToggleButton
+                android:padding="16dp"
+                android:text="@string/male" />
+            <TextView
                 android:id="@+id/member_lookup_filter_female"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textOff="@string/female"
-                android:textOn="@string/female" />
+                android:padding="16dp"
+                android:text="@string/female" />
         </TableRow>
     </TableLayout>
     <TableLayout
@@ -195,49 +195,49 @@
                 android:text="@string/priesthood" />
         </TableRow>
         <TableRow>
-            <ToggleButton
+            <TextView
                 android:id="@+id/member_lookup_filter_high_priest"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="0"
                 android:layout_marginRight="40dp"
                 android:layout_marginLeft="40dp"
-                android:textOff="@string/high_priest"
-                android:textOn="@string/high_priest" />
-            <ToggleButton
+                android:padding="16dp"
+                android:text="@string/high_priest" />
+            <TextView
                 android:id="@+id/member_lookup_filter_elders_quorum"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textOff="@string/elders_quorum"
-                android:textOn="@string/elders_quorum" />
+                android:padding="16dp"
+                android:text="@string/elders_quorum" />
         </TableRow>
         <TableRow>
-            <ToggleButton
+            <TextView
                 android:id="@+id/member_lookup_filter_priest"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="0"
                 android:layout_marginRight="40dp"
                 android:layout_marginLeft="40dp"
-                android:textOff="@string/priest"
-                android:textOn="@string/priest" />
-            <ToggleButton
+                android:padding="16dp"
+                android:text="@string/priest" />
+            <TextView
                 android:id="@+id/member_lookup_filter_teacher"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textOff="@string/teacher"
-                android:textOn="@string/teacher" />
+                android:padding="16dp"
+                android:text="@string/teacher" />
         </TableRow>
         <TableRow>
-            <ToggleButton
+            <TextView
                 android:id="@+id/member_lookup_filter_deacon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="0"
                 android:layout_marginRight="40dp"
                 android:layout_marginLeft="40dp"
-                android:textOff="@string/deacon"
-                android:textOn="@string/deacon" />
+                android:padding="16dp"
+                android:text="@string/deacon" />
         </TableRow>
     </TableLayout>
     <TableLayout
@@ -252,41 +252,42 @@
                 android:textColor="@color/ldstools_black"
                 android:textStyle="bold"
                 android:textSize="15sp"
+                android:padding="16dp"
                 android:text="@string/relief_society" />
         </TableRow>
         <TableRow>
-            <ToggleButton
+            <TextView
                 android:id="@+id/member_lookup_filter_relief_society"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="0"
                 android:layout_marginRight="40dp"
                 android:layout_marginLeft="40dp"
-                android:textOff="@string/relief_society"
-                android:textOn="@string/relief_society" />
-            <ToggleButton
+                android:padding="16dp"
+                android:text="@string/relief_society" />
+            <TextView
                 android:id="@+id/member_lookup_filter_laurel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textOff="@string/laurel"
-                android:textOn="@string/laurel" />
+                android:padding="16dp"
+                android:text="@string/laurel" />
         </TableRow>
         <TableRow>
-            <ToggleButton
+            <TextView
                 android:id="@+id/member_lookup_filter_mia_maid"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="0"
                 android:layout_marginRight="40dp"
                 android:layout_marginLeft="40dp"
-                android:textOff="@string/mia_maid"
-                android:textOn="@string/mia_maid" />
-            <ToggleButton
+                android:padding="16dp"
+                android:text ="@string/mia_maid" />
+            <TextView
                 android:id="@+id/member_lookup_filter_beehive"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textOff="@string/beehive"
-                android:textOn="@string/beehive" />
+                android:padding="16dp"
+                android:text="@string/beehive" />
         </TableRow>
     </TableLayout>
     <View android:layout_width="match_parent"

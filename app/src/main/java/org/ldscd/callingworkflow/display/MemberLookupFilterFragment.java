@@ -2,11 +2,10 @@ package org.ldscd.callingworkflow.display;
 
 import android.app.Dialog;
 import android.content.Context;
-import android.content.res.Resources;
 import android.os.Bundle;
-import android.support.annotation.ColorRes;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -15,7 +14,7 @@ import android.widget.SeekBar;
 import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
+import android.widget.TextView;
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.model.FilterOption;
 
@@ -118,42 +117,43 @@ public class MemberLookupFilterFragment extends DialogFragment {
         if(filterOption.getNumberCallings() == null) {
             filterOption.setNumberCallings(new boolean[] {false, false, false, false });
         }
-        final ToggleButton zero = (ToggleButton)view.findViewById(R.id.member_lookup_filter_calling_zero);
+        final TextView zero = (TextView)view.findViewById(R.id.member_lookup_filter_calling_zero);
         setToggleButtonColor(zero, filterOption.getNumberCallings() != null && filterOption.getNumberCallings()[0]);
 
-        zero.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        zero.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                filterOption.getNumberCallings()[0] = isChecked;
-                setToggleButtonColor(zero, isChecked);
+            public void onClick(View v) {
+                filterOption.getNumberCallings()[0] = !filterOption.getNumberCallings()[0];
+                setToggleButtonColor(zero, filterOption.getNumberCallings()[0]);
             }
         });
-        final ToggleButton one = (ToggleButton)view.findViewById(R.id.member_lookup_filter_calling_one);
+ 
+        final TextView one = (TextView)view.findViewById(R.id.member_lookup_filter_calling_one);
         setToggleButtonColor(one, filterOption.getNumberCallings() != null && filterOption.getNumberCallings()[1]);
 
-        one.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        one.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                filterOption.getNumberCallings()[1] = isChecked;
-                setToggleButtonColor(one, isChecked);
+            public void onClick(View v) {
+                filterOption.getNumberCallings()[1] = !filterOption.getNumberCallings()[1];
+                setToggleButtonColor(one, filterOption.getNumberCallings()[1]);
             }
         });
-        final ToggleButton two = (ToggleButton)view.findViewById(R.id.member_lookup_filter_calling_two);
+        final TextView two = (TextView)view.findViewById(R.id.member_lookup_filter_calling_two);
         setToggleButtonColor(two, filterOption.getNumberCallings() != null && filterOption.getNumberCallings()[2]);
-        two.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        two.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                filterOption.getNumberCallings()[2] = isChecked;
-                setToggleButtonColor(two, isChecked);
+            public void onClick(View v) {
+                filterOption.getNumberCallings()[2] = !filterOption.getNumberCallings()[2];
+                setToggleButtonColor(two, filterOption.getNumberCallings()[2]);
             }
         });
-        final ToggleButton threePlus = (ToggleButton)view.findViewById(R.id.member_lookup_filter_calling_three_plus);
+        final TextView threePlus = (TextView)view.findViewById(R.id.member_lookup_filter_calling_three_plus);
         setToggleButtonColor(threePlus, filterOption.getNumberCallings() != null && filterOption.getNumberCallings()[3]);
-        threePlus.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        threePlus.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                filterOption.getNumberCallings()[3] = isChecked;
-                setToggleButtonColor(threePlus, isChecked);
+            public void onClick(View v) {
+                filterOption.getNumberCallings()[3] = !filterOption.getNumberCallings()[3];
+                setToggleButtonColor(threePlus, filterOption.getNumberCallings()[3]);
             }
         });
         /* Years in Callings. */
@@ -182,138 +182,151 @@ public class MemberLookupFilterFragment extends DialogFragment {
             public void onStopTrackingTouch(SeekBar seekBar) { }
         });
         /* Twelve to Eighteen. */
-        final ToggleButton twelveEighteenButton = (ToggleButton)view.findViewById(R.id.member_lookup_filter_twelve_to_eighteen);
+        final TextView twelveEighteenButton = (TextView)view.findViewById(R.id.member_lookup_filter_twelve_to_eighteen);
         setToggleButtonColor(twelveEighteenButton, filterOption.isTwelveEighteen());
         /* Eighteen Plus. */
-        final ToggleButton eighteenPlusButton = (ToggleButton)view.findViewById(R.id.member_lookup_filter_eighteen_plus);
+        final TextView eighteenPlusButton = (TextView)view.findViewById(R.id.member_lookup_filter_eighteen_plus);
         setToggleButtonColor(eighteenPlusButton, filterOption.isEighteenPlus());
-        eighteenPlusButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        eighteenPlusButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                filterOption.setEighteenPlus(isChecked);
-                ageSearchToggleView(false, isChecked, twelveEighteenButton, eighteenPlusButton);
+            public void onClick(View v) {
+                filterOption.setEighteenPlus(!filterOption.isEighteenPlus());
+                ageSearchToggleView(false, filterOption.isEighteenPlus(), twelveEighteenButton, eighteenPlusButton);
             }
         });
-        twelveEighteenButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        twelveEighteenButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                filterOption.setTwelveEighteen(isChecked);
-                ageSearchToggleView(isChecked, false, twelveEighteenButton, eighteenPlusButton);
+            public void onClick(View v) {
+                filterOption.setTwelveEighteen(!filterOption.isTwelveEighteen());
+                ageSearchToggleView(filterOption.isTwelveEighteen(), false, twelveEighteenButton, eighteenPlusButton);
             }
         });
         ageSearchToggleView(filterOption.isTwelveEighteen(), filterOption.isEighteenPlus(), twelveEighteenButton, eighteenPlusButton);
-        /* Male. */
-        final ToggleButton maleButton = (ToggleButton)view.findViewById(R.id.member_lookup_filter_male);
-        setToggleButtonColor(maleButton, filterOption.isMale());
-        /* Female. */
-        final ToggleButton femaleButton = (ToggleButton)view.findViewById(R.id.member_lookup_filter_female);
-        setToggleButtonColor(femaleButton, filterOption.isFemale());
-        femaleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                filterOption.setFemale(isChecked);
-                auxiliaryToggleView(false, isChecked, maleButton, femaleButton);
-            }
-        });
-        maleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                filterOption.setMale(isChecked);
-                auxiliaryToggleView(isChecked, false, maleButton, femaleButton);
-            }
-        });
-        auxiliaryToggleView(filterOption.isMale(), filterOption.isFemale(), maleButton, femaleButton);
 
         /* High Priest */
-        final ToggleButton highPriestButton = (ToggleButton)view.findViewById(R.id.member_lookup_filter_high_priest);
-        highPriestButton.setChecked(filterOption.isHighPriest());
-        highPriestButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        final TextView highPriestButton = (TextView)view.findViewById(R.id.member_lookup_filter_high_priest);
+        setChecked(highPriestButton, filterOption.isHighPriest());
+        highPriestButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                filterOption.setHighPriest(isChecked);
-                setToggleButtonColor(highPriestButton, isChecked);
+            public void onClick(View v) {
+                filterOption.setHighPriest(!filterOption.isHighPriest());
+                setToggleButtonColor(highPriestButton, filterOption.isHighPriest());
             }
         });
         /* Elders */
-        final ToggleButton eldersButton = (ToggleButton)view.findViewById(R.id.member_lookup_filter_elders_quorum);
-        eldersButton.setChecked(filterOption.isElders());
-        eldersButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        final TextView eldersButton = (TextView)view.findViewById(R.id.member_lookup_filter_elders_quorum);
+        setChecked(eldersButton,filterOption.isElders());
+        eldersButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                filterOption.setElders(isChecked);
-                setToggleButtonColor(eldersButton, isChecked);
+            public void onClick(View v) {
+                filterOption.setElders(!filterOption.isElders());
+                setToggleButtonColor(eldersButton, filterOption.isElders());
             }
         });
         /* Priests */
-        final ToggleButton priestButton = (ToggleButton)view.findViewById(R.id.member_lookup_filter_priest);
-        priestButton.setChecked(filterOption.isPriests());
-        priestButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        final TextView priestButton = (TextView)view.findViewById(R.id.member_lookup_filter_priest);
+        setChecked(priestButton, filterOption.isPriests());
+        priestButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                filterOption.setPriests(isChecked);
-                setToggleButtonColor(priestButton, isChecked);
+            public void onClick(View v) {
+                filterOption.setPriests(!filterOption.isPriests());
+                setToggleButtonColor(priestButton, filterOption.isPriests());
             }
         });
         /* Teachers */
-        final ToggleButton teacherButton = (ToggleButton)view.findViewById(R.id.member_lookup_filter_teacher);
-        teacherButton.setChecked(filterOption.isTeachers());
-        teacherButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        final TextView teacherButton = (TextView)view.findViewById(R.id.member_lookup_filter_teacher);
+        setChecked(teacherButton, filterOption.isTeachers());
+        teacherButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                filterOption.setTeachers(isChecked);
-                setToggleButtonColor(teacherButton, isChecked);
+            public void onClick(View v) {
+                filterOption.setTeachers(!filterOption.isTeachers());
+                setToggleButtonColor(teacherButton, filterOption.isTeachers());
             }
         });
         /* Deacon */
-        final ToggleButton deaconButton = (ToggleButton)view.findViewById(R.id.member_lookup_filter_deacon);
-        deaconButton.setChecked(filterOption.isDeacons());
-        deaconButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        final TextView deaconButton = (TextView)view.findViewById(R.id.member_lookup_filter_deacon);
+        setChecked(deaconButton, filterOption.isDeacons());
+        deaconButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                filterOption.setDeacons(isChecked);
-                setToggleButtonColor(deaconButton, isChecked);
+            public void onClick(View v) {
+                filterOption.setDeacons(!filterOption.isDeacons());
+                setToggleButtonColor(deaconButton, filterOption.isDeacons());
             }
         });
         /* Relief Society */
-        final ToggleButton reliefSocietyButton = (ToggleButton)view.findViewById(R.id.member_lookup_filter_relief_society);
-        reliefSocietyButton.setChecked(filterOption.isReliefSociety());
-        reliefSocietyButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        final TextView reliefSocietyButton = (TextView)view.findViewById(R.id.member_lookup_filter_relief_society);
+        setChecked(reliefSocietyButton, filterOption.isReliefSociety());
+        reliefSocietyButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                filterOption.setReliefSociety(isChecked);
-                setToggleButtonColor(reliefSocietyButton, isChecked);
+            public void onClick(View v) {
+                filterOption.setReliefSociety(!filterOption.isReliefSociety());
+                setToggleButtonColor(reliefSocietyButton, filterOption.isReliefSociety());
             }
         });
         /* Laurels */
-        final ToggleButton laurelButton = (ToggleButton)view.findViewById(R.id.member_lookup_filter_laurel);
-        laurelButton.setChecked(filterOption.isLaurel());
-        laurelButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        final TextView laurelButton = (TextView)view.findViewById(R.id.member_lookup_filter_laurel);
+        setChecked(laurelButton, filterOption.isLaurel());
+        laurelButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                filterOption.setLaurel(isChecked);
-                setToggleButtonColor(laurelButton, isChecked);
+            public void onClick(View v) {
+                filterOption.setLaurel(!filterOption.isLaurel());
+                setToggleButtonColor(laurelButton, filterOption.isLaurel());
             }
         });
         /* Mia Maids */
-        final ToggleButton miaMaidButton = (ToggleButton)view.findViewById(R.id.member_lookup_filter_mia_maid);
-        miaMaidButton.setChecked(filterOption.isMiaMaid());
-        miaMaidButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        final TextView miaMaidButton = (TextView)view.findViewById(R.id.member_lookup_filter_mia_maid);
+        setChecked(miaMaidButton, filterOption.isMiaMaid());
+        miaMaidButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                filterOption.setMiaMaid(isChecked);
-                setToggleButtonColor(miaMaidButton, isChecked);
+            public void onClick(View v) {
+                filterOption.setMiaMaid(!filterOption.isMiaMaid());
+                setToggleButtonColor(miaMaidButton, filterOption.isMiaMaid());
             }
         });
         /* Beehives */
-        final ToggleButton beehiveButton = (ToggleButton)view.findViewById(R.id.member_lookup_filter_beehive);
-        beehiveButton.setChecked(filterOption.isBeehive());
-        beehiveButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        final TextView beehiveButton = (TextView)view.findViewById(R.id.member_lookup_filter_beehive);
+        setChecked(beehiveButton, filterOption.isBeehive());
+        beehiveButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                filterOption.setBeehive(isChecked);
-                setToggleButtonColor(beehiveButton, isChecked);
+            public void onClick(View v) {
+                filterOption.setBeehive(!filterOption.isBeehive());
+                setToggleButtonColor(beehiveButton, filterOption.isBeehive());
             }
         });
+         /* Male. */
+        final TextView maleButton = (TextView)view.findViewById(R.id.member_lookup_filter_male);
+        setToggleButtonColor(maleButton, filterOption.isMale());
+        /* Female. */
+        final TextView femaleButton = (TextView)view.findViewById(R.id.member_lookup_filter_female);
+        setToggleButtonColor(femaleButton, filterOption.isFemale());
+        femaleButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                filterOption.setFemale(!filterOption.isFemale());
+                auxiliaryToggleView(false, filterOption.isFemale(), maleButton, femaleButton);
+                if (!filterOption.isFemale()) {
+                    setToggleButtonOff(reliefSocietyButton, laurelButton, miaMaidButton, beehiveButton, null);
+                }
+            }
+        });
+       
+        maleButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                filterOption.setMale(!filterOption.isMale());
+                auxiliaryToggleView(filterOption.isMale(), false, maleButton, femaleButton);
+                if (!filterOption.isMale()) {
+                    setToggleButtonOff(highPriestButton, eldersButton, priestButton, teacherButton, deaconButton);
+                }
+            }
+        });
+        auxiliaryToggleView(filterOption.isMale(), filterOption.isFemale(), maleButton, femaleButton);
+        if(!filterOption.isMale()) {
+            setToggleButtonOff(highPriestButton, eldersButton, priestButton, teacherButton, deaconButton);
+        }
+        if(!filterOption.isFemale()) {
+            setToggleButtonOff(reliefSocietyButton, laurelButton, miaMaidButton, beehiveButton, null);
+        }
         /* Done Button */
         Button doneButton = (Button)view.findViewById(R.id.member_lookup_filter_done_button);
         doneButton.setOnClickListener(new View.OnClickListener() {
@@ -353,12 +366,13 @@ public class MemberLookupFilterFragment extends DialogFragment {
     }
 
     /* Creates a radial before between the Male and Female options. Displays the appropriate auxiliaries. */
-    public void auxiliaryToggleView(boolean male, boolean female, ToggleButton maleButton, ToggleButton femaleButton) {
+    public void auxiliaryToggleView(boolean male, boolean female, TextView maleButton, TextView femaleButton) {
         TableLayout maleLayout;
         TableLayout femaleLayout;
         if(male) {
             setToggleButtonColor(femaleButton, false);
             setToggleButtonColor(maleButton, true);
+            filterOption.setFemale(false);
             maleLayout = (TableLayout)view.findViewById(R.id.member_lookup_filter_priesthood_container);
             maleLayout.setVisibility(VISIBLE);
             femaleLayout = (TableLayout)view.findViewById(R.id.member_lookup_filter_relief_society_container);
@@ -366,6 +380,7 @@ public class MemberLookupFilterFragment extends DialogFragment {
         } else if(female) {
             setToggleButtonColor(femaleButton, true);
             setToggleButtonColor(maleButton, false);
+            filterOption.setMale(false);
             maleLayout = (TableLayout)view.findViewById(R.id.member_lookup_filter_priesthood_container);
             maleLayout.setVisibility(GONE);
             femaleLayout = (TableLayout)view.findViewById(R.id.member_lookup_filter_relief_society_container);
@@ -373,6 +388,8 @@ public class MemberLookupFilterFragment extends DialogFragment {
         } else {
             setToggleButtonColor(femaleButton, false);
             setToggleButtonColor(maleButton, false);
+            filterOption.setMale(false);
+            filterOption.setFemale(false);
             maleLayout = (TableLayout)view.findViewById(R.id.member_lookup_filter_priesthood_container);
             maleLayout.setVisibility(GONE);
             femaleLayout = (TableLayout)view.findViewById(R.id.member_lookup_filter_relief_society_container);
@@ -380,26 +397,50 @@ public class MemberLookupFilterFragment extends DialogFragment {
         }
     }
 
-    public void ageSearchToggleView(boolean twelveToEighteen, boolean eighteenPlus, ToggleButton twelveToEighteenButton, ToggleButton eighteenPlusButton) {
+    public void ageSearchToggleView(boolean twelveToEighteen, boolean eighteenPlus, TextView twelveToEighteenButton, TextView eighteenPlusButton) {
         if(twelveToEighteen) {
             setToggleButtonColor(twelveToEighteenButton, true);
             setToggleButtonColor(eighteenPlusButton, false);
+            filterOption.setEighteenPlus(false);
         } else if(eighteenPlus) {
             setToggleButtonColor(twelveToEighteenButton, false);
             setToggleButtonColor(eighteenPlusButton, true);
+            filterOption.setTwelveEighteen(false);
         } else {
             setToggleButtonColor(twelveToEighteenButton, false);
             setToggleButtonColor(eighteenPlusButton, false);
+            filterOption.setTwelveEighteen(false);
+            filterOption.setEighteenPlus(false);
         }
     }
 
-    private void setToggleButtonColor(ToggleButton button, boolean isChecked) {
-        if(isChecked) {
-            button.setChecked(true);
+    private void setToggleButtonColor(TextView button, boolean filterOption) {
+        if(filterOption) {
+            setChecked(button, true);
             button.setTextColor(getResources().getColor(R.color.about_accent));
         } else {
-            button.setChecked(false);
+            setChecked(button, false);
             button.setTextColor(getResources().getColor(R.color.ldstools_black));
+        }
+    }
+
+    private void setToggleButtonOff(TextView button_one, TextView button_two, TextView button_three, TextView button_four, TextView button_five) {
+        setChecked(button_one, false);
+        setChecked(button_two, false);
+        setChecked(button_three, false);
+        setChecked(button_four, false);
+        if(button_five != null) {
+            setChecked(button_five, false);
+        }
+    }
+
+    private void setChecked(TextView button, boolean checked) {
+        if(checked) {
+            button.setTextColor(getResources().getColor(R.color.ldstools_black));
+            button.setBackground(getResources().getDrawable(R.drawable.selected_filter_background));
+        } else {
+            button.setTextColor(getResources().getColor(R.color.ldstools_gray_dark));
+            button.setBackground(null);
         }
     }
 
