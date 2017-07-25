@@ -63,8 +63,8 @@ public class CallingData {
                     pb.setProgress(pb.getProgress() + 15);
                     webResources.getOrgs(new Response.Listener<List<Org>>() {
                         @Override
-                        public void onResponse(List<Org> response) {
-                            orgs = response;
+                        public void onResponse(List<Org> lcrOrgs) {
+                            orgs = lcrOrgs;
                             orgsById = new HashMap<Long, Org>();
                             callingsById = new HashMap<String, Calling>();
                             baseOrgByOrgId = new HashMap<Long, Org>();
@@ -154,28 +154,34 @@ public class CallingData {
     /* Import and Merge Data */
 
     private void importAndMergeGoogleData(final Response.Listener<Boolean> mergeFinishedCallback) {
-        final int[] orgsFinishedImporting = {0};
-
-        for(int i=0; i < orgs.size(); i++) {
-            final Org org = orgs.get(i);
-            googleDataService.getOrgData(new Response.Listener<Org>() {
-                @Override
-                public void onResponse(Org cwfOrg) {
-                    mergeOrgs(org, cwfOrg);
-                    // todo - this should be enhanced to make use of promises, potential threading issues
-                    // if multiple threads handle responses the ++ may not be correct
-                    orgsFinishedImporting[0]++;
-                    if (orgsFinishedImporting[0] == orgs.size()) {
-                        mergeFinishedCallback.onResponse(true);
+        googleDataService.getOrgs(new Response.Listener<List<Org>>() {
+            @Override
+            public void onResponse(List<Org> cwfOrgs) {
+                List<Org> cwfOrgsToAdd = new ArrayList<Org>();
+                for (Org cwfOrg : cwfOrgs) {
+                    boolean matchFound = false;
+                    for (Org org : orgs) {
+                        if (cwfOrg.getId() == org.getId()) {
+                            mergeOrgs(org, cwfOrg);
+                            matchFound = true;
+                            break;
+                        }
+                    }
+                    if(!matchFound) {
+                        cwfOrg.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
+                        cwfOrgsToAdd.add(cwfOrg);
                     }
                 }
-            }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    mergeFinishedCallback.onResponse(false);
-                }
-            }, org);
-        }
+                orgs.addAll(cwfOrgsToAdd);
+
+                mergeFinishedCallback.onResponse(true);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                mergeFinishedCallback.onResponse(false);
+            }
+        });
     }
 
     //This merges the orgs and callings from the cwfOrg into the lcrOrg so when completed the lcrOrg will have both
@@ -216,30 +222,30 @@ public class CallingData {
                 for (Calling lcrCalling : lcrCallings) {
 
                     if (cwfCalling.equals(lcrCalling)) {
-                        // todo - test, but probably should not merge in every case. If the potential
-                        // became actual then no need to merge
-                        // todo - also this needs to be persisted to google drive
-                        lcrCalling.importCWFData(cwfCalling);
+                        // todo - this needs to be persisted to google drive
+                        if(!cwfCalling.getProposedIndId().equals(lcrCalling.getMemberId())) {
+                            lcrCalling.importCWFData(cwfCalling);
+                        }
                         matchFound = true;
                         break;
                     }
                 }
 
                 if (!matchFound) {
-                    //see if there's position type match
-                    boolean positionTypeMatch = false;
+                    //see if there's a matching current id for the proposed id
+                    boolean potentialMatchesActual = false;
                     for (Calling lcrCalling : lcrCallings) {
-                        if (lcrCalling.getPosition().equals(cwfCalling.getPosition())) {
-                            positionTypeMatch = true;
+                        if (lcrCalling.getPosition().equals(cwfCalling.getPosition()) && lcrCalling.getMemberId().equals(cwfCalling.getProposedIndId())) {
+                            potentialMatchesActual = true;
                         }
                     }
 
                     //if there's no match we can mark it as deleted since we know it no longer exists in lcr
                     // else we'll mark it as conflicted since we can't tell for sure why it doesn't match up
-                    if (!positionTypeMatch) {
-                        cwfCalling.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
-                    } else {
+                    if (potentialMatchesActual) {
                         cwfCalling.setConflictCause(ConflictCause.EQUIVALENT_POTENTIAL_AND_ACTUAL);
+                    } else if(cwfCalling.getId() != null && cwfCalling.getId() > 0) {
+                        cwfCalling.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
                     }
                     lcrCallings.add(cwfCalling);
                 }
