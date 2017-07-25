@@ -216,17 +216,25 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
     }
 
     @Override
-    public void getOrgs(Response.Listener<List<Org>> listener, Response.ErrorListener errorListener) {
+    public void getOrgs(final Response.Listener<List<Org>> listener, Response.ErrorListener errorListener) {
         final List<Org> orgList = new ArrayList<>();
+        final int[] numOfOrgsReturned = {0}; //this must be an array to be able to increment it in the callback
+
         for(Metadata metadata : metaFileMap.values()) {
             getOrgFromMeta(metadata, new Response.Listener<Org>() {
                 @Override
                 public void onResponse(Org response) {
-                    orgList.add(response);
+                    // todo - potential threading issues if multiple threads handle responses the ++ may not be correct
+                    if(response != null) {
+                        orgList.add(response);
+                    }
+                    numOfOrgsReturned[0]++;
+                    if(numOfOrgsReturned[0] == metaFileMap.size()) {
+                        listener.onResponse(orgList);
+                    }
                 }
             }, errorListener);
         }
-        listener.onResponse(orgList);
     }
 
     @Override
