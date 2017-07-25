@@ -18,6 +18,7 @@ public class Org {
     int displayOrder;
     List<Org> children;
     List<Calling> callings;
+    private transient List<Calling> allCallings;
     private transient HashSet<Position> positions;
     private transient List<String> callingIds;
     private transient ConflictCause conflictCause;
@@ -37,6 +38,17 @@ public class Org {
             if(this.positions == null) {
                 this.positions = new HashSet<>();
             }
+            if(this.allCallings == null) {
+                this.allCallings = new ArrayList<Calling>();
+            }
+            this.allCallings.add(
+                    new Calling(
+                            calling.getId(), calling.getCwfId(), calling.getMemberId(),
+                            calling.getProposedIndId(), calling.getActiveDateTime(),
+                            calling.getPosition(), calling.getExistingStatus(),
+                            calling.getProposedStatus(), calling.getNotes(), calling.getParentOrg()
+                    )
+            );
             this.positions.add(calling.getPosition());
         }
     }
@@ -77,11 +89,14 @@ public class Org {
     }
 
     public List<Calling> allOrgCallings() {
-        List<Calling> callings = this.callings;
-        for (Org org : this.children) {
-            callings.addAll(org.allOrgCallings());
+        List<Calling> newCallings = this.allCallings;
+        if(this.allCallings == null) {
+            newCallings = new ArrayList<>();
         }
-        return callings;
+        for (Org org : this.children) {
+            newCallings.addAll(org.allOrgCallings());
+        }
+        return newCallings;
     }
 
     public List<Org> allSubOrgs() {
