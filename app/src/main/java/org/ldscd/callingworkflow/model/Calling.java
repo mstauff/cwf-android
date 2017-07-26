@@ -137,7 +137,8 @@ public class Calling implements Serializable {
         this.conflictCause = conflictCause;
     }
 
-    public boolean equals(Calling calling) {
+    /* This method is a custom comparator for internal equivalent.  It is not the same as the Object equals method. */
+    public boolean isEqualsTo(Calling calling) {
         boolean result = false;
         if(this.parentOrg.equals(calling.parentOrg) && this.getPosition().equals(calling.getPosition())) {
             if((this.positionId != null && this.positionId.equals(calling.positionId)) || !this.position.getAllowMultiple())  {
@@ -146,6 +147,26 @@ public class Calling implements Serializable {
                 result = this.cwfId.equals(calling.getCwfId());
             }
         }
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Calling calling = (Calling) o;
+
+        if (positionId != null ? !positionId.equals(calling.positionId) : calling.positionId != null)
+            return false;
+        return cwfId != null ? cwfId.equals(calling.cwfId) : calling.cwfId == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = positionId != null ? positionId.hashCode() : 0;
+        result = 31 * result + (cwfId != null ? cwfId.hashCode() : 0);
         return result;
     }
 

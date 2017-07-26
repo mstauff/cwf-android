@@ -14,7 +14,6 @@ import org.json.JSONObject;
 import org.ldscd.callingworkflow.constants.ConflictCause;
 import org.ldscd.callingworkflow.constants.Gender;
 import org.ldscd.callingworkflow.constants.MemberClass;
-import org.ldscd.callingworkflow.constants.Operation;
 import org.ldscd.callingworkflow.constants.Priesthood;
 import org.ldscd.callingworkflow.model.*;
 import org.ldscd.callingworkflow.services.GoogleDataService;
@@ -143,11 +142,15 @@ public class CallingData {
     public void extractOrg(Org org, long baseOrgId) {
         orgsById.put(org.getId(), org);
         baseOrgByOrgId.put(org.getId(), orgsById.get(baseOrgId));
-        for(Calling calling: org.getCallings()) {
-            callingsById.put(calling.getCallingId(), calling);
+        if(org.getCallings() != null) {
+            for (Calling calling : org.getCallings()) {
+                callingsById.put(calling.getCallingId(), calling);
+            }
         }
-        for(Org subOrg: org.getChildren()) {
-            extractOrg(subOrg, baseOrgId);
+        if(org.getChildren() != null) {
+            for (Org subOrg : org.getChildren()) {
+                extractOrg(subOrg, baseOrgId);
+            }
         }
     }
 
@@ -221,7 +224,7 @@ public class CallingData {
                 //Check for a match by Id, if so import cwf data
                 for (Calling lcrCalling : lcrCallings) {
 
-                    if (cwfCalling.equals(lcrCalling)) {
+                    if (cwfCalling.isEqualsTo(lcrCalling)) {
                         // todo - this needs to be persisted to google drive
                         if(!cwfCalling.getProposedIndId().equals(lcrCalling.getMemberId())) {
                             lcrCalling.importCWFData(cwfCalling);

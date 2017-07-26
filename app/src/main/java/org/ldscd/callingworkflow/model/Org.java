@@ -1,7 +1,6 @@
 package org.ldscd.callingworkflow.model;
 
 import org.ldscd.callingworkflow.constants.ConflictCause;
-import org.ldscd.callingworkflow.constants.Operation;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -12,15 +11,13 @@ import java.util.List;
  */
 public class Org {
     /* Fields */
-    long subOrgId;
-    String defaultOrgName;
-    int orgTypeId;
-    int displayOrder;
-    List<Org> children;
-    List<Calling> callings;
-    private transient List<Calling> allCallings;
+    private long subOrgId;
+    private String defaultOrgName;
+    private int orgTypeId;
+    private int displayOrder;
+    private List<Org> children;
+    private List<Calling> callings;
     private transient HashSet<Position> positions;
-    private transient List<String> callingIds;
     private transient ConflictCause conflictCause;
     private transient boolean hasUnsavedChanges = false;
 
@@ -32,25 +29,8 @@ public class Org {
         this.defaultOrgName = defaultOrgName;
         this.orgTypeId = orgTypeId;
         this.displayOrder = displayOrder;
-        this.children = children;
-        this.callings = callings;
-        for(Calling calling : callings) {
-            if(this.positions == null) {
-                this.positions = new HashSet<>();
-            }
-            if(this.allCallings == null) {
-                this.allCallings = new ArrayList<Calling>();
-            }
-            this.allCallings.add(
-                    new Calling(
-                            calling.getId(), calling.getCwfId(), calling.getMemberId(),
-                            calling.getProposedIndId(), calling.getActiveDateTime(),
-                            calling.getPosition(), calling.getExistingStatus(),
-                            calling.getProposedStatus(), calling.getNotes(), calling.getParentOrg()
-                    )
-            );
-            this.positions.add(calling.getPosition());
-        }
+        setChildren(children);
+        setCallings(callings);
     }
 
     /* Properties */
@@ -67,10 +47,18 @@ public class Org {
     public void setDisplayOrder(int displayOrder) { this.displayOrder = displayOrder; }
 
     public List<Org> getChildren() { return children; }
-    public void setChildren(List<Org> children) { this.children = children; }
+    public void setChildren(List<Org> children) {
+        this.children = children == null ? new ArrayList<Org>() : children;
+    }
 
     public List<Calling> getCallings() { return callings; }
-    public void setCallings(List<Calling> callings) { this.callings = callings; }
+    public void setCallings(List<Calling> callings) {
+        this.callings = callings == null ? new ArrayList<Calling>() : callings;
+        this.positions = new HashSet<>();
+        for(Calling calling : this.callings) {
+            this.positions.add(calling.getPosition());
+        }
+    }
 
     public ConflictCause getConflictCause() { return conflictCause; }
     public void setConflictCause(ConflictCause conflictCause) { this.conflictCause = conflictCause; }
@@ -78,33 +66,25 @@ public class Org {
     public boolean hasUnsavedChanges() { return hasUnsavedChanges; }
     public void setHasUnsavedChanges(boolean hasUnsavedChanges) { this.hasUnsavedChanges = hasUnsavedChanges; }
 
+    public HashSet<Position> getPositions() {
+        return this.positions;
+    }
+
     public List<String> allOrgCallingIds() {
-        if(callingIds == null || callingIds.size() == 0) {
-            callingIds = new ArrayList<>(allOrgCallings().size());
-            for(Calling calling : allOrgCallings()) {
-                callingIds.add(calling.getCallingId());
-            }
+        List<Calling> allCallings = allOrgCallings();
+        List<String> callingIds = new ArrayList<>(allCallings.size());
+        for(Calling calling : allCallings) {
+            callingIds.add(calling.getCallingId());
         }
         return callingIds;
     }
 
     public List<Calling> allOrgCallings() {
-        List<Calling> newCallings = this.allCallings;
-        if(this.allCallings == null) {
-            newCallings = new ArrayList<>();
-        }
+        List<Calling> newCallings = new ArrayList<>(this.callings);
         for (Org org : this.children) {
             newCallings.addAll(org.allOrgCallings());
         }
         return newCallings;
-    }
-
-    public List<Org> allSubOrgs() {
-        List<Org> subOrgs = this.children;
-        for(Org org : this.children) {
-            subOrgs.addAll(org.allSubOrgs());
-        }
-        return subOrgs;
     }
 
     public Calling getCallingById(String param) {
@@ -114,15 +94,6 @@ public class Org {
             }
         }
         return null;
-    }
-
-    public HashSet<Position> getPositions() {
-        return this.positions;
-    }
-    public void setPositions(Position position) {
-        if(position != null) {
-            this.positions.add(position);
-        }
     }
 
     public List<Position> potentialNewPositions() {
@@ -140,7 +111,19 @@ public class Org {
     }
 
     /* Methods */
-    public boolean equals(Org org) {
-        return this.subOrgId == org.subOrgId;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Org org = (Org) o;
+
+        return subOrgId == org.subOrgId;
+    }
+
+    @Override
+    public int hashCode() {
+        return (int) (subOrgId ^ (subOrgId >>> 32));
     }
 }

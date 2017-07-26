@@ -57,9 +57,11 @@ public class MemberData {
     }
 
     public void setMemberCallings(List<Calling> callings) {
-        for(Calling calling : callings) {
-            if(calling.getMemberId() != null && calling.getMemberId() > 0) {
-                getMember(calling.getMemberId()).setCurrentCallings(calling);
+        if(callings != null) {
+            for (Calling calling : callings) {
+                if (calling.getMemberId() != null && calling.getMemberId() > 0) {
+                    getMember(calling.getMemberId()).setCurrentCallings(calling);
+                }
             }
         }
     }
