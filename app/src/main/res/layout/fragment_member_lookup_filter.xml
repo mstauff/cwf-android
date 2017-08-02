@@ -39,9 +39,9 @@
                     android:layout_height="wrap_content"
                     android:textColor="@color/ldstools_black"
                     android:textStyle="bold"
-                    android:textSize="17sp"
+                    android:textSize="15sp"
                     android:layout_gravity="center_vertical"
-                    android:text="@string/navigation_drawer_callings" />
+                    android:text="@string/callings" />
             </FrameLayout>
             <FrameLayout
                 android:layout_height="wrap_content"
@@ -50,8 +50,6 @@
                     android:id="@+id/member_lookup_filter_calling_zero"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:width="10dp"
-                    android:height="20dp"
                     android:padding="16dp"
                     android:text="@string/zero" />
             </FrameLayout>
@@ -119,7 +117,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingBottom="10dp"
-        android:max="20" />
+        android:max="10" />
     <TableLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -135,13 +133,13 @@
                 android:textSize="15sp"
                 android:text="@string/age" />
             <TextView
-                android:id="@+id/member_lookup_filter_twelve_to_eighteen"
+                android:id="@+id/member_lookup_filter_twelve_to_seventeen"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="40dp"
                 android:layout_marginLeft="40dp"
                 android:padding="16dp"
-                android:text="@string/twelve_to_eighteen" />
+                android:text="@string/twelve_to_seventeen" />
             <TextView
                 android:id="@+id/member_lookup_filter_eighteen_plus"
                 android:layout_width="wrap_content"
@@ -252,8 +250,7 @@
                 android:textColor="@color/ldstools_black"
                 android:textStyle="bold"
                 android:textSize="15sp"
-                android:padding="16dp"
-                android:text="@string/relief_society" />
+                android:text="@string/church_class" />
         </TableRow>
         <TableRow>
             <TextView

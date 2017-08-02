@@ -60,7 +60,7 @@ public class MemberData {
         if(callings != null) {
             for (Calling calling : callings) {
                 if (calling.getMemberId() != null && calling.getMemberId() > 0) {
-                    getMember(calling.getMemberId()).setCurrentCallings(calling);
+                    getMember(calling.getMemberId()).addCurrentCalling(calling);
                 }
             }
         }

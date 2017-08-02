@@ -1,6 +1,7 @@
 package org.ldscd.callingworkflow.model;
 
 import org.joda.time.DateTime;
+import org.joda.time.Years;
 import org.ldscd.callingworkflow.constants.Gender;
 import org.ldscd.callingworkflow.constants.Priesthood;
 import org.ldscd.callingworkflow.utils.JsonUtil;
@@ -42,8 +43,9 @@ public class Member {
         this.birthDate = birthDate;
         this.gender = gender;
         this.priesthood = priesthood;
-        this.currentCallings = currentCallings;
-        this.proposedCallings = proposedCallings;
+        /* Use the setter to allow for initialization of the list vs leaving it null if the values are null. */
+        this.setCurrentCallings(currentCallings);
+        this.setProposedCallings(proposedCallings);
     }
 
     /* Properties */
@@ -78,8 +80,15 @@ public class Member {
     public void setPriesthood(Priesthood priesthood) { this.priesthood = priesthood; }
 
     public List<Calling> getCurrentCallings() { return currentCallings; }
-    public void setCurrentCallings(List<Calling> currentCallings) { this.currentCallings = currentCallings; }
-    public void setCurrentCallings(Calling currentCalling) {
+    public void setCurrentCallings(List<Calling> currentCallings) {
+        if(this.currentCallings == null) {
+            this.currentCallings = new ArrayList<>();
+        }
+        if(currentCallings != null && !currentCallings.isEmpty()) {
+            this.currentCallings.addAll(currentCallings);
+        }
+    }
+    public void addCurrentCalling(Calling currentCalling) {
         if(this.currentCallings == null) {
             currentCallings = new ArrayList<>();
         }
@@ -87,11 +96,22 @@ public class Member {
     }
 
     public List<Calling> getProposedCallings() { return proposedCallings; }
-    public void setProposedCallings(List<Calling> proposedCallings) { this.proposedCallings = proposedCallings; }
-    public void setProposedCallings(Calling proposedCallings) {
-        if(this.currentCallings == null) {
-            currentCallings = new ArrayList<>();
+    public void setProposedCallings(List<Calling> proposedCallings) {
+        if(this.proposedCallings == null) {
+            this.proposedCallings = new ArrayList<>();
         }
-        currentCallings.add(proposedCallings);
+        if(proposedCallings != null && !proposedCallings.isEmpty()) {
+            this.proposedCallings.addAll(proposedCallings);
+        }
+    }
+    public void addProposedCallings(Calling proposedCalling) {
+        if(proposedCallings == null) {
+            proposedCallings = new ArrayList<>();
+        }
+        proposedCallings.add(proposedCalling);
+    }
+
+    public int getCurrentAge() {
+        return Years.yearsBetween(getBirthDate(), DateTime.now()).getYears();
     }
 }

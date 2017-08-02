@@ -37,7 +37,7 @@ import javax.inject.Inject;
  * in two-pane mode (on tablets) or a {@link CallingDetailActivity}
  * on handsets.
  */
-public class CallingDetailFragment extends Fragment {
+public class CallingDetailFragment extends Fragment implements MemberLookupFragment.OnMemberLookupFragmentListener {
     @Inject
     DataManager dataManager;
     Spinner statusDropdown;
@@ -47,13 +47,11 @@ public class CallingDetailFragment extends Fragment {
     public static final String INDIVIDUAL_ID = "individualId";
     public static final String CALLING = "calling";
 
-    private long orgId;
-    private Member member;
+    private Member proposedMember;
     private Long individualId;
     private Calling calling;
-    private Org org;
     private View view;
-    private OnFragmentInteractionListener mListener;
+    private OnCallingDetailFragmentListener mListener;
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -76,15 +74,21 @@ public class CallingDetailFragment extends Fragment {
         return fragment;
     }
 
-    public interface OnFragmentInteractionListener {
+    @Override
+    public void onMemberLookupFragmentInteraction(Member member) {
+        this.proposedMember = member;
+        this.calling.setProposedIndId(member.getIndividualId());
+        wireUpMemberSearch();
+    }
+
+    public interface OnCallingDetailFragmentListener {
         public void onFragmentInteraction(Calling calling, boolean hasChanges);
-        public void openMemberLookup();
     }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        mListener = (OnFragmentInteractionListener) getActivity();
+        mListener = (OnCallingDetailFragmentListener) getActivity();
     }
 
     @Override
@@ -106,8 +110,6 @@ public class CallingDetailFragment extends Fragment {
         Bundle bundle = this.getArguments();
         if (bundle != null && !bundle.isEmpty()) {
             /* Initialize UI */
-            orgId = bundle.getLong(ORG_ID, 0);
-            org = dataManager.getOrg(orgId);
             calling = (Calling)bundle.getSerializable(CALLING);
             hydrateCalling();
             individualId = bundle.getLong(INDIVIDUAL_ID, 0);
@@ -121,7 +123,7 @@ public class CallingDetailFragment extends Fragment {
 
     private void wireUpMemberSearch() {
         if(individualId != 0) {
-            String formattedName = dataManager.getMemberName(individualId);
+            String formattedName = proposedMember == null ? dataManager.getMemberName(individualId) : proposedMember.getFormattedName();
             if(formattedName != null) {
                 TextView name = (TextView) view.findViewById(R.id.member_lookup_name);
                 name.setText(formattedName);
@@ -131,9 +133,24 @@ public class CallingDetailFragment extends Fragment {
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mListener.openMemberLookup();
+                createMemberLookupFragment();
             }
         });
+    }
+
+    public void createMemberLookupFragment() {
+        MemberLookupFragment memberLookupFragment = new MemberLookupFragment();
+        if(individualId > 0) {
+            Bundle args = new Bundle();
+            args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, individualId);
+            memberLookupFragment.setArguments(args);
+        }
+        memberLookupFragment.setMemberLookupListener(this);
+        getFragmentManager()
+                .beginTransaction()
+                .replace(R.id.calling_detail_main_fragment_container, memberLookupFragment, MemberLookupFragment.FRAG_NAME)
+                .addToBackStack(null)
+                .commit();
     }
 
     @Override
@@ -267,9 +284,9 @@ public class CallingDetailFragment extends Fragment {
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
             MemberLookupFragment memberLookupFragment = new MemberLookupFragment();
-            if(member != null && member.getIndividualId() > 0) {
+            if(proposedMember != null && proposedMember.getIndividualId() > 0) {
                 Bundle args = new Bundle();
-                args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, member.getIndividualId());
+                args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, proposedMember.getIndividualId());
                 memberLookupFragment.setArguments(args);
             }
             FragmentManager fragmentManager = this.getFragmentManager();

@@ -43,9 +43,10 @@ public class MemberLookupAdapter extends ArrayAdapter<Member> implements Filtera
     }
 
     /* Inner class referencing the xml layout */
-    public class ViewHolder {
+    private class ViewHolder {
         TextView name;
         TextView calling;
+        TextView proposedCalling;
         ImageView contact_info;
     }
 
@@ -74,6 +75,7 @@ public class MemberLookupAdapter extends ArrayAdapter<Member> implements Filtera
                 view = inflater.inflate(R.layout.fragment_member_lookup_list_layout, null);
                 holder.name = (TextView) view.findViewById(R.id.member_lookup_list_layout_name);
                 holder.calling = (TextView) view.findViewById(R.id.member_lookup_list_layout_current_calling);
+                holder.proposedCalling = (TextView) view.findViewById(R.id.member_lookup_list_layout_proposed_calling);
                 holder.contact_info = (ImageView) view.findViewById(R.id.member_lookup_list_layout_contact_info);
                 view.setTag(holder);
             } else {
@@ -90,6 +92,16 @@ public class MemberLookupAdapter extends ArrayAdapter<Member> implements Filtera
             } else {
                 holder.calling.setText("");
             }
+            if(member.getProposedCallings() != null && member.getProposedCallings().size() > 0) {
+                StringBuilder sb = new StringBuilder();
+                for (Calling calling : member.getProposedCallings()) {
+                    sb.append(calling.getPosition().getName());
+                }
+                holder.proposedCalling.setText(sb.toString());
+            } else {
+                holder.proposedCalling.setText("");
+            }
+
             holder.contact_info.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

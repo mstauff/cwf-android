@@ -14,16 +14,12 @@ import org.ldscd.callingworkflow.model.Member;
 /**
  * A fragment with a Google +1 button.
  * Activities that contain this fragment must implement the
- * {@link MemberLookupButtonFragment.OnFragmentInteractionListener} interface
  * to handle interaction events.
  * Use the {@link MemberLookupButtonFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class MemberLookupButtonFragment extends Fragment implements
-        MemberLookupFragment.memberLookupFragmentInteractionListener  {
+public class MemberLookupButtonFragment extends Fragment  {
     /* Fields. */
-    private Member member;
-    private OnFragmentInteractionListener mListener;
 
     /* Constructor(s). */
     public MemberLookupButtonFragment() {
@@ -75,37 +71,11 @@ public class MemberLookupButtonFragment extends Fragment implements
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
-    }
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        void onFragmentInteraction(Member member);
-    }
-
-    @Override
-    public void onFragmentInteraction(Member member) {
-        this.member = member;
     }
 
     private void wireUpFragments(Bundle savedInstanceState) {
@@ -119,14 +89,6 @@ public class MemberLookupButtonFragment extends Fragment implements
         // http://developer.android.com/guide/components/fragments.html
         //
         if (savedInstanceState == null) {
-            // Create the detail fragment and add it to the activity
-            // using a fragment transaction.
-            MemberLookupFragment searchFragment = new MemberLookupFragment();
-            if(member != null && member.getIndividualId() > 0) {
-                Bundle args = new Bundle();
-                args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, member.getIndividualId());
-                searchFragment.setArguments(args);
-            }
         }
     }
 }

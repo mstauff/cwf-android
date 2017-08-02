@@ -4,7 +4,6 @@ import android.support.v4.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -14,11 +13,7 @@ import android.view.MenuItem;
 import com.android.volley.Response;
 
 import org.ldscd.callingworkflow.R;
-import org.ldscd.callingworkflow.constants.CallingStatus;
-import org.ldscd.callingworkflow.display.adapters.MemberLookupAdapter;
 import org.ldscd.callingworkflow.model.Calling;
-import org.ldscd.callingworkflow.model.FilterOption;
-import org.ldscd.callingworkflow.model.Member;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.web.DataManager;
 
@@ -32,17 +27,14 @@ import javax.inject.Inject;
  */
 public class CallingDetailActivity
         extends AppCompatActivity
-        implements MemberLookupFragment.memberLookupFragmentInteractionListener,
-                   CallingDetailFragment.OnFragmentInteractionListener,
-                   MemberLookupFilterFragment.OnFragmentInteractionListener {
+        implements CallingDetailFragment.OnCallingDetailFragmentListener {
     @Inject
     DataManager dataManager;
 
-    private static String TAG = "CALLING_FRAGMENT";
+    private static String CALLING_DETAIL_TAG = "CALLING_DETAIL_FRAGMENT";
     private long orgId;
     private Calling calling;
     private Org org;
-    private Member proposedMember;
     private boolean hasChanges;
 
     @Override
@@ -53,67 +45,77 @@ public class CallingDetailActivity
         /* Initialize UI */
         setContentView(R.layout.activity_calling_detail);
 
+        /* Capture passed in arguments. */
         orgId = getIntent().getLongExtra(ExpandableOrgsListActivity.ARG_ORG_ID, 0);
         org = dataManager.getOrg(orgId);
         String callingId = getIntent().getStringExtra(CallingDetailFragment.CALLING_ID);
+        /* Commence the hydration of the UI and objects involved. */
         hydrateCalling(callingId);
         wireUpFragments(savedInstanceState);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
+        /* Inflate the menu; this adds items to the action bar if it is present. */
         getMenuInflater().inflate(R.menu.calling_detail, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        /* Initialize the top menu items. */
         int id = item.getItemId();
-        if (id == android.R.id.home) {
-            // This ID represents the Home or Up button. In the case of this
-            // activity, the Up button is shown. For
-            // more details, see the Navigation pattern on Android Design:
-            //
-            // http://developer.android.com/design/patterns/navigation.html#up-vs-back
+        boolean proceed = true;
+        /* If the back button is pushed while in the member search screen fragment, close the fragment.
+           and do not close out the Calling Detail activity.
+         */
+        for(Fragment fragment : getSupportFragmentManager().getFragments()) {
+            if(fragment != null && fragment.getTag().equals(MemberLookupFragment.FRAG_NAME) && fragment.isVisible()) {
+                getSupportFragmentManager().popBackStack();
+                proceed = false;
+            }
+        }
+        if (proceed && id == android.R.id.home) {
+            /* This ID represents the Home or Up button. In the case of this
+             activity, the Up button is shown. For
+             more details, see the Navigation pattern on Android Design:*/
+            /* Save changes if the back button is pushed. */
             submitOrgChanges();
+            /* Go to the list of callings if the back button is pushed. */
             Intent intent = new Intent(this, ExpandableOrgsListActivity.class);
             intent.putExtra(ExpandableOrgsListActivity.ARG_ORG_ID, orgId);
             intent.putExtra(ExpandableOrgsListActivity.GET_DATA, false);
             navigateUpTo(intent);
             return true;
-        } else if(id == R.id.calling_detail_release_current_in_lcr) {
+        } else if(proceed && id == R.id.calling_detail_release_current_in_lcr) {
             // Send event to LCR
-        } else if(id == R.id.calling_detail_delete_current_calling_in_lcr) {
+        } else if(proceed && id == R.id.calling_detail_delete_current_calling_in_lcr) {
             // Send event to LCR
         }
         return true;
     }
 
     private void submitOrgChanges() {
+        /* If changes were made to the workflow, go ahead and save them. */
         if(hasChanges) {
             dataManager.updateCalling(new Response.Listener<Boolean>() {
                 @Override
                 public void onResponse(Boolean response) {
-
+                    //TODO: probably need to show a Toast or something if the save occured.
                 }
             }, calling,  org);
         }
     }
 
-    private void hydrateProposedIndividual() {
-        if(calling.getProposedIndId() != null) {
-            proposedMember = dataManager.getMember(calling.getProposedIndId());
-        }
-    }
-
     private void hydrateCalling(String callingId) {
+        /* Get the Calling object from the passed in Calling ID. */
         calling = dataManager.getCalling(callingId);
+        /* Tool bar is wired up after the calling object is found so to get the name of the calling for display. */
         wireUpToolbar();
-        hydrateProposedIndividual();
     }
 
     private void wireUpToolbar() {
+        /* Once the calling is found we can then set the title of the Toolbar and initialize it. */
         Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
         toolbar.setTitle(org.getDefaultOrgName() + " - " + calling.getPosition());
         setSupportActionBar(toolbar);
@@ -134,106 +136,30 @@ public class CallingDetailActivity
         // For more information, see the Fragments API guide at:
         //
         // http://developer.android.com/guide/components/fragments.html
+        /* The main calling screen is sectioned out in fragments. */
         CallingDetailFragment callingDetailFragment = new CallingDetailFragment();
+        /* Create a bundle object to pass arguments to the newly created fragment. */
         Bundle args = new Bundle();
         args.putSerializable(CallingDetailFragment.CALLING, calling);
         args.putLong(CallingDetailFragment.ORG_ID, orgId);
         args.putLong(CallingDetailFragment.INDIVIDUAL_ID, calling.getProposedIndId());
         callingDetailFragment.setArguments(args);
+        /* Launch the fragment once the items have been created and initialized. */
+        /* Be sure to pass in the TAG for quick lookup reference later. */
         FragmentManager manager = getSupportFragmentManager();
                 manager.beginTransaction()
-                .add(R.id.calling_detail_main_fragment_container, callingDetailFragment, TAG)
+                .add(R.id.calling_detail_main_fragment_container, callingDetailFragment, CALLING_DETAIL_TAG)
                 .commit();
     }
 
     /***** LISTENERS ******/
     /* This method receives data from the fragment. */
-    /* From MemberLookupFragment. */
-    @Override
-    public void onFragmentInteraction(Member member) {
-        this.proposedMember = member;
-        setProposedMember();
-        CallingDetailFragment callingDetailFragment = new CallingDetailFragment();
-        Bundle args = new Bundle();
-        args.putLong(CallingDetailFragment.ORG_ID, orgId);
-        args.putSerializable(CallingDetailFragment.CALLING, calling);
-        if(this.proposedMember != null && this.proposedMember.getFormattedName() != null) {
-            args.putLong(CallingDetailFragment.INDIVIDUAL_ID, this.proposedMember.getIndividualId());
-        }
-        callingDetailFragment.setArguments(args);
-        getSupportFragmentManager().beginTransaction()
-            .replace(R.id.calling_detail_main_fragment_container, callingDetailFragment, TAG)
-            .commit();
-    }
-
-
     /* From CallingDetailFragment. */
     @Override
     public void onFragmentInteraction(Calling newCalling, boolean newChanges) {
+        /* Receive calling changes information from the calling detail fragment. */
         calling = newCalling;
-        setProposedMember();
+        /* Sets if there were any changes so we know to call the save method eventually. */
         hasChanges = newChanges;
-    }
-
-    @Override
-    public void openMemberLookup() {
-        MemberLookupFragment memberLookupFragment = new MemberLookupFragment();
-        if(this.proposedMember != null && this.proposedMember.getIndividualId() > 0) {
-            Bundle args = new Bundle();
-            args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, this.proposedMember.getIndividualId());
-            memberLookupFragment.setArguments(args);
-        }
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.calling_detail_main_fragment_container, memberLookupFragment, MemberLookupFragment.FRAG_NAME)
-                .addToBackStack(null)
-                .commit();
-    }
-
-    @Override
-    public void onFragmentInteraction(FilterOption filterOption) {
-        MemberLookupFragment memberLookupFragment = (MemberLookupFragment) getSupportFragmentManager().findFragmentByTag(MemberLookupFragment.FRAG_NAME);
-        if (memberLookupFragment != null) {
-            /* If memberLookupFragment is available, we're in two-pane layout. */
-            /*  Call a method in the memberLookupFragment to update its content. */
-            memberLookupFragment.onFragmentInteraction(filterOption);
-        } else {
-            /* Otherwise, we're in the one-pane layout and must swap frags. */
-            /* Create fragment and give it an argument for the selected article. */
-            memberLookupFragment = new MemberLookupFragment();
-            Bundle args = new Bundle();
-            if(this.proposedMember != null && this.proposedMember.getIndividualId() > 0) {
-                args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, this.proposedMember.getIndividualId());
-            }
-            if(filterOption != null) {
-                args.putBooleanArray(MemberLookupFilterFragment.NUMBER_OF_CALLINGS, filterOption.getNumberCallings());
-                args.putDouble(MemberLookupFilterFragment.TIME_IN_CALLING, filterOption.getTimeInCalling());
-                args.putBoolean(MemberLookupFilterFragment.HIGH_PRIEST, filterOption.isHighPriest());
-                args.putBoolean(MemberLookupFilterFragment.ELDERS, filterOption.isElders());
-                args.putBoolean(MemberLookupFilterFragment.PRIESTS, filterOption.isPriests());
-                args.putBoolean(MemberLookupFilterFragment.TEACHERS, filterOption.isTeachers());
-                args.putBoolean(MemberLookupFilterFragment.DEACONS, filterOption.isDeacons());
-                args.putBoolean(MemberLookupFilterFragment.RELIEF_SOCIETY, filterOption.isReliefSociety());
-                args.putBoolean(MemberLookupFilterFragment.LAUREL, filterOption.isLaurel());
-                args.putBoolean(MemberLookupFilterFragment.MIA_MAID, filterOption.isMiaMaid());
-                args.putBoolean(MemberLookupFilterFragment.BEEHIVE, filterOption.isBeehive());
-                args.putBoolean(MemberLookupFilterFragment.TWELVE_EIGHTEEN, filterOption.isTwelveEighteen());
-                args.putBoolean(MemberLookupFilterFragment.EIGHTEEN_PLUS, filterOption.isEighteenPlus());
-                args.putBoolean(MemberLookupFilterFragment.MALE, filterOption.isMale());
-                args.putBoolean(MemberLookupFilterFragment.FEMALE, filterOption.isFemale());
-            }
-            memberLookupFragment.setArguments(args);
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.calling_detail_main_fragment_container, memberLookupFragment, null)
-                    .addToBackStack(null)
-                    .commit();
-        }
-    }
-
-    private void setProposedMember() {
-        if(proposedMember != null && proposedMember.getIndividualId() > 0) {
-            this.calling.setProposedIndId(proposedMember.getIndividualId());
-        } else {
-            this.calling.setProposedIndId(0);
-        }
     }
 }
