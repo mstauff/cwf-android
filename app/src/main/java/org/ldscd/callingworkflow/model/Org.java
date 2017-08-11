@@ -10,7 +10,9 @@ import java.util.List;
  * Represents an auxiliary.  i.e. primary, R.S. or E.Q.
  */
 public class Org {
+
     /* Fields */
+    private long unitNumber;
     private long subOrgId;
     private String defaultOrgName;
     private int orgTypeId;
@@ -24,7 +26,8 @@ public class Org {
     /* Constructors */
     public Org() {}
 
-    public Org(long subOrgId, String defaultOrgName, int orgTypeId, int displayOrder, List<Org> children, List<Calling> callings) {
+    public Org(long unitNumber, long subOrgId, String defaultOrgName, int orgTypeId, int displayOrder, List<Org> children, List<Calling> callings) {
+        this.unitNumber = unitNumber;
         this.subOrgId = subOrgId;
         this.defaultOrgName = defaultOrgName;
         this.orgTypeId = orgTypeId;
@@ -34,6 +37,13 @@ public class Org {
     }
 
     /* Properties */
+    public long getUnitNumber() {
+        return unitNumber;
+    }
+    public void setUnitNumber(long unitNumber) {
+        this.unitNumber = unitNumber;
+    }
+    
     public long getId() { return subOrgId; }
     public void setId(long id) { this.subOrgId = subOrgId; }
 

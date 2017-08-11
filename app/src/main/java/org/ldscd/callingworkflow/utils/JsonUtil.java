@@ -7,7 +7,7 @@ import java.util.List;
 
 public class JsonUtil {
     public static String evalNull(String val) {
-        return val.toLowerCase().equals("null") ? null : val;
+        return val == null || val.toLowerCase().equals("null") ? null : val;
     }
 
     public static <T> List<T> toEnumListFromJSONArray(Class<T> clazz, JSONArray jsonArray) throws NoSuchFieldException {
