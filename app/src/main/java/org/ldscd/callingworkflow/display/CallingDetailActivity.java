@@ -82,10 +82,7 @@ public class CallingDetailActivity
             /* Save changes if the back button is pushed. */
             submitOrgChanges();
             /* Go to the list of callings if the back button is pushed. */
-            Intent intent = new Intent(this, ExpandableOrgsListActivity.class);
-            intent.putExtra(ExpandableOrgsListActivity.ARG_ORG_ID, orgId);
-            intent.putExtra(ExpandableOrgsListActivity.GET_DATA, false);
-            navigateUpTo(intent);
+            finish();
             return true;
         } else if(proceed && id == R.id.calling_detail_release_current_in_lcr) {
             // Send event to LCR

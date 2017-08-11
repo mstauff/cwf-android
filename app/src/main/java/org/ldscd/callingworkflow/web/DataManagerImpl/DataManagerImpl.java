@@ -79,7 +79,7 @@ public class DataManagerImpl implements DataManager {
 
     /* Google data. */
     @Override
-    public void addCalling(Response.Listener<Boolean> listener, Calling calling, Org org) {
+    public void addCalling(Response.Listener<Boolean> listener, Calling calling) {
         callingData.addNewCalling(calling);
         Org baseOrg = callingData.getBaseOrg(calling.getParentOrg());
         saveCalling(listener, baseOrg, calling, Operation.CREATE);
@@ -94,22 +94,41 @@ public class DataManagerImpl implements DataManager {
 
     }
     /* Calling and Google Data */
-    private void saveCalling(final Response.Listener<Boolean> listener, final Org org,  final Calling calling, Operation operation) {
+    private void saveCalling(final Response.Listener<Boolean> listener, final Org org, final Calling calling, final Operation operation) {
         callingData.getOrgFromGoogleDrive(new Response.Listener<Org>() {
             @Override
             public void onResponse(Org newOrg) {
-                updateCalling(newOrg, calling);
+                updateCalling(newOrg, calling, operation);
                 googleDataService.saveFile(listener, newOrg);
                 callingData.extractOrg(newOrg, newOrg.getId());
             }
         }, org, !cacheData);
     }
 
-    private void updateCalling(Org org, Calling updatedCalling) {
-        Calling original = org.getCallingById(updatedCalling.getCallingId());
-        original.setNotes(updatedCalling.getNotes());
-        original.setProposedIndId(updatedCalling.getProposedIndId());
-        original.setProposedStatus(updatedCalling.getProposedStatus());
+    private void updateCalling(Org baseOrg, Calling updatedCalling, Operation operation) {
+        if(operation.equals(Operation.UPDATE)) {
+            Calling original = baseOrg.getCallingById(updatedCalling.getCallingId());
+            original.setNotes(updatedCalling.getNotes());
+            original.setProposedIndId(updatedCalling.getProposedIndId());
+            original.setProposedStatus(updatedCalling.getProposedStatus());
+        } else if(operation.equals(Operation.CREATE)) {
+            Org org = findSubOrg(baseOrg, updatedCalling.getParentOrg());
+            org.getCallings().add(updatedCalling);
+        }
+    }
+    private Org findSubOrg(Org org, long subOrgId) {
+        Org result = null;
+        if(org.getId() == subOrgId) {
+            result = org;
+        } else {
+            for(Org subOrg: org.getChildren()) {
+                result = findSubOrg(subOrg, subOrgId);
+                if(result != null) {
+                    break;
+                }
+            }
+        }
+        return result;
     }
 
     @Override

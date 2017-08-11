@@ -46,7 +46,8 @@ public class ExpandableOrgsListActivity extends AppCompatActivity {
     AppCompatActivity activity = this;
     long orgId;
     long expandId;
-    ExpandableListView callingListView;
+    ExpandableListView orgsListView;
+    ExpandableOrgListAdapter adapter;
     boolean loadData;
 
     @Inject
@@ -70,9 +71,9 @@ public class ExpandableOrgsListActivity extends AppCompatActivity {
                 dataManager.loadOrg(new Response.Listener<Org>() {
                     @Override
                     public void onResponse(Org response) {
-                        callingListView = (ExpandableListView) findViewById(R.id.expandable_org_list);
-                        assert callingListView != null;
-                        setupListView(callingListView, response);
+                        orgsListView = (ExpandableListView) findViewById(R.id.expandable_org_list);
+                        assert orgsListView != null;
+                        setupListView(orgsListView, response);
                     }
                 }, org);
 
@@ -84,9 +85,9 @@ public class ExpandableOrgsListActivity extends AppCompatActivity {
                 Intent intent = new Intent(context, OrgListActivity.class);
                 context.startActivity(intent);
             } else {
-                callingListView = (ExpandableListView) findViewById(R.id.expandable_org_list);
-                assert callingListView != null;
-                setupListView(callingListView, org);
+                orgsListView = (ExpandableListView) findViewById(R.id.expandable_org_list);
+                assert orgsListView != null;
+                setupListView(orgsListView, org);
                 getSupportActionBar().setTitle(org.getDefaultOrgName());
                 getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             }
@@ -101,9 +102,17 @@ public class ExpandableOrgsListActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(adapter != null) {
+            adapter.notifyDataSetChanged();
+        }
+    }
+
     private void setupListView(@NonNull final ExpandableListView callingListView, final Org org) {
         FragmentManager fragmentManager = twoPane ? getSupportFragmentManager() : null;
-        ExpandableListAdapter adapter = new ExpandableOrgListAdapter(org, dataManager, twoPane, fragmentManager, activity);
+        adapter = new ExpandableOrgListAdapter(org, dataManager, twoPane, fragmentManager, activity);
         callingListView.setAdapter(adapter);
 
         //expand subOrg if expandId was provided

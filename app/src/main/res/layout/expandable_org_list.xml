@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:divider="@color/ldstools_gray"
-    android:dividerHeight="1dp"
+    android:dividerHeight="2px"
     android:childDivider="@color/ldstools_gray"
     app:layoutManager="LinearLayoutManager"
     tools:context="org.ldscd.callingworkflow.display.ExpandableOrgsListActivity"
