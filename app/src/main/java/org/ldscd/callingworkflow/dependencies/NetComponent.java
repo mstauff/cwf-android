@@ -7,6 +7,7 @@ import org.ldscd.callingworkflow.display.CallingDetailSearchFragment;
 import org.ldscd.callingworkflow.display.CallingFiltersFragment;
 import org.ldscd.callingworkflow.display.CallingListActivity;
 import org.ldscd.callingworkflow.display.CreateCallingActivity;
+import org.ldscd.callingworkflow.display.CreateCallingFragment;
 import org.ldscd.callingworkflow.display.DirectoryActivity;
 import org.ldscd.callingworkflow.display.IndividualInformationFragment;
 import org.ldscd.callingworkflow.display.MemberLookupFragment;
@@ -33,4 +34,5 @@ public interface NetComponent {
     void inject(CreateCallingActivity activity);
     void inject(MemberLookupFragment activity);
     void inject(CallingFiltersFragment activity);
+    void inject(CreateCallingFragment fragment);
 }

@@ -141,11 +141,6 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
         TextView orgName = (TextView) convertView.findViewById(R.id.org_list_name);
         orgName.setText(groupOrg.getDefaultOrgName());
 
-        if(isExpanded) {
-            convertView.setBackgroundColor(ContextCompat.getColor(ctx, R.color.light_grey));
-        } else {
-            convertView.setBackgroundColor(ContextCompat.getColor(ctx, android.R.color.white));
-        }
         if(childView) {
             convertView.setPadding(CHILD_INDENT, 0, 0, 0);
             convertView.setBackgroundColor(ContextCompat.getColor(ctx, R.color.light_grey));

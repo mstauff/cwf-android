@@ -25,68 +25,9 @@
 
         </android.support.design.widget.AppBarLayout>
 
-        <LinearLayout
+        <FrameLayout
+            android:id="@+id/create_calling_fragment_container"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:orientation="vertical"
-            android:layout_marginTop="0dp">
-
-            <TextView
-                android:id="@+id/label_new_calling_position"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/default_label_height"
-                android:layout_marginTop="10dp"
-                android:ems="30"
-                android:text="@string/new_calling_label_position"
-                android:textColor="#201f1f"
-                android:textStyle="bold" />
-            <Spinner
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ems="10"
-                android:id="@+id/new_calling_position_dropdown" />
-
-            <TextView
-                android:id="@+id/label_new_calling_proposed"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/default_label_height"
-                android:layout_marginTop="25dp"
-                android:ems="30"
-                android:text="@string/new_calling_label_proposed"
-                android:textColor="#201f1f"
-                android:textStyle="bold" />
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:isScrollContainer="true"
-                android:id="@+id/new_calling_search_container">
-            </LinearLayout>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="25dp"
-                android:text="@string/select_status"
-                android:textStyle="bold"
-                android:textColor="#201f1f"
-                android:ems="30"
-                android:id="@+id/label_new_calling_status" />
-            <Spinner
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ems="10"
-                android:id="@+id/new_calling_status_dropdown" />
-            <EditText
-                android:id="@+id/new_calling_notes"
-                android:layout_width="match_parent"
-                android:layout_height="150dp"
-                android:layout_marginTop="10dp"
-                android:hint="@string/notes"
-                android:inputType="text|textMultiLine"
-                android:background="#f4fcf9"
-                android:gravity="top"/>
-        </LinearLayout>
+            android:layout_height="match_parent"/>
     </LinearLayout>
 </android.support.design.widget.CoordinatorLayout>
