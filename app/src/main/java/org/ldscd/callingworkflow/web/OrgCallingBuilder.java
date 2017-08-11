@@ -1,5 +1,7 @@
 package org.ldscd.callingworkflow.web;
 
+import android.util.Log;
+
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -12,9 +14,11 @@ import org.ldscd.callingworkflow.model.Position;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Exchanger;
 
 public class OrgCallingBuilder {
     /* Fields */
+    private static final String unitNumberFieldName = "unitNumber";
     private static final String orgIdFieldName = "subOrgId";
     private static final String positionCwfIdFieldName = "cwfId";
     private static final String defaultNameFieldName = "defaultOrgName";
@@ -47,7 +51,9 @@ public class OrgCallingBuilder {
             try {
                 JSONObject orgJson = orgsJson.getJSONObject(i);
                 Org org = extractOrg(orgJson);
-                orgs.add(org);
+                if(org != null) {
+                    orgs.add(org);
+                }
             } catch(JSONException e) {
                 e.printStackTrace();
             }
@@ -56,28 +62,37 @@ public class OrgCallingBuilder {
     }
 
     private Org extractOrg(JSONObject orgJson) throws JSONException {
-        long id = orgJson.getLong(orgIdFieldName);
-        String name;
-        if(orgJson.isNull(customNameFieldName)) {
-            name = orgJson.getString(defaultNameFieldName);
-        } else {
-            name = orgJson.getString(customNameFieldName);
+        long unitNumber = 0;
+        try {
+            unitNumber = orgJson.getLong(unitNumberFieldName);
+        } catch(Exception e) {
+            Log.e(String.valueOf(orgJson.getLong(orgIdFieldName)), e.getMessage());
         }
-        int typeId = orgJson.has(orgTypeIdFieldName) ? orgJson.getInt(orgTypeIdFieldName) : orgJson.getInt("orgTypeId");
-        int order = orgJson.getInt(displayOrderFieldName);
+        if(unitNumber > 0) {
+            long id = orgJson.getLong(orgIdFieldName);
+            String name;
+            if (orgJson.isNull(customNameFieldName)) {
+                name = orgJson.getString(defaultNameFieldName);
+            } else {
+                name = orgJson.getString(customNameFieldName);
+            }
+            int typeId = orgJson.has(orgTypeIdFieldName) ? orgJson.getInt(orgTypeIdFieldName) : orgJson.getInt("orgTypeId");
+            int order = orgJson.getInt(displayOrderFieldName);
 
-        JSONArray childOrgsJson = orgJson.getJSONArray(childrenArrayName);
-        List<Org> childOrgs = extractOrgs(childOrgsJson);
+            JSONArray childOrgsJson = orgJson.getJSONArray(childrenArrayName);
+            List<Org> childOrgs = extractOrgs(childOrgsJson);
 
-        JSONArray callingsJson = orgJson.getJSONArray(callingArrayName);
-        List<Calling> callings = new ArrayList<>();
-        for(int i=0; i < callingsJson.length(); i++) {
-            JSONObject callingJson = callingsJson.getJSONObject(i);
-            Calling calling = extractCalling(callingJson, id);
-            callings.add(calling);
+            JSONArray callingsJson = orgJson.getJSONArray(callingArrayName);
+            List<Calling> callings = new ArrayList<>();
+            for (int i = 0; i < callingsJson.length(); i++) {
+                JSONObject callingJson = callingsJson.getJSONObject(i);
+                Calling calling = extractCalling(callingJson, id);
+                callings.add(calling);
+            }
+
+            return new Org(unitNumber, id, name, typeId, order, childOrgs, callings);
         }
-
-        return new Org(id, name, typeId, order, childOrgs, callings);
+        return null;
     }
 
     private Calling extractCalling(JSONObject json, Long parentId) throws JSONException {
