@@ -56,7 +56,7 @@ public class CreateCallingFragment extends Fragment implements MemberLookupFragm
             proposedId = proposedMember.getIndividualId();
         }
         Position position = (Position)positionDropdown.getSelectedItem();
-        String status = statusDropdown.getSelectedItem().toString();
+        CallingStatus status = (CallingStatus) statusDropdown.getSelectedItem();
         String notes = notesBox.getText().toString();
 
         return new Calling(null, null, null, proposedId, null, position, null, status, notes, parentId);

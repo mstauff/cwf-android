@@ -8,6 +8,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ldscd.callingworkflow.constants.CallingStatus;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.model.Position;
@@ -135,9 +136,10 @@ public class OrgCallingBuilder {
         if(json.has(activeDateFieldName) && !json.get(activeDateFieldName).equals("null") && !json.get(activeDateFieldName).equals(null) && !json.get(activeDateFieldName).equals("")) {
             activeDate = fmt.parseDateTime(json.getString(activeDateFieldName));
         }
-        String proposedStatus = json.has(proposedStatusFieldName) ? json.getString(proposedStatusFieldName) : null;
-        if(proposedStatus != null && proposedStatus.equals("null")) {
-            proposedStatus = null;
+        CallingStatus proposedStatus = null;
+        String proposedStatusString = json.has(proposedStatusFieldName) ? json.getString(proposedStatusFieldName) : null;
+        if(proposedStatusString != null && !proposedStatusString.equals("null")) {
+            proposedStatus = CallingStatus.get(proposedStatusString);
         }
         long proposedIndId = 0;
         if(!json.isNull(proposedIndIdFieldName)) {

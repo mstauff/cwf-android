@@ -192,7 +192,7 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
         ArrayAdapter adapter = new ArrayAdapter<CallingStatus>(this.getContext(), android.R.layout.simple_list_item_1, status);
         statusDropdown.setAdapter(adapter);
         if(calling != null && calling.getProposedStatus() != null) {
-            statusDropdown.setSelection(adapter.getPosition(CallingStatus.get(calling.getProposedStatus())));
+            statusDropdown.setSelection(adapter.getPosition(calling.getProposedStatus()));
         }
         statusDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -250,12 +250,8 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     private void submitOrgChanges() {
         boolean hasChanges = false;
         CallingStatus callingStatus = (CallingStatus)statusDropdown.getSelectedItem();
-        String status = null;
-        if(callingStatus != null) {
-            status = callingStatus.name();
-        }
-        if(status != null && !status.equals(calling.getProposedStatus())) {
-            calling.setProposedStatus(status);
+        if(callingStatus != null && !callingStatus.equals(calling.getProposedStatus())) {
+            calling.setProposedStatus(callingStatus);
             hasChanges = true;
         }
         CharSequence extraNotes = notes.getText();

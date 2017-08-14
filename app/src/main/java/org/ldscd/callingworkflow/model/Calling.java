@@ -25,7 +25,7 @@ public class Calling implements Serializable {
     private transient DateTime activeDateTime;
     private Position position;
     private String existingStatus;
-    private String proposedStatus;
+    private CallingStatus proposedStatus;
     private String notes;
     private transient Long parentOrg;
     private transient ConflictCause conflictCause;
@@ -36,11 +36,11 @@ public class Calling implements Serializable {
     public Calling(Calling calling) {
         this(calling.getId(), calling.getCwfId(), calling.getMemberId(), calling.getProposedIndId(),
                 calling.getActiveDateTime(), calling.getPosition(), calling.getExistingStatus(),
-                CallingStatus.valueOf(calling.getProposedStatus().toString()).toString(), calling.getNotes(), calling.getParentOrg());
+                calling.getProposedStatus(), calling.getNotes(), calling.getParentOrg());
     }
 
     public Calling(Long positionId, String cwfId, Long memberId, Long proposedIndId, DateTime activeDateTime, Position position,
-                   String existingStatus, String proposedStatus, String notes, Long parentOrg) {
+                   String existingStatus, CallingStatus proposedStatus, String notes, Long parentOrg) {
         this.positionId = positionId;
         /* If we don't have a unique id then we create an internal one. */
         if(positionId == null || positionId == 0) {
@@ -88,10 +88,10 @@ public class Calling implements Serializable {
         this.proposedIndId = proposedIndId;
     }
 
-    public String getProposedStatus() {
+    public CallingStatus getProposedStatus() {
         return proposedStatus;
     }
-    public void setProposedStatus(String proposedStatus) {
+    public void setProposedStatus(CallingStatus proposedStatus) {
         this.proposedStatus = proposedStatus;
     }
 

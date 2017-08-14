@@ -169,12 +169,10 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
         if(calling.getProposedIndId() != null && calling.getProposedIndId() > 0) {
             proposedName = dataManager.getMemberName(calling.getProposedIndId());
         }
-        String proposedStatus = calling.getProposedStatus() != null &&
-                                CallingStatus.get(calling.getProposedStatus()) != null ?
-                                CallingStatus.get(calling.getProposedStatus()).toString() : "";
-        if(!proposedName.equals("") && !proposedStatus.equals("")) {
+        CallingStatus proposedStatus = calling.getProposedStatus();
+        if(!proposedName.equals("") && proposedStatus != null) {
             proposed.setText(proposedName + " - " + proposedStatus);
-        } else if(proposedName.equals("") && proposedStatus.equals("")) {
+        } else if(proposedName.equals("") && proposedStatus == null) {
             proposed.setVisibility(View.GONE);
         } else {
             proposed.setText(proposedName + proposedStatus);
