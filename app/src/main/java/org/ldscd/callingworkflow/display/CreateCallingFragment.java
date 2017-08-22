@@ -94,6 +94,7 @@ public class CreateCallingFragment extends Fragment implements MemberLookupFragm
 
         //Status Dropdown
         List<CallingStatus> statusOptions = new ArrayList(Arrays.asList(CallingStatus.values()));
+        statusOptions.remove(CallingStatus.UNKNOWN);
         statusDropdown = (Spinner) view.findViewById(R.id.new_calling_status_dropdown);
         ArrayAdapter statusAdapter = new ArrayAdapter<CallingStatus>(getActivity(), android.R.layout.simple_list_item_1, statusOptions);
         statusDropdown.setAdapter(statusAdapter);

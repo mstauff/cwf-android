@@ -4,21 +4,22 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum CallingStatus {
-    PROPOSED(0 , "Proposed"),
-    SUBMITTED(1, "Submitted"),
-    APPROVED(2, "Approved"),
-    NOT_APPROVED(3, "Not Approved"),
-    ON_HOLD(4, "On Hold"),
-    APPOINTMENT_SET(5, "Appointment Set"),
-    EXTENDED(6, "Extended"),
-    ACCEPTED(7, "Accepted"),
-    REFUSED(8, "Refused"),
-    SUSTAINED(9, "Sustained"),
-    SET_APART(10, "Set Apart"),
-    RECORDED(11, "Recorded"),
-    UNKNOWN(12, "Unknown"),
-    READY_TO_SUSTAIN(13, "Ready to Sustain"),
-    RESUBMIT(14, "Resubmit");
+    NONE(0, "None"),
+    PROPOSED(1 , "Proposed"),
+    SUBMITTED(2, "Submitted"),
+    APPROVED(3, "Approved"),
+    NOT_APPROVED(4, "Not Approved"),
+    ON_HOLD(5, "On Hold"),
+    APPOINTMENT_SET(6, "Appointment Set"),
+    EXTENDED(7, "Extended"),
+    ACCEPTED(8, "Accepted"),
+    REFUSED(9, "Refused"),
+    READY_TO_SUSTAIN(10, "Ready to Sustain"),
+    SUSTAINED(11, "Sustained"),
+    SET_APART(12, "Set Apart"),
+    RECORDED(13, "Recorded"),
+    RESUBMIT(14, "Resubmit"),
+    UNKNOWN(15, "Unknown");
 
     private final String printName;
     private final int position;

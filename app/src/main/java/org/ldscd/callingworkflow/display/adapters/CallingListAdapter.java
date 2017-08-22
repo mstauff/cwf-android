@@ -66,7 +66,7 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
             proposedName = dataManager.getMemberName(proposedId);
         }
         CallingStatus status = holder.callingItem.getProposedStatus();
-        String proposedStatus = status == null ? "" : status.toString();
+        String proposedStatus = status == null || status.equals(CallingStatus.NONE) ? "" : status.toString();
 
         if(!proposedName.equals("") && !proposedStatus.equals("")) {
             holder.proposedMemberView.setVisibility(View.VISIBLE);
@@ -84,10 +84,9 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
             String memberName = dataManager.getMemberName(currentId);
             int callingAge = DataUtil.getMonthsSinceActiveDate(holder.callingItem.getActiveDate());
             String monthsLabel = holder.view.getResources().getString(R.string.months);
-            holder.currentCalledView.setVisibility(View.VISIBLE);
             holder.currentCalledView.setText(memberName + " (" + callingAge + " " + monthsLabel + ")");
         } else {
-            holder.currentCalledView.setVisibility(View.GONE);
+            holder.currentCalledView.setText("--");
         }
 
         holder.view.setOnClickListener(new View.OnClickListener() {

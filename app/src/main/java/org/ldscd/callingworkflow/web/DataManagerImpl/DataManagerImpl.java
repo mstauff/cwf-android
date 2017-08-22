@@ -7,6 +7,7 @@ import android.widget.ProgressBar;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 
+import org.ldscd.callingworkflow.constants.CallingStatus;
 import org.ldscd.callingworkflow.constants.Operation;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Member;
@@ -110,7 +111,9 @@ public class DataManagerImpl implements DataManager {
             Calling original = baseOrg.getCallingById(updatedCalling.getCallingId());
             original.setNotes(updatedCalling.getNotes());
             original.setProposedIndId(updatedCalling.getProposedIndId());
-            original.setProposedStatus(updatedCalling.getProposedStatus());
+            if(!updatedCalling.getProposedStatus().equals(CallingStatus.UNKNOWN)) {
+                original.setProposedStatus(updatedCalling.getProposedStatus());
+            }
         } else if(operation.equals(Operation.CREATE)) {
             Org org = findSubOrg(baseOrg, updatedCalling.getParentOrg());
             org.getCallings().add(updatedCalling);

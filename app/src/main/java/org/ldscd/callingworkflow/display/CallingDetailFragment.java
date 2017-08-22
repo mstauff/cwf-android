@@ -187,9 +187,12 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     }
 
     private void wireUpStatusDropdown() {
-        List<CallingStatus> status = new ArrayList(Arrays.asList(CallingStatus.values()));
+        List<CallingStatus> statusList = new ArrayList(Arrays.asList(CallingStatus.values()));
+        if(calling.getProposedStatus() == null || !calling.getProposedStatus().equals(CallingStatus.UNKNOWN)) {
+            statusList.remove(CallingStatus.UNKNOWN);
+        }
         Spinner statusDropdown = (Spinner)view.findViewById(R.id.calling_detail_status_dropdown);
-        ArrayAdapter adapter = new ArrayAdapter<CallingStatus>(this.getContext(), android.R.layout.simple_list_item_1, status);
+        ArrayAdapter adapter = new ArrayAdapter<CallingStatus>(this.getContext(), android.R.layout.simple_list_item_1, statusList);
         statusDropdown.setAdapter(adapter);
         if(calling != null && calling.getProposedStatus() != null) {
             statusDropdown.setSelection(adapter.getPosition(calling.getProposedStatus()));
@@ -254,12 +257,17 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
             calling.setProposedStatus(callingStatus);
             hasChanges = true;
         }
-        CharSequence extraNotes = notes.getText();
-        if(!extraNotes.equals(calling.getNotes())) {
-            calling.setNotes(extraNotes.toString());
+        String extraNotes = notes.getText().toString();
+        String originalNotes = calling.getNotes() == null ? "" : calling.getNotes();
+        if(!extraNotes.equals(originalNotes)) {
+            if(extraNotes.equals("")) {
+                calling.setNotes(null);
+            } else {
+                calling.setNotes(extraNotes);
+            }
             hasChanges = true;
         }
-        if(individualId.equals(calling.getProposedIndId())) {
+        if(!individualId.equals(calling.getProposedIndId())) {
             calling.setProposedIndId(individualId);
             hasChanges = true;
         }

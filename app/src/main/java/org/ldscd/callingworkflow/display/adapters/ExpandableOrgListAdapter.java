@@ -17,6 +17,7 @@ import org.ldscd.callingworkflow.display.ExpandableOrgsListActivity;
 import org.ldscd.callingworkflow.display.CreateCallingActivity;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Org;
+import org.ldscd.callingworkflow.utils.DataUtil;
 import org.ldscd.callingworkflow.web.DataManager;
 
 import java.util.List;
@@ -169,22 +170,26 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
         if(calling.getProposedIndId() != null && calling.getProposedIndId() > 0) {
             proposedName = dataManager.getMemberName(calling.getProposedIndId());
         }
-        CallingStatus proposedStatus = calling.getProposedStatus();
-        if(!proposedName.equals("") && proposedStatus != null) {
+        CallingStatus status = calling.getProposedStatus();
+        String proposedStatus = status==null || status.equals(CallingStatus.NONE) ? "" : status.toString();
+        if(!proposedName.equals("") && !proposedStatus.equals("")) {
+            proposed.setVisibility(View.VISIBLE);
             proposed.setText(proposedName + " - " + proposedStatus);
-        } else if(proposedName.equals("") && proposedStatus == null) {
+        } else if(proposedName.equals("") && proposedStatus.equals("")) {
             proposed.setVisibility(View.GONE);
         } else {
+            proposed.setVisibility(View.VISIBLE);
             proposed.setText(proposedName + proposedStatus);
         }
 
         //set current called
         if(calling.getMemberId() != null && calling.getMemberId() > 0) {
             String currentName = dataManager.getMemberName(calling.getMemberId());
-            String callingAge = calling.getActiveDate();
-            current.setText(currentName + " (" + callingAge + ")");
+            int callingAge = DataUtil.getMonthsSinceActiveDate(calling.getActiveDate());
+            String monthsLabel = convertView.getResources().getString(R.string.months);
+            current.setText(currentName + " (" + callingAge + " " + monthsLabel + ")");
         } else {
-            current.setVisibility(View.GONE);
+            current.setText("--");
         }
 
         //indent if this is a child

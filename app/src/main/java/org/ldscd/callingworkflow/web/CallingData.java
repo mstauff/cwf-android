@@ -11,6 +11,7 @@ import com.android.volley.VolleyError;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ldscd.callingworkflow.constants.CallingStatus;
 import org.ldscd.callingworkflow.constants.ConflictCause;
 import org.ldscd.callingworkflow.constants.Gender;
 import org.ldscd.callingworkflow.constants.MemberClass;
@@ -226,7 +227,7 @@ public class CallingData {
 
                     if (cwfCalling.isEqualsTo(lcrCalling)) {
                         // todo - this needs to be persisted to google drive
-                        if(!cwfCalling.getProposedIndId().equals(lcrCalling.getMemberId())) {
+                        if( !cwfCalling.getProposedIndId().equals(lcrCalling.getMemberId())) {
                             lcrCalling.importCWFData(cwfCalling);
                         }
                         matchFound = true;
@@ -262,7 +263,8 @@ public class CallingData {
         List<Calling> result = new ArrayList<>();
         for(Org org : getOrgs()) {
             for(Calling calling: org.allOrgCallings()) {
-                if ((calling.getProposedIndId() != null && calling.getProposedIndId() > 0) || calling.getProposedStatus() != null) {
+                if ((calling.getProposedIndId() != null && calling.getProposedIndId() > 0)
+                        || calling.getProposedStatus() != CallingStatus.NONE || calling.getNotes() != null) {
                     result.add(calling);
                 }
             }
