@@ -88,8 +88,7 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void wireUpToolbar() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
-        toolbar.setTitle("Settings");
+        Toolbar toolbar = (Toolbar) findViewById(R.id.settings_toolbar);
         setSupportActionBar(toolbar);
 
         // Show the Up button in the action bar.
