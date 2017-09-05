@@ -26,7 +26,6 @@ public class DataManagerImpl implements DataManager {
     private CallingData callingData;
     private MemberData memberData;
     private GoogleDataService googleDataService;
-    private static final boolean cacheData = true;
 
     /* Constructor */
     public DataManagerImpl(CallingData callingData, MemberData memberData, GoogleDataService googleDataService) {
@@ -49,8 +48,8 @@ public class DataManagerImpl implements DataManager {
         callingData.loadOrgs(listener, progressBar, activity);
         callingData.loadPositionMetadata();
     }
-    public void loadOrg(Response.Listener<Org> listener, Org org) {
-        callingData.getOrgFromGoogleDrive(listener, org, cacheData);
+    public void refreshOrg(Response.Listener<Org> listener, Long orgId) {
+        callingData.refreshOrgFromGoogleDrive(listener, orgId);
     }
     public List<PositionMetaData> getAllPositionMetadata() {
         return callingData.getAllPositionMetadata();
@@ -96,14 +95,15 @@ public class DataManagerImpl implements DataManager {
     }
     /* Calling and Google Data */
     private void saveCalling(final Response.Listener<Boolean> listener, final Org org, final Calling calling, final Operation operation) {
-        callingData.getOrgFromGoogleDrive(new Response.Listener<Org>() {
+        googleDataService.getOrgData(new Response.Listener<Org>() {
             @Override
             public void onResponse(Org newOrg) {
                 updateCalling(newOrg, calling, operation);
                 googleDataService.saveFile(listener, newOrg);
+                callingData.mergeOrgs(org, newOrg);
                 callingData.extractOrg(newOrg, newOrg.getId());
             }
-        }, org, !cacheData);
+        }, null, org);
     }
 
     private void updateCalling(Org baseOrg, Calling updatedCalling, Operation operation) {

@@ -116,16 +116,18 @@ public class CallingData {
         }, null, org);
     }*/
 
-    public void getOrgFromGoogleDrive(final Response.Listener<Org> listener, final Org org, final boolean cacheData) {
-        googleDataService.getOrgData(new Response.Listener<Org>() {
-            @Override
-            public void onResponse(Org googleOrg) {
-                if(cacheData) {
-                    extractOrg(googleOrg, googleOrg.getId());
+    public void refreshOrgFromGoogleDrive(final Response.Listener<Org> listener, Long orgId) {
+        final Org org = getOrg(orgId);
+        if(org != null) {
+            googleDataService.getOrgData(new Response.Listener<Org>() {
+                @Override
+                public void onResponse(Org googleOrg) {
+                    mergeOrgs(org, googleOrg);
+                    extractOrg(org, org.getId());
+                    listener.onResponse(org);
                 }
-                listener.onResponse(googleOrg);
-            }
-        }, null, org);
+            }, null, org);
+        }
     }
 
     public List<Org> getOrgs() {
@@ -227,8 +229,11 @@ public class CallingData {
 
                     if (cwfCalling.isEqualsTo(lcrCalling)) {
                         // todo - this needs to be persisted to google drive
-                        if( !cwfCalling.getProposedIndId().equals(lcrCalling.getMemberId())) {
+                        //if the proposed member has become the current we can discard the old proposed info
+                        if(!(cwfCalling.getProposedIndId() > 0 && cwfCalling.getProposedIndId().equals(lcrCalling.getMemberId()))) {
                             lcrCalling.importCWFData(cwfCalling);
+                        } else {
+                            lcrCalling.setCwfId(cwfCalling.getCwfId());
                         }
                         matchFound = true;
                         break;

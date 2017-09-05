@@ -68,14 +68,14 @@ public class ExpandableOrgsListActivity extends AppCompatActivity {
             expandId = getIntent().getLongExtra(ARG_EXPAND_ID, 0);
             loadData = orgId > 0 && getIntent().getBooleanExtra(GET_DATA, false);
             if(loadData) {
-                dataManager.loadOrg(new Response.Listener<Org>() {
+                dataManager.refreshOrg(new Response.Listener<Org>() {
                     @Override
                     public void onResponse(Org response) {
                         orgsListView = (ExpandableListView) findViewById(R.id.expandable_org_list);
                         assert orgsListView != null;
                         setupListView(orgsListView, response);
                     }
-                }, org);
+                }, org.getId());
 
                 getSupportActionBar().setTitle(org.getDefaultOrgName());
                 getSupportActionBar().setDisplayHomeAsUpEnabled(true);

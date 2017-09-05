@@ -92,7 +92,9 @@ public class Member {
         if(this.currentCallings == null) {
             currentCallings = new ArrayList<>();
         }
-        currentCallings.add(currentCalling);
+        if(!currentCallings.contains(currentCalling)) {
+            currentCallings.add(currentCalling);
+        }
     }
 
     public List<Calling> getProposedCallings() { return proposedCallings; }
@@ -108,7 +110,9 @@ public class Member {
         if(proposedCallings == null) {
             proposedCallings = new ArrayList<>();
         }
-        proposedCallings.add(proposedCalling);
+        if(!proposedCallings.contains(proposedCalling)) {
+            proposedCallings.add(proposedCalling);
+        }
     }
 
     public int getCurrentAge() {
