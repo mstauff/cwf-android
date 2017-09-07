@@ -5,7 +5,8 @@
     android:layout_marginLeft="10dp"
     android:layout_marginRight="10dp"
     android:orientation="vertical"
-    android:layout_marginTop="0dp">
+    android:layout_marginTop="0dp"
+    android:focusableInTouchMode="true">
 
     <TextView
         android:id="@+id/label_new_calling_position"

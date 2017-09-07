@@ -26,6 +26,9 @@
 
         </android.support.design.widget.AppBarLayout>
         <!-- Main details. -->
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -34,5 +37,6 @@
                 android:scrollbars="vertical"
                 android:id="@+id/calling_detail_main_fragment_container">
             </LinearLayout>
+        </ScrollView>
     </LinearLayout>
 </android.support.design.widget.CoordinatorLayout>

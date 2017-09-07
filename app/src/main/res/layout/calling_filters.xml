@@ -1,56 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView
+    <ScrollView android:layout_height="match_parent"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/text_margin"
-        android:text="@string/calling_filters_heading"
-        android:textAppearance="@style/TextAppearance.AppCompat.Large"/>
+        android:layout_marginBottom="@dimen/footer_buttons_height">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/text_margin"
-        android:layout_marginLeft="@dimen/text_margin"
-        android:text="@string/calling_filters_status_heading"
-        android:textAppearance="@style/TextAppearance.AppCompat.Medium"/>
+        <LinearLayout android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
-    <com.google.android.flexbox.FlexboxLayout
-        android:id="@+id/status_filters"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/text_margin"
-        app:flexWrap="wrap"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/text_margin"
+                android:text="@string/calling_filters_heading"
+                android:textAppearance="@style/TextAppearance.AppCompat.Large"/>
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/text_margin"
-        android:layout_marginLeft="@dimen/text_margin"
-        android:text="@string/calling_filters_orgs_heading"
-        android:textAppearance="@style/TextAppearance.AppCompat.Medium"/>
-    <com.google.android.flexbox.FlexboxLayout
-        android:id="@+id/org_filters"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/text_margin"
-        app:flexWrap="wrap"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/text_margin"
+                android:layout_marginLeft="@dimen/text_margin"
+                android:text="@string/calling_filters_status_heading"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium"/>
 
-    <View android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:background="@color/light_grey"/>
-    <TextView
-        android:id="@+id/calling_filters_confirm"
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/status_filters"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/text_margin"
+                app:flexWrap="wrap"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/text_margin"
+                android:layout_marginLeft="@dimen/text_margin"
+                android:text="@string/calling_filters_orgs_heading"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium"/>
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/org_filters"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/text_margin"
+                app:flexWrap="wrap"/>
+
+        </LinearLayout>
+    </ScrollView>
+    <LinearLayout android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/text_margin"
-        android:gravity="center"
-        android:text="@string/calling_filters_confirm"
-        android:textAppearance="@style/TextAppearance.AppCompat.Medium"/>
+        android:layout_alignParentBottom="true">
+        <View android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="@color/light_grey"/>
+        <TextView
+            android:id="@+id/calling_filters_confirm"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/footer_buttons_height"
+            android:gravity="center"
+            android:text="@string/calling_filters_confirm"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"/>
+    </LinearLayout>
+</RelativeLayout>
 
-</LinearLayout>

@@ -19,6 +19,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".display.SplashActivity"
+            android:screenOrientation="portrait"
             android:noHistory="true"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -28,6 +29,7 @@
         </activity>
         <activity
             android:name=".display.OrgListActivity"
+            android:screenOrientation="portrait"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
             <!--<intent-filter>
@@ -38,19 +40,23 @@
         </activity>
         <activity
             android:name=".display.CallingListActivity"
+            android:screenOrientation="portrait"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar"/>
         <activity
             android:name=".display.DirectoryActivity"
+            android:screenOrientation="portrait"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar"/>
         <activity
             android:name=".display.ExpandableOrgsListActivity"
+            android:screenOrientation="portrait"
             android:label="@string/app_name"
             android:parentActivityName=".display.OrgListActivity"
             android:theme="@style/AppTheme.NoActionBar"/>
         <activity
             android:name=".display.CallingDetailActivity"
+            android:screenOrientation="portrait"
             android:label="@string/title_calling_detail"
             android:parentActivityName=".display.ExpandableOrgsListActivity"
             android:theme="@style/AppTheme.NoActionBar"
@@ -59,9 +65,12 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".display.ExpandableOrgsListActivity" />
         </activity>
-        <activity android:name=".display.SettingsActivity" />
-        <activity android:name=".display.AboutActivity" />
+        <activity android:name=".display.SettingsActivity"
+            android:screenOrientation="portrait" />
+        <activity android:name=".display.AboutActivity"
+            android:screenOrientation="portrait" />
         <activity android:name=".display.CreateCallingActivity"
+            android:screenOrientation="portrait"
             android:parentActivityName=".display.ExpandableOrgsListActivity"
             android:windowSoftInputMode="adjustPan"/>
 

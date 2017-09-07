@@ -18,45 +18,49 @@
         android:elevation="4dp"
         android:theme="@style/AppTheme.AppBarOverlay" />
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                  android:orientation="vertical"
-                  android:layout_width="match_parent"
-                  android:layout_height="match_parent"
-                  android:layout_below="@id/settings_toolbar"
-                  android:padding="10px"
-                  android:weightSum="1">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/login_heading"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:id="@+id/setLoginTextView"
-            android:layout_gravity="center_horizontal"/>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/settings_toolbar">
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                      android:orientation="vertical"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:padding="@dimen/text_margin"
+                      android:weightSum="1">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/login_heading"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:id="@+id/setLoginTextView"
+                android:layout_gravity="center_horizontal"/>
 
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="text"
-            android:id="@+id/userText"
-            android:hint="@string/user_name"
-            android:layout_gravity="center_horizontal"
-            android:gravity="left|top"/>
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:id="@+id/userText"
+                android:hint="@string/user_name"
+                android:layout_gravity="center_horizontal"
+                android:gravity="left|top"/>
 
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textPassword"
-            android:id="@+id/passwordText"
-            android:hint="@string/password"
-            android:layout_gravity="center_horizontal"
-            android:gravity="left|top"/>
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:id="@+id/passwordText"
+                android:hint="@string/password"
+                android:layout_gravity="center_horizontal"
+                android:gravity="left|top"/>
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/auth_confirm"
-            android:id="@+id/auth_confirm"
-            android:layout_gravity="center_horizontal"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/auth_confirm"
+                android:id="@+id/auth_confirm"
+                android:layout_gravity="center_horizontal"/>
 
-    </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
 </RelativeLayout>

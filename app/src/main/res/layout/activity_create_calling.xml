@@ -25,9 +25,14 @@
 
         </android.support.design.widget.AppBarLayout>
 
-        <FrameLayout
-            android:id="@+id/create_calling_fragment_container"
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent">
+            <FrameLayout
+                android:id="@+id/create_calling_fragment_container"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+        </ScrollView>
+
     </LinearLayout>
 </android.support.design.widget.CoordinatorLayout>

@@ -9,12 +9,7 @@
     android:paddingTop="10dp"
     android:layout_alignBaseline="@id/app_bar"
     android:orientation="vertical"
-    android:nestedScrollingEnabled="true">
-<!--<android.support.v4.widget.NestedScrollView
-    android:id="@+id/calling_detail_container"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    app:layout_behavior="@string/appbar_scrolling_view_behavior" />-->
+    android:focusableInTouchMode="true">
 <TextView
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
