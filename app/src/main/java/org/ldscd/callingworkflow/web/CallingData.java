@@ -16,7 +16,9 @@ import org.ldscd.callingworkflow.constants.ConflictCause;
 import org.ldscd.callingworkflow.constants.Gender;
 import org.ldscd.callingworkflow.constants.MemberClass;
 import org.ldscd.callingworkflow.constants.Priesthood;
+import org.ldscd.callingworkflow.constants.UnitLevelOrgType;
 import org.ldscd.callingworkflow.model.*;
+import org.ldscd.callingworkflow.model.permissions.PermissionManager;
 import org.ldscd.callingworkflow.services.GoogleDataService;
 import org.ldscd.callingworkflow.utils.JsonUtil;
 
@@ -39,6 +41,7 @@ public class CallingData {
     private IWebResources webResources;
     private GoogleDataService googleDataService;
     private MemberData memberData;
+    private PermissionManager permissionManager;
 
     private List<Org> orgs;
     private Map<Long, Org> orgsById;
@@ -47,15 +50,16 @@ public class CallingData {
     private List<PositionMetaData> allPositionMetadata;
     private Map<Integer, PositionMetaData> positionMetaDataByPositionTypeId;
 
-    public CallingData(IWebResources webResources, GoogleDataService googleDataService, MemberData memberData) {
+    public CallingData(IWebResources webResources, GoogleDataService googleDataService, MemberData memberData, PermissionManager permissionManager) {
         this.webResources = webResources;
         this.googleDataService = googleDataService;
         this.memberData = memberData;
+        this.permissionManager = permissionManager;
     }
 
     /* Org Data */
 
-    public void loadOrgs(final Response.Listener<Boolean> orgsCallback, final ProgressBar pb, Activity activity) {
+    public void loadOrgs(final Response.Listener<Boolean> orgsCallback, final ProgressBar pb, Activity activity, final LdsUser currentUser) {
         googleDataService.init(new Response.Listener<Boolean>() {
             @Override
             public void onResponse(Boolean response) {
@@ -220,10 +224,10 @@ public class CallingData {
     private void mergeCallings(Org lcrOrg, Org cwfOrg) {
         List<Calling> lcrCallings = lcrOrg.getCallings();
         memberData.setMemberCallings(lcrCallings);
-        if(cwfOrg != null && cwfOrg.getCallings() != null) {
+        memberData.setMemberPotentialCallings(cwfOrg.getCallings());
+        if(cwfOrg.getCallings() != null) {
             for (Calling cwfCalling : cwfOrg.getCallings()) {
                 boolean matchFound = false;
-
                 //Check for a match by Id, if so import cwf data
                 for (Calling lcrCalling : lcrCallings) {
 
@@ -286,6 +290,10 @@ public class CallingData {
             Org parentOrg = getOrg(calling.getParentOrg());
             parentOrg.getCallings().add(calling);
         }
+    }
+
+    public void updateLDSCalling(Calling calling, Long unitNumber, UnitLevelOrgType orgType, Response.Listener callback) throws JSONException {
+        webResources.updateCalling(calling, unitNumber, orgType, callback);
     }
 
     /* Position Meta Data */

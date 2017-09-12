@@ -1,4 +1,4 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -11,15 +11,16 @@
         android:weightSum="2">
 
         <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minWidth="300dp"
             android:orientation="vertical"
             android:layout_weight="1.7">
 
             <TextView
                 android:id="@+id/member_lookup_list_layout_name"
                 android:layout_width="match_parent"
-                android:layout_height="24dp"
+                android:layout_height="wrap_content"
                 android:textAlignment="gravity"
                 android:paddingTop="4dp"
                 android:paddingLeft="8dp"
@@ -29,28 +30,29 @@
             <TextView
                 android:id="@+id/member_lookup_list_layout_current_calling"
                 android:layout_width="match_parent"
-                android:layout_height="24dp"
+                android:layout_height="wrap_content"
                 android:paddingTop="4dp"
                 android:paddingLeft="30dp" />
 
             <TextView
                 android:id="@+id/member_lookup_list_layout_proposed_calling"
-                android:layout_width="match_parent"
-                android:layout_height="24dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/ldstools_green600"
                 android:paddingTop="4dp"
-                android:paddingLeft="30dp" />
+                android:paddingLeft="30dp"
+                android:text="@string/app_name" />
         </LinearLayout>
-    <FrameLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_weight=".3">
-
-        <ImageView
-            android:id="@+id/member_lookup_list_layout_contact_info"
+        <RelativeLayout
             android:layout_width="wrap_content"
-            android:layout_height="@android:dimen/app_icon_size"
-            android:layout_gravity="center_horizontal"
-            app:srcCompat="@drawable/default_profile" />
-    </FrameLayout>
+            android:layout_height="90dp"
+            android:layout_weight=".3">
+            <ImageView
+                android:id="@+id/member_lookup_list_layout_contact_info"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                app:srcCompat="@drawable/default_profile" />
+        </RelativeLayout>
     </TableRow>
-</RelativeLayout>
+</TableLayout>

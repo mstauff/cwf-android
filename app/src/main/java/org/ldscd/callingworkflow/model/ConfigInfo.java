@@ -4,9 +4,17 @@ import java.util.List;
 import java.util.Map;
 
 public class ConfigInfo {
+    private static final String LDS_ENDPOINTS = "ldsEndpointUrls";
+    private static final String USER_DATA = "USER_DATA";
+    private static final String SIGN_IN = "SIGN_IN";
+    private static final String SIGN_OUT = "SIGN_OUT";
+    private static final String MEMBER_LIST = "MEMBER_LIST";
+    private static final String MEMBER_LIST_SECONDARY = "MEMBER_LIST_SECONDARY";
+    private static final String UPDATE_CALLING = "UPDATE_CALLING";
+    private static final String CALLING_LIST = "CALLING_LIST";
+
     private String[] statuses;
     private Map<String,String> ldsEndpointUrls;
-    private List<OrgType> orgTypes;
 
     public String[] getStatuses() {
         return statuses;
@@ -28,11 +36,31 @@ public class ConfigInfo {
         this.ldsEndpointUrls = ldsEndpointUrls;
     }
 
-    public List<OrgType> getOrgTypes() {
-        return orgTypes;
+    public String getUserDataUrl() {
+        return this.ldsEndpointUrls.isEmpty() ? null : this.ldsEndpointUrls.get(USER_DATA);
     }
 
-    public void setOrgTypes(List<OrgType> orgTypes) {
-        this.orgTypes = orgTypes;
+    public String getSignInUrl() {
+        return this.ldsEndpointUrls.isEmpty() ? null : this.ldsEndpointUrls.get(SIGN_IN);
+    }
+
+    public String getSignOutUrl() {
+        return this.ldsEndpointUrls.isEmpty() ? null : this.ldsEndpointUrls.get(SIGN_OUT);
+    }
+
+    public String getMemberListUrl() {
+        return this.ldsEndpointUrls.isEmpty() ? null : this.ldsEndpointUrls.get(MEMBER_LIST);
+    }
+
+    public String getMemberListSecondaryUrl() {
+        return this.ldsEndpointUrls.isEmpty() ? null : this.ldsEndpointUrls.get(MEMBER_LIST_SECONDARY);
+    }
+
+    public String getUpdateCallingUrl() {
+        return this.ldsEndpointUrls.isEmpty() ? null : this.ldsEndpointUrls.get(UPDATE_CALLING);
+    }
+
+    public String getCallingListUrl() {
+        return this.ldsEndpointUrls.isEmpty() ? null : this.ldsEndpointUrls.get(CALLING_LIST);
     }
 }

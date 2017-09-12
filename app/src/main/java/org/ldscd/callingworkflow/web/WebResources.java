@@ -10,11 +10,20 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+
+import org.joda.time.LocalDate;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ldscd.callingworkflow.constants.UnitLevelOrgType;
+import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.ConfigInfo;
+import org.ldscd.callingworkflow.model.LdsUser;
 import org.ldscd.callingworkflow.model.Member;
 import org.ldscd.callingworkflow.model.Org;
+import org.ldscd.callingworkflow.model.Position;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -23,6 +32,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +41,14 @@ import java.util.Map;
 public class WebResources implements IWebResources {
     private static final String TAG = "WebResourcesLog";
     private static final String CONFIG_URL = "http://dev-ldscd.rhcloud.com/cwf/config?env=test";
+    private static final String LDS_ENDPOINTS = "ldsEndpointUrls";
+    private static final String USER_DATA = "USER_DATA";
+    private static final String SIGN_IN = "SIGN_IN";
+    private static final String SIGN_OUT = "SIGN_OUT";
+    private static final String MEMBER_LIST = "MEMBER_LIST";
+    private static final String MEMBER_LIST_SECONDARY = "MEMBER_LIST_SECONDARY";
+    private static final String UPDATE_CALLING = "UPDATE_CALLING";
+    private static final String CALLING_LIST = "CALLING_LIST";
     private static final String prefUsername = "username";
     private static final String prefPassword = "password";
     private static final String UTF8 = "UTF-8";
@@ -43,7 +61,7 @@ public class WebResources implements IWebResources {
 
     private ConfigInfo configInfo = null;
     private String authCookie = null;
-    private JSONObject userInfo = null;
+    private LdsUser userInfo = null;
     private List<Org> orgsInfo = null;
     private List<Member> wardMemberList = null;
     private String unitNumber = null;
@@ -91,8 +109,10 @@ public class WebResources implements IWebResources {
             configCallback.onResponse(configInfo);
         } else {
             GsonRequest<ConfigInfo> configRequest = new GsonRequest<>(
+                    Request.Method.GET,
                     CONFIG_URL,
                     ConfigInfo.class,
+                    null,
                     null,
                     new Response.Listener<ConfigInfo>() {
                         @Override
@@ -156,7 +176,7 @@ public class WebResources implements IWebResources {
     }
 
     @Override
-    public void getUserInfo(final Response.Listener<JSONObject> userCallback) {
+    public void getUserInfo(final Response.Listener<LdsUser> userCallback) {
         if(userInfo != null) {
             userCallback.onResponse(userInfo);
         } else {
@@ -164,23 +184,31 @@ public class WebResources implements IWebResources {
             getAuthCookie(new Response.Listener<String>() {
                 @Override
                 public void onResponse(final String authCookie) {
-
+                    final List<Position> positions = new ArrayList<Position>();
                     JsonObjectRequest userRequest = new JsonObjectRequest(
                             Request.Method.GET,
                             configInfo.getEndpointUrl("USER_DATA"),
                             null,
                             new Response.Listener<JSONObject>() {
                                 @Override
-                                public void onResponse(JSONObject response) {
-                                    userInfo = response;
+                                public void onResponse(JSONObject json) {
+                                    LdsUser user = null;
                                     Log.i(TAG, "User call successful");
-                                    Log.i(TAG, response.toString());
+                                    Log.i(TAG, json.toString());
                                     try {
-                                        unitNumber = response.getJSONArray("memberAssignments").getJSONObject(0).getString("unitNo");
+                                        JSONArray assignments = json.getJSONArray("memberAssignments");
+                                        OrgCallingBuilder builder = new OrgCallingBuilder();
+                                        for(int i = 0; i < assignments.length(); i++) {
+                                            positions.add(builder.extractPosition((JSONObject) assignments.get(i)));
+                                        }
+                                        unitNumber = json.getJSONArray("memberAssignments").getJSONObject(0).getString("unitNo");
+                                        long individualId = json.getJSONObject("individualId").getLong("individualId");
+                                        user = new LdsUser(individualId, positions);
                                     } catch (JSONException e) {
                                         e.printStackTrace();
                                     }
-                                    userCallback.onResponse(userInfo);
+
+                                    userCallback.onResponse(user);
                                 }
                             },
                             new Response.ErrorListener() {
@@ -189,7 +217,7 @@ public class WebResources implements IWebResources {
                                     Log.e(TAG, "load user error");
                                     error.printStackTrace();
                                     unitNumber = "56030";
-                                    userCallback.onResponse(new JSONObject());
+                                    userCallback.onResponse(null);
                                 }
                             }
                     ) {
@@ -213,11 +241,9 @@ public class WebResources implements IWebResources {
         if(orgsInfo != null) {
             orgsCallback.onResponse(orgsInfo);
         } else {
-
-            getUserInfo(new Response.Listener<JSONObject>() {
+            getUserInfo(new Response.Listener<LdsUser>() {
                 @Override
-                public void onResponse(JSONObject userInfo) {
-
+                public void onResponse(LdsUser ldsUser) {
                     Map<String, String> headers = new HashMap<>();
                     headers.put("Cookie", authCookie);
                     OrgsListRequest orgsRequest = new OrgsListRequest(
@@ -240,7 +266,6 @@ public class WebResources implements IWebResources {
                             }
                     );
                     requestQueue.add(orgsRequest);
-
                 }
             });
 
@@ -252,10 +277,9 @@ public class WebResources implements IWebResources {
         if(wardMemberList != null) {
             wardCallback.onResponse(wardMemberList);
         } else {
-
-            getUserInfo(new Response.Listener<JSONObject>() {
+            getUserInfo(new Response.Listener<LdsUser>() {
                 @Override
-                public void onResponse(JSONObject userInfo) {
+                public void onResponse(LdsUser ldsUser) {
 
                     Map<String, String> headers = new HashMap<>();
                     headers.put("Cookie", authCookie);
@@ -328,4 +352,71 @@ public class WebResources implements IWebResources {
     }
 
     public void getPositionMetaData(Response.Listener<String> callback) {}
+
+    private LdsUser extractUser(JSONObject json) throws JSONException {
+        List<Position> positions = new ArrayList<>();
+        JSONArray assignments = json.getJSONArray("memberAssignments");
+        OrgCallingBuilder builder = new OrgCallingBuilder();
+        for(int i = 0; i < assignments.length(); i++) {
+            positions.add(builder.extractPosition((JSONObject) assignments.get(i)));
+        }
+        unitNumber = json.getJSONArray("memberAssignments").getJSONObject(0).getString("unitNo");
+        long individualId = json.getJSONObject("individualId").getLong("individualId");
+        return new LdsUser(individualId, positions);
+    }
+
+    public void updateCalling(Calling calling, Long unitNumber, UnitLevelOrgType unitLevelOrgType, final Response.Listener<JSONObject> callback) throws JSONException {
+        /*
+        json: {
+         "unitNumber": 56030,
+         "subOrgTypeId": 1252,
+         "subOrgId": 2081422,
+         "positionTypeId": 216,
+         "position": "any non-empty string"
+         "memberId": "17767512672",
+         "releaseDate": "20170801",
+         "releasePositionIds": [
+         38816970
+         ]
+         */
+        org.json.JSONObject json = new org.json.JSONObject();
+        json.put("unitNumber", unitNumber);
+        json.put("subOrgTypeId", unitLevelOrgType.getOrgTypeId());
+        json.put("subOrgId", calling.getParentOrg());
+        json.put("positionTypeId", calling.getPosition().getPositionTypeId());
+        json.put("position", calling.getPosition().getName());
+        json.put("memberId", calling.getProposedIndId());
+        LocalDate date = LocalDate.now();
+        DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMd");
+        json.put("releaseDate", date.toString(fmt));
+        JSONArray positionIds = new JSONArray();
+        positionIds.put(calling.getId());
+        json.put("releasePositionIds", positionIds);
+        Map<String, String> header = new HashMap<String, String>();
+        header.put("Content-Type", "application/json");
+        GsonRequest<String> gsonRequest = new GsonRequest<String>(
+                Request.Method.POST,
+                configInfo.getUpdateCallingUrl(),
+                String.class,
+                header,
+                json,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        try {
+                            callback.onResponse(new JSONObject(response));
+                        } catch (JSONException e) {
+                            Log.e("Json Parse LDS update", e.getMessage());
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+                    }
+                }
+        );
+        requestQueue.add(gsonRequest);
+    }
 }

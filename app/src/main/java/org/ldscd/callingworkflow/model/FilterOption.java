@@ -333,7 +333,7 @@ public class FilterOption {
             boolean showMember = false;
             for (Calling calling : member.getCurrentCallings()) {
                 if (calling.getActiveDateTime() != null &&
-                        Months.monthsBetween(calling.getActiveDateTime(), DateTime.now()).getMonths() >= (this.getTimeInCalling()*.5)*12) {
+                        Months.monthsBetween(calling.getActiveDateTime(), DateTime.now()).getMonths() >= this.getTimeInCalling()) {
                     showMember = true;
                     break;
                 }
@@ -451,33 +451,35 @@ public class FilterOption {
         @Override
         public boolean filterMember(Member member) {
             /****** Is High Priest *******/
-            if(this.isHighPriest()) {
-                if(member.getPriesthood().equals(Priesthood.HIGH_PRIEST)) {
-                    return true;
+            if(member.getPriesthood() != null) {
+                if (this.isHighPriest()) {
+                    if (member.getPriesthood().equals(Priesthood.HIGH_PRIEST)) {
+                        return true;
+                    }
                 }
-            }
-            /****** Is Elder *******/
-            if(this.isElders()) {
-                if(member.getPriesthood().equals(Priesthood.ELDER)) {
-                    return true;
+                /****** Is Elder *******/
+                if (this.isElders()) {
+                    if (member.getPriesthood().equals(Priesthood.ELDER)) {
+                        return true;
+                    }
                 }
-            }
-            /****** Is Priest *******/
-            if(this.isPriests()) {
-                if(member.getPriesthood().equals(Priesthood.PRIEST)) {
-                    return true;
+                /****** Is Priest *******/
+                if (this.isPriests()) {
+                    if (member.getPriesthood().equals(Priesthood.PRIEST)) {
+                        return true;
+                    }
                 }
-            }
-            /****** Is Teacher *******/
-            if(this.isTeachers()) {
-                if(member.getPriesthood().equals(Priesthood.TEACHER)) {
-                    return true;
+                /****** Is Teacher *******/
+                if (this.isTeachers()) {
+                    if (member.getPriesthood().equals(Priesthood.TEACHER)) {
+                        return true;
+                    }
                 }
-            }
-            /****** Is Deacon *******/
-            if(this.isDeacons()) {
-                if(member.getPriesthood().equals(Priesthood.DEACON)) {
-                    return true;
+                /****** Is Deacon *******/
+                if (this.isDeacons()) {
+                    if (member.getPriesthood().equals(Priesthood.DEACON)) {
+                        return true;
+                    }
                 }
             }
             return false;

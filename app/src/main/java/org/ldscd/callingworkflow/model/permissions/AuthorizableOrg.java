@@ -1,5 +1,6 @@
 package org.ldscd.callingworkflow.model.permissions;
 
+
 import org.ldscd.callingworkflow.constants.UnitLevelOrgType;
 
 /**
@@ -9,7 +10,7 @@ public class AuthorizableOrg extends Authorizable {
     /* This is the org type of the root org. So it may be that the org the user is trying to
         edit is the EQ Instructors, but this org type would be that of the root org (EQ)
      */
-    UnitLevelOrgType unitLevelOrgType;
+    UnitLevelOrgType orgType;
     /* This is the orgType of the actual org that is being verified. We don't have an enum
         for every possible sub org type (i.e. EQ Instructors), we only make an enum for the main
         root level org types (HP, EQ, RS, etc.). So that's why we use the enum for the
@@ -23,20 +24,26 @@ public class AuthorizableOrg extends Authorizable {
      */
     int orgTypeId;
 
-    /* Constructor */
+    /* Constructor(s) */
+    public AuthorizableOrg(long unitNum, UnitLevelOrgType unitLevelOrgType) {
+        super(unitNum);
+        this.orgType = unitLevelOrgType;
+        this.orgTypeId = unitLevelOrgType.getOrgTypeId();
+    }
+
     public AuthorizableOrg(long unitNum, UnitLevelOrgType unitLevelOrgType, int orgTypeId) {
         super(unitNum);
-        this.unitLevelOrgType = unitLevelOrgType;
+        this.orgType = unitLevelOrgType;
         this.orgTypeId = orgTypeId;
     }
 
     /* Properties */
-    public UnitLevelOrgType getUnitLevelOrgType() {
-        return unitLevelOrgType;
+    public UnitLevelOrgType getOrgType() {
+        return orgType;
     }
 
     public void setUnitLevelOrgType(UnitLevelOrgType unitLevelOrgType) {
-        this.unitLevelOrgType = unitLevelOrgType;
+        this.orgType = orgType;
     }
 
     public int getOrgTypeId() {

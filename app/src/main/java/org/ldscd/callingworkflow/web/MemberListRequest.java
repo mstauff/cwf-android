@@ -101,7 +101,7 @@ public class MemberListRequest extends Request<List<Member>> {
                     JSONObject child = children.getJSONObject(x);
                     try {
                         DateTime birthdate = dateTimeFormatter.parseDateTime(child.getString(birthdateFieldName));
-                        if(calculateAge(birthdate) >= minimumChildAge) {
+                        if(birthdate == null || calculateAge(birthdate) >= minimumChildAge) {
                             memberList.add(extractMember(child, householdPhone, householdEmail, address));
                         }
                     } catch (Exception e) {

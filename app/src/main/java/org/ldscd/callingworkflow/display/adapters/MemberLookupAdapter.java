@@ -1,8 +1,6 @@
 package org.ldscd.callingworkflow.display.adapters;
 
 import android.content.Context;
-import android.support.v4.app.Fragment;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,7 +13,6 @@ import android.widget.TextView;
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.display.MemberLookupFragment;
 import org.ldscd.callingworkflow.model.Calling;
-import org.ldscd.callingworkflow.model.FilterOption;
 import org.ldscd.callingworkflow.model.Member;
 
 import java.util.ArrayList;
@@ -85,8 +82,14 @@ public class MemberLookupAdapter extends ArrayAdapter<Member> implements Filtera
             holder.name.setText(member.getFormattedName());
             if (member.getCurrentCallings() != null && member.getCurrentCallings().size() > 0) {
                 StringBuilder sb = new StringBuilder();
+                int i = 0;
                 for (Calling calling : member.getCurrentCallings()) {
                     sb.append(calling.getPosition().getName());
+                    if(i++ != member.getCurrentCallings().size() - 1){
+                        sb.append(' ');
+                        sb.append('-');
+                        sb.append(' ');
+                    }
                 }
                 holder.calling.setText(sb.toString());
             } else {
@@ -94,8 +97,14 @@ public class MemberLookupAdapter extends ArrayAdapter<Member> implements Filtera
             }
             if(member.getProposedCallings() != null && member.getProposedCallings().size() > 0) {
                 StringBuilder sb = new StringBuilder();
+                int i = 0;
                 for (Calling calling : member.getProposedCallings()) {
                     sb.append(calling.getPosition().getName());
+                    if(i++ != member.getCurrentCallings().size() - 1){
+                        sb.append(' ');
+                        sb.append('-');
+                        sb.append(' ');
+                    }
                 }
                 holder.proposedCalling.setText(sb.toString());
             } else {

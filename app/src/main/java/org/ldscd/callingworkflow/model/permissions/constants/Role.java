@@ -1,6 +1,7 @@
 package org.ldscd.callingworkflow.model.permissions.constants;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.ldscd.callingworkflow.model.permissions.constants.PositionType.*;
@@ -14,7 +15,8 @@ public enum Role {
                                   Permission.POTENTIAL_CALLING_DELETE, Permission.POTENTIAL_CALLING_UPDATE,
                                   Permission.ACTIVE_CALLING_UPDATE, Permission.ACTIVE_CALLING_RELEASE,
                                   Permission.ACTIVE_CALLING_DELETE, Permission.PRIESTHOOD_OFFICE_READ,
-                                  Permission.UNIT_GOOGLE_ACCOUNT_CREATE, Permission.UNIT_GOOGLE_ACCOUNT_UPDATE},
+                                  Permission.ACTIVE_CALLING_CREATE, Permission.UNIT_GOOGLE_ACCOUNT_CREATE,
+                                  Permission.UNIT_GOOGLE_ACCOUNT_UPDATE},
         /* Stake */
             STAKE_PRESIDENT,
             STAKE_PRESIDENCY_FIRST_COUNSELOR,
@@ -36,8 +38,9 @@ public enum Role {
     ),
     PRIESTHOOD_ORG_ADMIN (new Permission[] {Permission.ORG_INFO_READ, Permission.POTENTIAL_CALLING_CREATE,
                                             Permission.POTENTIAL_CALLING_DELETE, Permission.POTENTIAL_CALLING_UPDATE,
-                                            Permission.ACTIVE_CALLING_UPDATE, Permission.ACTIVE_CALLING_RELEASE,
-                                            Permission.ACTIVE_CALLING_DELETE, Permission.PRIESTHOOD_OFFICE_READ },
+                                            Permission.ACTIVE_CALLING_CREATE, Permission.ACTIVE_CALLING_UPDATE,
+                                            Permission.ACTIVE_CALLING_RELEASE, Permission.ACTIVE_CALLING_DELETE,
+                                            Permission.PRIESTHOOD_OFFICE_READ },
         /* High Priest */
             HIGH_PRIEST_GROUP_LEADER,
             HIGH_PRIEST_FIRST_ASSISTANT,
@@ -58,7 +61,7 @@ public enum Role {
     ORG_ADMIN (new Permission[] { Permission.ORG_INFO_READ, Permission.POTENTIAL_CALLING_CREATE,
                                   Permission.POTENTIAL_CALLING_DELETE, Permission.POTENTIAL_CALLING_UPDATE,
                                   Permission.ACTIVE_CALLING_UPDATE, Permission.ACTIVE_CALLING_RELEASE,
-                                  Permission.ACTIVE_CALLING_DELETE },
+                                  Permission.ACTIVE_CALLING_CREATE, Permission.ACTIVE_CALLING_DELETE },
         /* Relief Society */
             RELIEF_SOCIETY_PRESIDENT,
             RELIEF_SOCIETY_FIRST_COUNSELOR,
@@ -92,12 +95,16 @@ public enum Role {
 
     /* Constructor */
     Role(Permission[] permissions, PositionType... positionTypes) {
-        this.permissions = Arrays.asList(permissions);
-        this.positionTypes = Arrays.asList(positionTypes);
+        this.permissions = Collections.unmodifiableList(Arrays.asList(permissions));
+        this.positionTypes = Collections.unmodifiableList(Arrays.asList(positionTypes));
     }
 
     /* Methods */
-    public static Role getRole(PositionType position) {
+    public List<Permission> getPermissions() {
+        return this.permissions;
+    }
+
+    public static Role getRoleByPositionType(PositionType position) {
         for(Role role : Role.values()) {
             if (role.positionTypes.contains(position)) {
                 return role;
@@ -105,6 +112,4 @@ public enum Role {
         }
         return null;
     }
-
-
 };

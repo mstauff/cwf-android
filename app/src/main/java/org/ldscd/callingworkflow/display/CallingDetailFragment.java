@@ -111,8 +111,8 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
         if (bundle != null && !bundle.isEmpty()) {
             /* Initialize UI */
             calling = (Calling)bundle.getSerializable(CALLING);
+            individualId = bundle.getLong(INDIVIDUAL_ID);
             hydrateCalling();
-            individualId = bundle.getLong(INDIVIDUAL_ID, 0);
             wireUpFinalizeButton();
             wireUpStatusDropdown();
             wireUpMemberSearch();
@@ -122,8 +122,8 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     }
 
     private void wireUpMemberSearch() {
-        if(individualId != 0) {
-            String formattedName = proposedMember == null ? dataManager.getMemberName(individualId) : proposedMember.getFormattedName();
+        if(calling.getProposedIndId()!= 0) {
+            String formattedName = proposedMember == null ? dataManager.getMemberName(calling.getProposedIndId()) : proposedMember.getFormattedName();
             if(formattedName != null) {
                 TextView name = (TextView) view.findViewById(R.id.member_lookup_name);
                 name.setText(formattedName);
@@ -140,9 +140,9 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
 
     public void createMemberLookupFragment() {
         MemberLookupFragment memberLookupFragment = new MemberLookupFragment();
-        if(individualId > 0) {
+        if(calling.getProposedIndId() > 0) {
             Bundle args = new Bundle();
-            args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, individualId);
+            args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, calling.getProposedIndId());
             memberLookupFragment.setArguments(args);
         }
         memberLookupFragment.setMemberLookupListener(this);
@@ -267,8 +267,7 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
             }
             hasChanges = true;
         }
-        if(!individualId.equals(calling.getProposedIndId())) {
-            calling.setProposedIndId(individualId);
+        if(!calling.getProposedIndId().equals(individualId)) {
             hasChanges = true;
         }
         mListener.onFragmentInteraction(calling, hasChanges);

@@ -61,9 +61,4 @@ public class Position implements Serializable {
     public boolean equals(Position position) {
         return this.getPositionTypeId() == position.getPositionTypeId();
     }
-
-    @Override
-    public String toString() {
-        return this.name;
-    }
 }

@@ -7,6 +7,7 @@ import com.android.volley.toolbox.Volley;
 import dagger.Module;
 import dagger.Provides;
 
+import org.ldscd.callingworkflow.model.permissions.PermissionManager;
 import org.ldscd.callingworkflow.services.GoogleDataService;
 import org.ldscd.callingworkflow.services.GoogleDataServiceImpl;
 import org.ldscd.callingworkflow.web.DataManager;
@@ -16,7 +17,6 @@ import org.ldscd.callingworkflow.web.IWebResources;
 
 import org.ldscd.callingworkflow.web.CallingData;
 import org.ldscd.callingworkflow.web.MemberData;
-import org.ldscd.callingworkflow.web.WebResources;
 
 import javax.inject.Singleton;
 
@@ -32,7 +32,7 @@ public class NetModule {
     @Provides
     @Singleton
     IWebResources providesWebResources(Context context, RequestQueue requestQueue, SharedPreferences preferences) {
-        return new LocalFileResources(context); //new WebResources(context, requestQueue, preferences);
+        return new LocalFileResources(context, requestQueue); //new WebResources(context, requestQueue, preferences);
     }
 
     @Provides
@@ -43,8 +43,8 @@ public class NetModule {
 
     @Provides
     @Singleton
-    CallingData providesCallingData(IWebResources webResources, GoogleDataService googleDataService, MemberData memberData) {
-        return new CallingData(webResources, googleDataService, memberData);
+    CallingData providesCallingData(IWebResources webResources, GoogleDataService googleDataService, MemberData memberData, PermissionManager permissionManager) {
+        return new CallingData(webResources, googleDataService, memberData, permissionManager);
     }
 
     @Provides
@@ -55,7 +55,13 @@ public class NetModule {
 
     @Provides
     @Singleton
-    DataManager providesDataManagerService(CallingData callingData, MemberData memberData, GoogleDataService googleDataService) {
-        return new DataManagerImpl(callingData, memberData, googleDataService);
+    DataManager providesDataManagerService(CallingData callingData, MemberData memberData, GoogleDataService googleDataService, IWebResources webResources, PermissionManager permissionManager) {
+        return new DataManagerImpl(callingData, memberData, googleDataService, webResources, permissionManager);
+    }
+
+    @Provides
+    @Singleton
+    PermissionManager providesPermissionManagerService() {
+        return new PermissionManager();
     }
 }

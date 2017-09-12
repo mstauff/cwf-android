@@ -14,6 +14,7 @@ public class PositionRequirements {
     Gender gender;
     int age;
     List<Priesthood> priesthood;
+    /* Represents the sister classes. */
     List<MemberClass> memberClasses;
 
     /* Constructor */

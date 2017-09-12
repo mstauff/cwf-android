@@ -5,7 +5,9 @@ import android.widget.ProgressBar;
 
 import com.android.volley.Response;
 
+import org.json.JSONException;
 import org.ldscd.callingworkflow.model.Calling;
+import org.ldscd.callingworkflow.model.LdsUser;
 import org.ldscd.callingworkflow.model.Member;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.model.PositionMetaData;
@@ -13,6 +15,8 @@ import org.ldscd.callingworkflow.model.PositionMetaData;
 import java.util.List;
 
 public interface DataManager {
+    /* User Info */
+    void getUserInfo(Response.Listener<LdsUser> listener);
     /* Calling data. */
     Calling getCalling(String id);
     Org getOrg(long id);
@@ -21,6 +25,7 @@ public interface DataManager {
     void refreshOrg(Response.Listener<Org> listener, Long orgId);
     List<PositionMetaData> getAllPositionMetadata();
     PositionMetaData getPositionMetadata(int positionTypeId);
+    void updateLDSCalling(Calling calling, Long unitNumber, Response.Listener callback) throws JSONException;
     /* Member data. */
     String getMemberName(Long id);
     Member getMember(Long id);

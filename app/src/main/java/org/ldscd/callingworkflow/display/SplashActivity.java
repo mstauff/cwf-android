@@ -8,6 +8,7 @@ import android.widget.ProgressBar;
 
 import com.android.volley.Response;
 import org.ldscd.callingworkflow.R;
+import org.ldscd.callingworkflow.model.LdsUser;
 import org.ldscd.callingworkflow.web.DataManager;
 
 import javax.inject.Inject;
@@ -29,7 +30,12 @@ public class SplashActivity extends AppCompatActivity {
         setContentView(R.layout.activity_splash);
          pb = (ProgressBar) findViewById(R.id.progress_bar_splash);
         pb.setProgress(10);
-        dataManager.loadMembers(memberListener, pb);
+        dataManager.getUserInfo(new Response.Listener<LdsUser>() {
+            @Override
+            public void onResponse(LdsUser response) {
+                dataManager.loadMembers(memberListener, pb);
+            }
+        });
     }
 
     @Override

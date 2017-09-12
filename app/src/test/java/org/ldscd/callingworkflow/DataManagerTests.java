@@ -54,7 +54,7 @@ public class DataManagerTests {
     private static final Long unitNumber = 1234L;
     @Before
     public void prepData() {
-        callingData = new CallingData(mockWebResources, mockGoogleDataService, memberData);
+        callingData = new CallingData(mockWebResources, mockGoogleDataService, memberData, null);
 
         List<Calling> sampleCallings = new ArrayList<>();
         sampleCallings.add(new Calling(734820L, null, 11111L, null, null, new Position("Primary Teacher", 1481, false, false, 0L, 0L), "ACTIVE", null, null, 38432972L));

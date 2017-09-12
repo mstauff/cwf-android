@@ -11,6 +11,8 @@ import com.android.volley.toolbox.HttpHeaderParser;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
+import org.json.JSONObject;
+
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
@@ -19,6 +21,7 @@ public class GsonRequest<T> extends Request<T> {
     private final Class<T> clazz;
     private final Map<String, String> headers;
     private final Listener<T> listener;
+    private final JSONObject jsonObject;
 
     /**
      * Make a GET request and return a parsed object from JSON.
@@ -27,12 +30,24 @@ public class GsonRequest<T> extends Request<T> {
      * @param clazz Relevant class object, for Gson's reflection
      * @param headers Map of request headers
      */
-    public GsonRequest(String url, Class<T> clazz, Map<String, String> headers,
-                       Listener<T> listener, ErrorListener errorListener) {
-        super(Method.GET, url, errorListener);
+    public GsonRequest(int method, String url, Class<T> clazz, Map<String, String> headers,
+                       JSONObject jsonObject, Listener<T> listener, ErrorListener errorListener) {
+        super(method, url, errorListener);
         this.clazz = clazz;
         this.headers = headers;
+        this.jsonObject = jsonObject;
         this.listener = listener;
+    }
+
+    @Override
+    public byte[] getBody() {
+        byte[] array = null;
+        try {
+            array = jsonObject.toString().getBytes("UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return array;
     }
 
     @Override

@@ -109,25 +109,6 @@ public class OrgCallingBuilder {
         if(!json.isNull(positionIdFieldName)) {
             id = json.getLong(positionIdFieldName);
         }
-        Position position = new Position();
-        if(!json.isNull(positionTypeIdFieldName)) {
-            position.setPositionTypeId(json.getInt(positionTypeIdFieldName));
-        }
-        position.setName(json.getString(positionFieldName));
-        if(position.getName().equals("null")) {
-            position.setName(null);
-        }
-        if(!json.isNull(multiplesAllowedFieldName)) {
-            position.setAllowMultiple(json.getBoolean(multiplesAllowedFieldName));
-        } else {
-            position.setAllowMultiple(true);
-        }
-        if(!json.isNull(hiddenFieldName)) {
-            position.setHidden(json.getBoolean(hiddenFieldName));
-        }
-        if(json.has(positionDisplayOrderFieldName)) {
-            position.setPositionDisplayOrder(json.optLong(positionDisplayOrderFieldName));
-        }
         String existingStatus = json.has(existingStatusFieldName) ? json.getString(existingStatusFieldName) : null;
         if(existingStatus != null && existingStatus.equals("null")) {
             existingStatus = null;
@@ -150,6 +131,37 @@ public class OrgCallingBuilder {
             notes = null;
         }
 
-        return new Calling(id, cwfId, currentMemberId, proposedIndId, activeDate, position, existingStatus, proposedStatus, notes, parentId);
+        return new Calling(id, cwfId, currentMemberId, proposedIndId, activeDate, extractPosition(json), existingStatus, proposedStatus, notes, parentId);
+    }
+
+    public Position extractPosition(JSONObject json) throws JSONException {
+        Position position = null;
+        if(json != null) {
+            position = new Position();
+            if (!json.isNull(positionTypeIdFieldName)) {
+                position.setPositionTypeId(json.getInt(positionTypeIdFieldName));
+            }
+            if (json.has(positionFieldName) && !json.isNull(positionFieldName)) {
+                position.setName(json.getString(positionFieldName));
+            }
+            if(position.getName() != null && position.getName().equals("null")) {
+                position.setName(null);
+            }
+            if (!json.isNull(multiplesAllowedFieldName)) {
+                position.setAllowMultiple(json.getBoolean(multiplesAllowedFieldName));
+            } else {
+                position.setAllowMultiple(true);
+            }
+            if (!json.isNull(hiddenFieldName)) {
+                position.setHidden(json.getBoolean(hiddenFieldName));
+            }
+            if (json.has(positionDisplayOrderFieldName)) {
+                position.setPositionDisplayOrder(json.optLong(positionDisplayOrderFieldName));
+            }
+            if(json.has("unitNo")) {
+                position.setUnitNumber(json.getLong("unitNo"));
+            }
+        }
+        return position;
     }
 }

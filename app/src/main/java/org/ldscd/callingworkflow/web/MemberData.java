@@ -1,6 +1,7 @@
 package org.ldscd.callingworkflow.web;
 
 
+import android.util.Log;
 import android.widget.ProgressBar;
 
 import com.android.volley.Response;
@@ -62,6 +63,21 @@ public class MemberData {
                 if (calling.getMemberId() != null && calling.getMemberId() > 0) {
                     getMember(calling.getMemberId()).addCurrentCalling(calling);
                 }
+                if (calling.getProposedIndId() != null && calling.getProposedIndId() > 0) {
+                    getMember(calling.getProposedIndId()).addProposedCallings(calling);
+                }
+            }
+        }
+    }
+
+    public void setMemberPotentialCallings(List<Calling> callings) {
+        for(Calling calling : callings) {
+            try {
+                if (calling != null && calling.getProposedIndId() != null && calling.getProposedIndId() > 0) {
+                    getMember(calling.getProposedIndId()).addProposedCallings(calling);
+                }
+            } catch (Exception e) {
+                Log.d("ADD_POTENTIAL_CALLING", "member doesn't exist");
             }
         }
     }

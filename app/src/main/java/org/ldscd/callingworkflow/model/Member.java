@@ -7,7 +7,10 @@ import org.ldscd.callingworkflow.constants.Priesthood;
 import org.ldscd.callingworkflow.utils.JsonUtil;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a Ward Member.
@@ -25,7 +28,7 @@ public class Member {
     Gender gender;
     Priesthood priesthood;
     List<Calling> currentCallings;
-    List<Calling> proposedCallings;
+    Map<String, Calling> proposedCallings;
 
     /* Constructors */
     public Member() {}
@@ -97,25 +100,25 @@ public class Member {
         }
     }
 
-    public List<Calling> getProposedCallings() { return proposedCallings; }
+    public Collection<Calling> getProposedCallings() { return proposedCallings.values(); }
     public void setProposedCallings(List<Calling> proposedCallings) {
         if(this.proposedCallings == null) {
-            this.proposedCallings = new ArrayList<>();
+            this.proposedCallings = new HashMap<>();
         }
         if(proposedCallings != null && !proposedCallings.isEmpty()) {
-            this.proposedCallings.addAll(proposedCallings);
+            for(Calling calling : proposedCallings) {
+                this.proposedCallings.put(calling.getCallingId(), calling);
+            }
         }
     }
     public void addProposedCallings(Calling proposedCalling) {
         if(proposedCallings == null) {
-            proposedCallings = new ArrayList<>();
+            proposedCallings = new HashMap<>();
         }
-        if(!proposedCallings.contains(proposedCalling)) {
-            proposedCallings.add(proposedCalling);
-        }
+        proposedCallings.put(proposedCalling.getCallingId(), proposedCalling);
     }
 
     public int getCurrentAge() {
-        return Years.yearsBetween(getBirthDate(), DateTime.now()).getYears();
+        return getBirthDate() != null ? Years.yearsBetween(getBirthDate(), DateTime.now()).getYears() : -1;
     }
 }
