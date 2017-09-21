@@ -9,6 +9,7 @@ import com.android.volley.Response;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Member;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,25 +61,38 @@ public class MemberData {
     public void setMemberCallings(List<Calling> callings) {
         if(callings != null) {
             for (Calling calling : callings) {
-                if (calling.getMemberId() != null && calling.getMemberId() > 0) {
-                    getMember(calling.getMemberId()).addCurrentCalling(calling);
-                }
-                if (calling.getProposedIndId() != null && calling.getProposedIndId() > 0) {
-                    getMember(calling.getProposedIndId()).addProposedCallings(calling);
-                }
+                addCallingToMembers(calling);
             }
         }
     }
+    public void addCallingToMembers(Calling calling) {
+        if(calling.getMemberId() != null && calling.getMemberId() > 0) {
+            Member currentMember = getMember(calling.getMemberId());
+            currentMember.addCurrentCalling(calling);
+        }
+        if(calling.getProposedIndId() != null && calling.getProposedIndId() > 0) {
+            Member proposedMember = getMember(calling.getProposedIndId());
+            proposedMember.addProposedCalling(calling);
+        }
+    }
 
-    public void setMemberPotentialCallings(List<Calling> callings) {
-        for(Calling calling : callings) {
-            try {
-                if (calling != null && calling.getProposedIndId() != null && calling.getProposedIndId() > 0) {
-                    getMember(calling.getProposedIndId()).addProposedCallings(calling);
-                }
-            } catch (Exception e) {
-                Log.d("ADD_POTENTIAL_CALLING", "member doesn't exist");
+    public void removeMemberCallings(List<Calling> callings) {
+        if(callings != null) {
+            for(Calling calling: callings) {
+                removeCallingFromMembers(calling);
             }
+        }
+    }
+    public void removeCallingFromMembers(Calling calling) {
+        if(calling.getMemberId() != null && calling.getMemberId() > 0) {
+            Member currentMember = getMember(calling.getMemberId());
+            currentMember.removeCurrentCalling(calling);
+            List<Calling> result = currentMember.getCurrentCallings();
+        }
+        if(calling.getProposedIndId() != null && calling.getProposedIndId() > 0) {
+            Member proposedMember = getMember(calling.getProposedIndId());
+            proposedMember.removeProposedCalling(calling);
+            List<Calling> result = new ArrayList<>(proposedMember.getProposedCallings());
         }
     }
 }

@@ -154,7 +154,7 @@ public class DataManagerImpl implements DataManager {
                 if(operation.equals(Operation.DELETE)) {
 
                 } else {
-                    getMember(calling.getProposedIndId()).addProposedCallings(calling);
+                    getMember(calling.getProposedIndId()).addProposedCalling(calling);
                 }
             }
         }, null, org);
@@ -163,6 +163,8 @@ public class DataManagerImpl implements DataManager {
     private void updateCalling(Org baseOrg, Calling updatedCalling, Operation operation) {
         if(operation.equals(Operation.UPDATE)) {
             Calling original = baseOrg.getCallingById(updatedCalling.getCallingId());
+            memberData.removeCallingFromMembers(original);
+            memberData.addCallingToMembers(updatedCalling);
             original.setNotes(updatedCalling.getNotes());
             original.setProposedIndId(updatedCalling.getProposedIndId());
             if(!updatedCalling.getProposedStatus().equals(CallingStatus.UNKNOWN)) {
@@ -171,6 +173,7 @@ public class DataManagerImpl implements DataManager {
         } else if(operation.equals(Operation.CREATE)) {
             Org org = findSubOrg(baseOrg, updatedCalling.getParentOrg());
             org.getCallings().add(updatedCalling);
+            memberData.addCallingToMembers(updatedCalling);
         }
     }
     private Org findSubOrg(Org org, long subOrgId) {

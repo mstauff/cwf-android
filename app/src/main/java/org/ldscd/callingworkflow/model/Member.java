@@ -99,6 +99,11 @@ public class Member {
             currentCallings.add(currentCalling);
         }
     }
+    public void removeCurrentCalling(Calling currentCalling) {
+        if(currentCallings != null && currentCalling != null) {
+            currentCallings.remove(currentCalling);
+        }
+    }
 
     public Collection<Calling> getProposedCallings() { return proposedCallings.values(); }
     public void setProposedCallings(List<Calling> proposedCallings) {
@@ -111,11 +116,16 @@ public class Member {
             }
         }
     }
-    public void addProposedCallings(Calling proposedCalling) {
+    public void addProposedCalling(Calling proposedCalling) {
         if(proposedCallings == null) {
             proposedCallings = new HashMap<>();
         }
         proposedCallings.put(proposedCalling.getCallingId(), proposedCalling);
+    }
+    public void removeProposedCalling(Calling proposedCalling) {
+        if(proposedCallings != null && proposedCalling != null) {
+            proposedCallings.remove(proposedCalling.getCallingId());
+        }
     }
 
     public int getCurrentAge() {

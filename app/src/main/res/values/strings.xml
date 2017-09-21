@@ -85,5 +85,7 @@
     <string name="calling_filters_orgs_heading">Organization</string>
     <string name="calling_filters_status_heading">Calling Status</string>
     <string name="calling_filters_heading">View By</string>
-
+    <string name="proposed_calling_with_status">%1$s (%2$s)</string>
+    <string name="current_calling_with_duration">%1$s (%2$d months)</string>
+    <string name="additional_lines_sum">%1$d more…</string>
 </resources>

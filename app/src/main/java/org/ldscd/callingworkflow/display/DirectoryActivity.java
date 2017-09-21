@@ -15,23 +15,20 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.android.volley.Response;
+
 import org.ldscd.callingworkflow.R;
+import org.ldscd.callingworkflow.display.adapters.DirectoryAdapter;
+import org.ldscd.callingworkflow.model.Member;
 import org.ldscd.callingworkflow.web.DataManager;
 
-import javax.inject.Inject;
+import java.util.List;
 
-/**
- * Created by Adam on 5/19/2017.
- */
+import javax.inject.Inject;
 
 public class DirectoryActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    /**
-     * Whether or not the activity is in two-pane mode, i.e. running on a tablet
-     * device.
-     */
-    private boolean twoPane;
     AppCompatActivity activity = this;
 
     @Inject
@@ -61,17 +58,16 @@ public class DirectoryActivity extends AppCompatActivity
         assert recyclerView != null;
         setupRecyclerView((RecyclerView) recyclerView);
 
-        if (findViewById(R.id.calling_detail_container) != null) {
-            // The detail container view will be present only in the
-            // large-screen layouts (res/values-w900dp).
-            // If this view is present, then the
-            // activity should be in two-pane mode.
-            twoPane = true;
-        }
     }
 
     private void setupRecyclerView(@NonNull final RecyclerView recyclerView) {
-
+        dataManager.getWardList(new Response.Listener<List<Member>>() {
+            @Override
+            public void onResponse(List<Member> members) {
+                DirectoryAdapter adapter = new DirectoryAdapter(members, dataManager);
+                recyclerView.setAdapter(adapter);
+            }
+        });
     }
 
     @Override

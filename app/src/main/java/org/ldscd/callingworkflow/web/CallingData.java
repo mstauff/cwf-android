@@ -126,6 +126,9 @@ public class CallingData {
             googleDataService.getOrgData(new Response.Listener<Org>() {
                 @Override
                 public void onResponse(Org googleOrg) {
+                    //changes to current and potential assignments will leave incorrect data in the member objects, we must remove them now
+                    //while references still exist in the current org and correct data is added back in after the merge completes
+                    memberData.removeMemberCallings(org.getCallings());
                     mergeOrgs(org, googleOrg);
                     extractOrg(org, org.getId());
                     listener.onResponse(org);
@@ -223,8 +226,6 @@ public class CallingData {
 
     private void mergeCallings(Org lcrOrg, Org cwfOrg) {
         List<Calling> lcrCallings = lcrOrg.getCallings();
-        memberData.setMemberCallings(lcrCallings);
-        memberData.setMemberPotentialCallings(cwfOrg.getCallings());
         if(cwfOrg.getCallings() != null) {
             for (Calling cwfCalling : cwfOrg.getCallings()) {
                 boolean matchFound = false;
@@ -253,8 +254,7 @@ public class CallingData {
                         }
                     }
 
-                    //if there's no match we can mark it as deleted since we know it no longer exists in lcr
-                    // else we'll mark it as conflicted since we can't tell for sure why it doesn't match up
+                    //set the flag if there's a match, else if lcr based id is present then it previously existed so mark it as deleted
                     if (potentialMatchesActual) {
                         cwfCalling.setConflictCause(ConflictCause.EQUIVALENT_POTENTIAL_AND_ACTUAL);
                     } else if(cwfCalling.getId() != null && cwfCalling.getId() > 0) {
@@ -264,6 +264,8 @@ public class CallingData {
                 }
             }
         }
+        //merge complete, this should now include callings from both sources
+        memberData.setMemberCallings(lcrCallings);
     }
 
     /* Calling Data */
