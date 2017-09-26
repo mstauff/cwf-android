@@ -1,5 +1,6 @@
 package org.ldscd.callingworkflow.display.adapters;
 
+import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,22 +8,22 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import org.ldscd.callingworkflow.R;
+import org.ldscd.callingworkflow.display.CallingDetailSearchFragment;
+import org.ldscd.callingworkflow.display.DirectoryActivity;
+import org.ldscd.callingworkflow.display.IndividualInformationFragment;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Member;
 import org.ldscd.callingworkflow.utils.DataUtil;
-import org.ldscd.callingworkflow.web.DataManager;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class DirectoryAdapter extends RecyclerView.Adapter<DirectoryAdapter.ViewHolder> {
-    private DataManager dataManager;
 
     private List<Member> values;
 
-    public DirectoryAdapter(List<Member> items, DataManager dataManager) {
+    public DirectoryAdapter(List<Member> items) {
         values = items;
-        this.dataManager = dataManager;
     }
 
     @Override
@@ -88,11 +89,12 @@ public class DirectoryAdapter extends RecyclerView.Adapter<DirectoryAdapter.View
         holder.view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            /*Context context = v.getContext();
-            Intent intent = new Intent(context, CallingDetailActivity.class);
-            intent.putExtra(CallingDetailFragment.CALLING_ID, holder.memberItem.getCallingId());
-            intent.putExtra(ExpandableOrgsListActivity.ARG_ORG_ID, holder.memberItem.getParentOrg());
-            context.startActivity(intent);*/
+                IndividualInformationFragment member_information_fragment = new IndividualInformationFragment();
+                Bundle args = new Bundle();
+                args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, holder.memberItem.getIndividualId());
+                member_information_fragment.setArguments(args);
+                DirectoryActivity activity = (DirectoryActivity) v.getContext();
+                member_information_fragment.show(activity.getSupportFragmentManager(), null);
             }
         });
     }

@@ -86,13 +86,15 @@ public class MemberData {
     public void removeCallingFromMembers(Calling calling) {
         if(calling.getMemberId() != null && calling.getMemberId() > 0) {
             Member currentMember = getMember(calling.getMemberId());
-            currentMember.removeCurrentCalling(calling);
-            List<Calling> result = currentMember.getCurrentCallings();
+            if(currentMember != null) {
+                currentMember.removeCurrentCalling(calling);
+            }
         }
         if(calling.getProposedIndId() != null && calling.getProposedIndId() > 0) {
             Member proposedMember = getMember(calling.getProposedIndId());
-            proposedMember.removeProposedCalling(calling);
-            List<Calling> result = new ArrayList<>(proposedMember.getProposedCallings());
+            if(proposedMember != null) {
+                proposedMember.removeProposedCalling(calling);
+            }
         }
     }
 }

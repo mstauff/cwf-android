@@ -126,11 +126,12 @@ public class DataManagerImpl implements DataManager {
         }
     }
     @Override
-    public void updateCalling(Response.Listener<Boolean> listener, Calling calling, Org org) {
+    public void updateCalling(Response.Listener<Boolean> listener, Calling calling) {
+        Org baseOrg = callingData.getBaseOrg(calling.getParentOrg());
         if(permissionManager.isAuthorized(currentUser.getUnitRoles(),
                 Permission.POTENTIAL_CALLING_UPDATE,
-                new AuthorizableOrg(org.getUnitNumber(), UnitLevelOrgType.get(org.getOrgTypeId()), org.getOrgTypeId()))) {
-            saveCalling(listener, org, calling, Operation.UPDATE);
+                new AuthorizableOrg(baseOrg.getUnitNumber(), UnitLevelOrgType.get(baseOrg.getOrgTypeId()), baseOrg.getOrgTypeId()))) {
+            saveCalling(listener, baseOrg, calling, Operation.UPDATE);
         }
     }
     @Override
@@ -163,8 +164,6 @@ public class DataManagerImpl implements DataManager {
     private void updateCalling(Org baseOrg, Calling updatedCalling, Operation operation) {
         if(operation.equals(Operation.UPDATE)) {
             Calling original = baseOrg.getCallingById(updatedCalling.getCallingId());
-            memberData.removeCallingFromMembers(original);
-            memberData.addCallingToMembers(updatedCalling);
             original.setNotes(updatedCalling.getNotes());
             original.setProposedIndId(updatedCalling.getProposedIndId());
             if(!updatedCalling.getProposedStatus().equals(CallingStatus.UNKNOWN)) {
@@ -173,7 +172,6 @@ public class DataManagerImpl implements DataManager {
         } else if(operation.equals(Operation.CREATE)) {
             Org org = findSubOrg(baseOrg, updatedCalling.getParentOrg());
             org.getCallings().add(updatedCalling);
-            memberData.addCallingToMembers(updatedCalling);
         }
     }
     private Org findSubOrg(Org org, long subOrgId) {
