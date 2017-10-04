@@ -25,7 +25,9 @@ public interface DataManager {
     void refreshOrg(Response.Listener<Org> listener, Long orgId);
     List<PositionMetaData> getAllPositionMetadata();
     PositionMetaData getPositionMetadata(int positionTypeId);
-    void updateLDSCalling(Calling calling, Long unitNumber, Response.Listener callback) throws JSONException;
+    void releaseLDSCalling(Calling calling, Response.Listener callback) throws JSONException;
+    void updateLDSCalling(Calling calling, Response.Listener callback) throws JSONException;
+    void deleteLDSCalling(Calling calling, Response.Listener callback) throws JSONException;
     /* Member data. */
     String getMemberName(Long id);
     Member getMember(Long id);

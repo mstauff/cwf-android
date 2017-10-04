@@ -5,9 +5,12 @@ import android.content.SharedPreferences;
 import android.provider.Settings;
 import android.util.Base64;
 import android.util.Log;
+
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
+import com.android.volley.RetryPolicy;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 
@@ -17,7 +20,6 @@ import org.joda.time.format.DateTimeFormatter;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ldscd.callingworkflow.constants.UnitLevelOrgType;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.ConfigInfo;
 import org.ldscd.callingworkflow.model.LdsUser;
@@ -30,6 +32,10 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import java.io.UnsupportedEncodingException;
+import java.net.CookieManager;
+import java.net.HttpCookie;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -40,7 +46,7 @@ import java.util.Map;
 
 public class WebResources implements IWebResources {
     private static final String TAG = "WebResourcesLog";
-    private static final String CONFIG_URL = "http://dev-ldscd.rhcloud.com/cwf/config?env=test";
+    private static final String CONFIG_URL = "http://dev-config-server-ldscd.7e14.starter-us-west-2.openshiftapps.com/cwf/config?env=test";
     private static final String LDS_ENDPOINTS = "ldsEndpointUrls";
     private static final String USER_DATA = "USER_DATA";
     private static final String SIGN_IN = "SIGN_IN";
@@ -72,6 +78,8 @@ public class WebResources implements IWebResources {
     private static byte[] key;
     private static byte[] iv;
     private static String secret;
+    private final CookieManager cookieManager;
+    private URI uri;
 
     public WebResources(Context context, RequestQueue requestQueue, SharedPreferences preferences) {
         this.requestQueue = requestQueue;
@@ -79,6 +87,14 @@ public class WebResources implements IWebResources {
         secret = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
         iv = new byte[16];
         Arrays.fill(iv, (byte) 0x00);
+        this.userName = "ngiwb1";
+        this.password = "password1";
+        this.cookieManager = new CookieManager();
+        try {
+            uri = new URI(CONFIG_URL);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
     }
 
     //load username and password which has been set previously
@@ -93,8 +109,8 @@ public class WebResources implements IWebResources {
 
     @Override
     public void setCredentials(String userName, String password) {
-        this.userName = userName;
-        this.password = password;
+        this.userName = "ngiwb1";
+        this.password = "password1";
         getAuthCookie(new Response.Listener<String>() {
             @Override
             public void onResponse(String cookie) {
@@ -109,69 +125,65 @@ public class WebResources implements IWebResources {
             configCallback.onResponse(configInfo);
         } else {
             GsonRequest<ConfigInfo> configRequest = new GsonRequest<>(
-                    Request.Method.GET,
-                    CONFIG_URL,
-                    ConfigInfo.class,
-                    null,
-                    null,
-                    new Response.Listener<ConfigInfo>() {
-                        @Override
-                        public void onResponse(ConfigInfo response) {
-                            Log.i(TAG, "config call successful");
-                            configInfo = response;
-                            configCallback.onResponse(configInfo);
-                        }
-                    },
-                    new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            Log.e(TAG, "load config error");
-                            error.printStackTrace();
-                        }
+                Request.Method.GET,
+                CONFIG_URL,
+                ConfigInfo.class,
+                null,
+                null,
+                new Response.Listener<ConfigInfo>() {
+                    @Override
+                    public void onResponse(ConfigInfo response) {
+                        Log.i(TAG, "config call successful");
+                        configInfo = response;
+                        configCallback.onResponse(configInfo);
                     }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e(TAG, "load config error");
+                        error.printStackTrace();
+                    }
+                }
             );
+            configRequest.setRetryPolicy(getRetryPolicy());
             requestQueue.add(configRequest);
         }
     }
 
     private void getAuthCookie(final Response.Listener<String> authCallback) {
-        if(authCookie != null) {
+        //preferences.edit().remove("Cookie");
+        if(preferences.contains("Cookie")) {
+            authCookie = preferences.getString("Cookie", null);
             authCallback.onResponse(authCookie);
         } else {
+            AuthenticationRequest authRequest = new AuthenticationRequest(userName, password, configInfo.getEndpointUrl("SIGN_IN"),
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        authCookie = "clerk-resources-beta-terms=true; clerk-resources-beta-eula=4.2; " + response;
+                        Log.i(TAG, "auth call successful");
+                        HttpCookie httpCookie = new HttpCookie("cwf", authCookie);
+                        cookieManager.getCookieStore().add(uri, httpCookie);
+                        SharedPreferences.Editor editor = preferences.edit();
+                        editor.putString(prefUsername, encrypt(userName));
+                        editor.putString(prefPassword, encrypt(password));
+                        editor.putString("Cookie", authCookie);
+                        editor.apply();
 
-            getConfigInfo(new Response.Listener<ConfigInfo>() {
-                @Override
-                public void onResponse(ConfigInfo config) {
-                    if(userName == null || password == null) {
-                        loadCredentials();
+                        authCallback.onResponse(authCookie);
                     }
-
-                    AuthenticationRequest authRequest = new AuthenticationRequest(userName, password, configInfo.getEndpointUrl("SIGN_IN"),
-                            new Response.Listener<String>() {
-                                @Override
-                                public void onResponse(String response) {
-                                    authCookie = "clerk-resources-beta-terms=true; " + response;
-                                    Log.i(TAG, "auth call successful");
-
-                                    SharedPreferences.Editor editor = preferences.edit();
-                                    editor.putString(prefUsername, encrypt(userName));
-                                    editor.putString(prefPassword, encrypt(password));
-                                    editor.apply();
-
-                                    authCallback.onResponse(authCookie);
-                                }
-                            },
-                            new Response.ErrorListener() {
-                                @Override
-                                public void onErrorResponse(VolleyError error) {
-                                    Log.e(TAG, "auth error");
-                                    error.printStackTrace();
-                                }
-                            }
-                    );
-                    requestQueue.add(authRequest);
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e(TAG, "auth error");
+                        error.printStackTrace();
+                    }
                 }
-            });
+            );
+            authRequest.setRetryPolicy(getRetryPolicy());
+            requestQueue.add(authRequest);
         }
     }
 
@@ -180,59 +192,66 @@ public class WebResources implements IWebResources {
         if(userInfo != null) {
             userCallback.onResponse(userInfo);
         } else {
-
-            getAuthCookie(new Response.Listener<String>() {
+            getConfigInfo(new Response.Listener<ConfigInfo>() {
                 @Override
-                public void onResponse(final String authCookie) {
-                    final List<Position> positions = new ArrayList<Position>();
-                    JsonObjectRequest userRequest = new JsonObjectRequest(
-                            Request.Method.GET,
-                            configInfo.getEndpointUrl("USER_DATA"),
-                            null,
-                            new Response.Listener<JSONObject>() {
-                                @Override
-                                public void onResponse(JSONObject json) {
-                                    LdsUser user = null;
-                                    Log.i(TAG, "User call successful");
-                                    Log.i(TAG, json.toString());
-                                    try {
-                                        JSONArray assignments = json.getJSONArray("memberAssignments");
-                                        OrgCallingBuilder builder = new OrgCallingBuilder();
-                                        for(int i = 0; i < assignments.length(); i++) {
-                                            positions.add(builder.extractPosition((JSONObject) assignments.get(i)));
-                                        }
-                                        unitNumber = json.getJSONArray("memberAssignments").getJSONObject(0).getString("unitNo");
-                                        long individualId = json.getJSONObject("individualId").getLong("individualId");
-                                        user = new LdsUser(individualId, positions);
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
-                                    }
-
-                                    userCallback.onResponse(user);
-                                }
-                            },
-                            new Response.ErrorListener() {
-                                @Override
-                                public void onErrorResponse(VolleyError error) {
-                                    Log.e(TAG, "load user error");
-                                    error.printStackTrace();
-                                    unitNumber = "56030";
-                                    userCallback.onResponse(null);
-                                }
-                            }
-                    ) {
+                public void onResponse(ConfigInfo config) {
+                    if (userName == null || password == null) {
+                      loadCredentials();
+                    }
+                    getAuthCookie(new Response.Listener<String>() {
                         @Override
-                        public Map<String, String> getHeaders() {
-                            Map<String, String> headers = new HashMap<>();
-                            headers.put("Cookie", authCookie);
-                            return headers;
-                        }
-                    };
-                    requestQueue.add(userRequest);
+                        public void onResponse(final String authCookie) {
+                            final List<Position> positions = new ArrayList<Position>();
+                            JsonObjectRequest userRequest = new JsonObjectRequest(
+                                    Request.Method.GET,
+                                    configInfo.getUserDataUrl(),
+                                    null,
+                                    new Response.Listener<JSONObject>() {
+                                        @Override
+                                        public void onResponse(JSONObject json) {
+                                            LdsUser user = null;
+                                            Log.i(TAG, "User call successful");
+                                            Log.i(TAG, json.toString());
+                                            try {
+                                                JSONArray assignments = json.getJSONArray("memberAssignments");
+                                                OrgCallingBuilder builder = new OrgCallingBuilder();
+                                                for(int i = 0; i < assignments.length(); i++) {
+                                                    positions.add(builder.extractPosition((JSONObject) assignments.get(i)));
+                                                }
+                                                unitNumber = json.getJSONArray("memberAssignments").getJSONObject(0).getString("unitNo");
+                                                long individualId = json.getLong("individualId");
+                                                user = new LdsUser(individualId, positions);
+                                            } catch (JSONException e) {
+                                                e.printStackTrace();
+                                            }
 
+                                            userCallback.onResponse(user);
+                                        }
+                                    },
+                                    new Response.ErrorListener() {
+                                        @Override
+                                        public void onErrorResponse(VolleyError error) {
+                                            Log.e(TAG, "load user error");
+                                            error.printStackTrace();
+                                            unitNumber = "56030";
+                                            userCallback.onResponse(null);
+                                        }
+                                    }
+                            ) {
+                                @Override
+                                public Map<String, String> getHeaders() {
+                                    Map<String, String> headers = new HashMap<>();
+                                    headers.put("Cookie", authCookie);
+                                    return headers;
+                                }
+                            };
+                            userRequest.setRetryPolicy(getRetryPolicy());
+                            requestQueue.add(userRequest);
+
+                        }
+                    });
                 }
             });
-
         }
     }
 
@@ -246,8 +265,10 @@ public class WebResources implements IWebResources {
                 public void onResponse(LdsUser ldsUser) {
                     Map<String, String> headers = new HashMap<>();
                     headers.put("Cookie", authCookie);
+                    headers.put("Content-type", "application/json");
+                    headers.put("Accept", "application/json");
                     OrgsListRequest orgsRequest = new OrgsListRequest(
-                            configInfo.getEndpointUrl("CALLING_LIST"),
+                            configInfo.getCallingListUrl(),
                             headers,
                             new Response.Listener<List<Org>>() {
                                 @Override
@@ -265,6 +286,7 @@ public class WebResources implements IWebResources {
                                 }
                             }
                     );
+                    orgsRequest.setRetryPolicy(getRetryPolicy());
                     requestQueue.add(orgsRequest);
                 }
             });
@@ -283,8 +305,10 @@ public class WebResources implements IWebResources {
 
                     Map<String, String> headers = new HashMap<>();
                     headers.put("Cookie", authCookie);
+                    headers.put("Content-type", "application/json");
+                    headers.put("Accept", "application/json");
                     MemberListRequest wardListRequest = new MemberListRequest(
-                            configInfo.getEndpointUrl("MEMBER_LIST").replace(":unitNum", unitNumber),
+                            configInfo.getMemberListUrl().replace(":unitNum", unitNumber),
                             headers,
                             new Response.Listener<List<Member>>() {
                                 @Override
@@ -302,6 +326,7 @@ public class WebResources implements IWebResources {
                                 }
                             }
                     );
+                    wardListRequest.setRetryPolicy(getRetryPolicy());
                     requestQueue.add(wardListRequest);
 
                 }
@@ -365,7 +390,7 @@ public class WebResources implements IWebResources {
         return new LdsUser(individualId, positions);
     }
 
-    public void updateCalling(Calling calling, Long unitNumber, UnitLevelOrgType unitLevelOrgType, final Response.Listener<JSONObject> callback) throws JSONException {
+    public void updateCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback) throws JSONException {
         /*
         json: {
          "unitNumber": 56030,
@@ -381,42 +406,123 @@ public class WebResources implements IWebResources {
          */
         org.json.JSONObject json = new org.json.JSONObject();
         json.put("unitNumber", unitNumber);
-        json.put("subOrgTypeId", unitLevelOrgType.getOrgTypeId());
+        json.put("subOrgTypeId", orgTypeId);
         json.put("subOrgId", calling.getParentOrg());
         json.put("positionTypeId", calling.getPosition().getPositionTypeId());
         json.put("position", calling.getPosition().getName());
-        json.put("memberId", calling.getProposedIndId());
-        LocalDate date = LocalDate.now();
-        DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMd");
-        json.put("releaseDate", date.toString(fmt));
-        JSONArray positionIds = new JSONArray();
-        positionIds.put(calling.getId());
-        json.put("releasePositionIds", positionIds);
-        Map<String, String> header = new HashMap<String, String>();
-        header.put("Content-Type", "application/json");
-        GsonRequest<String> gsonRequest = new GsonRequest<String>(
-                Request.Method.POST,
-                configInfo.getUpdateCallingUrl(),
-                String.class,
-                header,
-                json,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        try {
-                            callback.onResponse(new JSONObject(response));
-                        } catch (JSONException e) {
-                            Log.e("Json Parse LDS update", e.getMessage());
-                        }
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
+        json.put("memberId", calling.getProposedIndId().toString());
 
+        if(calling.getId() != null && calling.getId() > 0) {
+            LocalDate date = LocalDate.now();
+            DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMd");
+            json.put("releaseDate", date.toString(fmt));
+            JSONArray positionIds = new JSONArray();
+            positionIds.put(calling.getId());
+            json.put("releasePositionIds", positionIds);
+        }
+        Map<String, String> headers = new HashMap<String, String>();
+        headers.put("Cookie", authCookie);
+        //headers.put("Content-Type", "application/json; charset=UTF-8");
+        headers.put("Accept", "application/json");
+        GsonRequest<String> gsonRequest = new GsonRequest<String>(
+            Request.Method.POST,
+            configInfo.getUpdateCallingUrl(),
+            String.class,
+            headers,
+            json,
+            new Response.Listener<String>() {
+                @Override
+                public void onResponse(String response) {
+                    try {
+                        callback.onResponse(new JSONObject(response));
+                    } catch (JSONException e) {
+                        Log.e("Json Parse LDS update", e.getMessage());
                     }
                 }
+            },
+            new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    JSONObject jsonObject = null;
+                    try {
+                        jsonObject = new JSONObject(error.getMessage());
+                    } catch (JSONException jsonError) {
+                        jsonError.printStackTrace();
+                    }
+                    callback.onResponse(jsonObject);
+                }
+            }
         );
+        gsonRequest.setRetryPolicy(
+                new DefaultRetryPolicy(
+                        0,
+                        DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT)
+                );
         requestQueue.add(gsonRequest);
+    }
+
+    public void releaseCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback) throws JSONException {
+
+    }
+
+    public void deleteCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback) throws JSONException {
+
+    }
+
+    private JSONObject createJsonObject(Long unitNumber, Calling calling) throws JSONException {
+        org.json.JSONObject jsonObject = new org.json.JSONObject();
+        jsonObject.put("unitNumber", unitNumber);
+        //jsonObject.put("subOrgTypeId", unitLevelOrgType.getOrgTypeId());
+        jsonObject.put("subOrgId", calling.getParentOrg());
+        jsonObject.put("positionTypeId", calling.getPosition().getPositionTypeId());
+        jsonObject.put("position", calling.getPosition().getName());
+        jsonObject.put("memberId", calling.getProposedIndId());
+        LocalDate date = LocalDate.now();
+        DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMd");
+        jsonObject.put("releaseDate", date.toString(fmt));
+        JSONArray positionIds = new JSONArray();
+        positionIds.put(calling.getId());
+        jsonObject.put("releasePositionIds", positionIds);
+        return jsonObject;
+    }
+
+    private void postJson(String url, JSONObject data, final Response.Listener<JSONObject> listener) {
+        JsonObjectRequest jsonObjectRequest =
+                new JsonObjectRequest(
+                        Request.Method.POST,
+                        url,
+                        data,
+                        new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                listener.onResponse(response);
+                            }
+                        },
+                        new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                Log.e("Post Json", error.getMessage());
+                            }
+                        }
+                );
+        requestQueue.add(jsonObjectRequest);
+    }
+
+    private static RetryPolicy getRetryPolicy() {
+        return new RetryPolicy() {
+            @Override
+            public int getCurrentTimeout() {
+                return 50000;
+            }
+
+            @Override
+            public int getCurrentRetryCount() {
+                return DefaultRetryPolicy.DEFAULT_MAX_RETRIES;
+            }
+
+            @Override
+            public void retry(VolleyError error) throws VolleyError { }
+        };
     }
 }

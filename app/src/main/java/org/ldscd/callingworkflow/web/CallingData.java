@@ -294,8 +294,16 @@ public class CallingData {
         }
     }
 
-    public void updateLDSCalling(Calling calling, Long unitNumber, UnitLevelOrgType orgType, Response.Listener callback) throws JSONException {
-        webResources.updateCalling(calling, unitNumber, orgType, callback);
+    public void releaseLDSCalling(Calling calling, int orgTypeId, Response.Listener callback) throws JSONException {
+        webResources.releaseCalling(calling, getOrg(calling.getParentOrg()).getUnitNumber(), orgTypeId, callback);
+    }
+
+    public void updateLDSCalling(Calling calling, int orgTypeId, Response.Listener callback) throws JSONException {
+        webResources.updateCalling(calling, getOrg(calling.getParentOrg()).getUnitNumber(), orgTypeId, callback);
+    }
+
+    public void deleteLDSCalling(Calling calling, int orgTypeId, Response.Listener callback) throws JSONException {
+        webResources.deleteCalling(calling, getOrg(calling.getParentOrg()).getUnitNumber(), orgTypeId, callback);
     }
 
     /* Position Meta Data */

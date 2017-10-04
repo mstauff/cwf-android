@@ -161,7 +161,7 @@ public class LocalFileResources implements IWebResources {
         return json;
     }
 
-    public void updateCalling(Calling calling, Long unitNumber, UnitLevelOrgType unitLevelOrgType, final Response.Listener<JSONObject> callback) throws JSONException {
+    public void updateCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback) throws JSONException {
         /*
         json: {
          "unitNumber": 56030,
@@ -177,7 +177,7 @@ public class LocalFileResources implements IWebResources {
          */
         org.json.JSONObject json = new org.json.JSONObject();
         json.put("unitNumber", unitNumber);
-        json.put("subOrgTypeId", unitLevelOrgType.getOrgTypeId());
+        json.put("subOrgTypeId", orgTypeId);
         json.put("subOrgId", calling.getParentOrg());
         json.put("positionTypeId", calling.getPosition().getPositionTypeId());
         json.put("position", calling.getPosition().getName());
@@ -209,18 +209,18 @@ public class LocalFileResources implements IWebResources {
             new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-
+                    Log.e("Network", error.getMessage());
                 }
             }
         );
         requestQueue.add(gsonRequest);
     }
 
-    public void releaseCalling(long unitNumber, Calling calling, Response.Listener<Boolean> callback) {
+    public void releaseCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback) throws JSONException {
 
     }
 
-    public void deleteCalling(long unitNumber, Calling calling, Response.Listener<Boolean> callback) {
+    public void deleteCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback) throws JSONException {
 
     }
 

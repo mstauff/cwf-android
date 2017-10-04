@@ -4,7 +4,6 @@ import com.android.volley.Response;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ldscd.callingworkflow.constants.UnitLevelOrgType;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.ConfigInfo;
 import org.ldscd.callingworkflow.model.LdsUser;
@@ -31,5 +30,9 @@ public interface IWebResources {
 
     void getPositionMetaData(Response.Listener<String> callback);
 
-    void updateCalling(Calling calling, Long unitNumber, UnitLevelOrgType unitLevelOrgType, final Response.Listener<JSONObject> callback) throws JSONException;
+    void releaseCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback) throws JSONException;
+
+    void updateCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback) throws JSONException;
+
+    void deleteCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback) throws JSONException;
 }

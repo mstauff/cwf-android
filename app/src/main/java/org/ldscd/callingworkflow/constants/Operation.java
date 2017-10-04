@@ -7,7 +7,8 @@ public enum Operation {
     CREATE("Create"),
     READ("Read"),
     UPDATE("Update"),
-    DELETE("Delete");
+    DELETE("Delete"),
+    RELEASE("Release");
 
     String selection;
     Operation(String selection) {

@@ -7,6 +7,7 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.Response.Listener;
 import com.android.volley.Response.ErrorListener;
+import com.android.volley.VolleyError;
 import com.android.volley.toolbox.HttpHeaderParser;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -43,11 +44,16 @@ public class GsonRequest<T> extends Request<T> {
     public byte[] getBody() {
         byte[] array = null;
         try {
-            array = jsonObject.toString().getBytes("UTF-8");
-        } catch (UnsupportedEncodingException e) {
+            array = jsonObject.toString().getBytes();
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return array;
+    }
+
+    @Override
+    public String getBodyContentType() {
+        return "application/json;";
     }
 
     @Override
@@ -74,5 +80,14 @@ public class GsonRequest<T> extends Request<T> {
         } catch (JsonSyntaxException e) {
             return Response.error(new ParseError(e));
         }
+    }
+
+    @Override
+    protected VolleyError parseNetworkError(VolleyError volleyError){
+        if(volleyError.networkResponse != null && volleyError.networkResponse.data != null && volleyError.networkResponse.statusCode==400){
+            volleyError = new VolleyError(new String(volleyError.networkResponse.data));
+        }
+
+        return volleyError;
     }
 }

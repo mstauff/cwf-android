@@ -18,11 +18,14 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 
+import com.android.volley.Response;
+
+import org.json.JSONException;
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.constants.CallingStatus;
+import org.ldscd.callingworkflow.constants.Operation;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Member;
-import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.web.DataManager;
 
 import java.util.ArrayList;
@@ -37,7 +40,7 @@ import javax.inject.Inject;
  * in two-pane mode (on tablets) or a {@link CallingDetailActivity}
  * on handsets.
  */
-public class CallingDetailFragment extends Fragment implements MemberLookupFragment.OnMemberLookupFragmentListener {
+public class CallingDetailFragment extends Fragment implements MemberLookupFragment.OnMemberLookupFragmentListener, LeaderClerkResourceDialogFragment.LeaderClerkResourceListener {
     @Inject
     DataManager dataManager;
     Spinner statusDropdown;
@@ -76,10 +79,37 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
 
     @Override
     public void onMemberLookupFragmentInteraction(Member member) {
+        /* If the currently selected member is different from the originally selected member
+           remove the proposed calling from the previously selected member.
+         */
+        if(this.proposedMember != null && this.proposedMember != member) {
+            this.proposedMember.removeProposedCalling(this.calling);
+        }
+        /* Re-assign the proposed member to the newly selected member. */
         this.proposedMember = member;
-        this.calling.setProposedIndId(member.getIndividualId());
+        this.calling.setProposedIndId(member == null ? 0 : member.getIndividualId());
         wireUpMemberSearch();
     }
+
+    @Override
+    public void onLeaderClerkResourceFragmentInteraction(Operation operation) throws JSONException {
+        if(operation == Operation.RELEASE) {
+            dataManager.releaseLDSCalling(calling, LCRResposne);
+        } else if(operation == Operation.UPDATE) {
+            dataManager.updateLDSCalling(calling, LCRResposne);
+        } else if(operation == Operation.DELETE) {
+            dataManager.deleteLDSCalling(calling, LCRResposne);
+        }
+
+    }
+    protected Response.Listener<Object> LCRResposne = new Response.Listener<Object>() {
+        @Override
+        public void onResponse(Object response) {
+            if (response != null) {
+
+            }
+        }
+    };
 
     public interface OnCallingDetailFragmentListener {
         public void onFragmentInteraction(Calling calling, boolean hasChanges);
@@ -123,7 +153,8 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
 
     private void wireUpMemberSearch() {
         if(calling.getProposedIndId()!= 0) {
-            String formattedName = proposedMember == null ? dataManager.getMemberName(calling.getProposedIndId()) : proposedMember.getFormattedName();
+            this.proposedMember = dataManager.getMember(calling.getProposedIndId());
+            String formattedName = this.proposedMember == null ? "" : this.proposedMember.getFormattedName();
             if(formattedName != null) {
                 TextView name = (TextView) view.findViewById(R.id.member_lookup_name);
                 name.setText(formattedName);
@@ -245,9 +276,15 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                submitOrgChanges();
+                updateLCR();
             }
         });
+    }
+
+    private void updateLCR() {
+        LeaderClerkResourceDialogFragment leaderClerkResourceDialogFragment = new LeaderClerkResourceDialogFragment();
+        leaderClerkResourceDialogFragment.OnLCRCallingUpdateListener(this);
+        leaderClerkResourceDialogFragment.show(getFragmentManager(), null);
     }
 
     private void submitOrgChanges() {

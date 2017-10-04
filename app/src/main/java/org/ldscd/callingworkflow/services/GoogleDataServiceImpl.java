@@ -182,9 +182,9 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
                                     cwFileContent = driveContentsResult.getDriveContents();
                                     if(cwFileContent != null) {
                                         InputStream inputStream = cwFileContent.getInputStream();
-                                    /* Convert the stream into a string for usability. */
+                                        /* Convert the stream into a string for usability. */
                                         String cwStr = ConflictUtil.getStringFromInputStream(inputStream);
-                                    /* Convert the json string into an Org.  Then inject the org into the callback. */
+                                        /* Convert the json string into an Org.  Then inject the org into the callback. */
                                     OrgCallingBuilder orgCallingBuilder = new OrgCallingBuilder();
                                         JSONArray jsonArray = null;
                                         JSONObject jsonObject = null;
@@ -353,7 +353,7 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
                                 for (Metadata metadata : metadataBufferResult.getMetadataBuffer()) {
                                     metaFileMap.put(metadata.getTitle(), metadata);
                                     /* This commented code is for removing a specified file and reloading it afresh. */
-                                    /*if(metadata.getTitle().toLowerCase().contains("bishop") || metadata.getTitle().toLowerCase().contains("untitled")) {
+                                    /*if(metadata != null && metadata.getOriginalFilename().contains("RS")) {
                                         DriveId fileId = metadata.getDriveId();
                                         DriveFile orgFile = fileId.asDriveFile();
                                          //Call to delete app data file. Unable to use trash because it's not a visible file.
@@ -363,7 +363,7 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
                                 if(orgList != null) {
                                     List<Org> itemsToCreate = new ArrayList<Org>();
                                     for (Org org : orgList) {
-                                        if (!metaFileMap.containsKey(DataUtil.getFileName(org))) {
+                                        if (org.getOrgTypeId() > 0 && !metaFileMap.containsKey(DataUtil.getFileName(org))) {
                                             itemsToCreate.add(org);
                                         }
                                     }

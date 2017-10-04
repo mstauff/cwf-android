@@ -4,14 +4,14 @@ import java.util.List;
 import java.util.Map;
 
 public class ConfigInfo {
-    private static final String LDS_ENDPOINTS = "ldsEndpointUrls";
-    private static final String USER_DATA = "USER_DATA";
-    private static final String SIGN_IN = "SIGN_IN";
-    private static final String SIGN_OUT = "SIGN_OUT";
-    private static final String MEMBER_LIST = "MEMBER_LIST";
-    private static final String MEMBER_LIST_SECONDARY = "MEMBER_LIST_SECONDARY";
-    private static final String UPDATE_CALLING = "UPDATE_CALLING";
-    private static final String CALLING_LIST = "CALLING_LIST";
+    public static final String LDS_ENDPOINTS = "ldsEndpointUrls";
+    public static final String USER_DATA = "USER_DATA";
+    public static final String SIGN_IN = "SIGN_IN";
+    public static final String SIGN_OUT = "SIGN_OUT";
+    public static final String MEMBER_LIST = "MEMBER_LIST";
+    public static final String MEMBER_LIST_SECONDARY = "MEMBER_LIST_SECONDARY";
+    public static final String UPDATE_CALLING = "UPDATE_CALLING";
+    public static final String CALLING_LIST = "CALLING_LIST";
 
     private String[] statuses;
     private Map<String,String> ldsEndpointUrls;

@@ -18,8 +18,10 @@
     <string name="list_display_options_proposed">Proposed</string>
     <string name="list_display_options_approved">Approved</string>
     <string name="list_display_options_extended">Extended</string>
-    <string name="release_current_in_lcr">Release Current in LCR</string>
-    <string name="delete_calling_in_lcr">Delete Calling in LCR</string>
+    <string name="lcr_menu_header">Leader Clerk Resources</string>
+    <string name="release_current_in_lcr">Release Currently Called</string>
+    <string name="update_calling_in_lcr">Update Calling</string>
+    <string name="delete_calling_in_lcr">Delete Calling</string>
     <string name="setting_header">Settings</string>
     <string name="user_name">User Name</string>
     <string name="password">Password</string>

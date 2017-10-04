@@ -88,9 +88,16 @@ public class DataManagerImpl implements DataManager {
     public PositionMetaData getPositionMetadata(int positionTypeId) {
         return callingData.getPositionMetadata(positionTypeId);
     }
-    public void updateLDSCalling(Calling calling, Long unitNumber, Response.Listener callback) throws JSONException {
-        callingData.updateLDSCalling(calling, unitNumber, UnitLevelOrgType.get(getOrg(calling.getParentOrg()).getOrgTypeId()), callback);
+    public void releaseLDSCalling(Calling calling, Response.Listener callback) throws JSONException {
+
     }
+    public void updateLDSCalling(Calling calling, Response.Listener callback) throws JSONException {
+        callingData.updateLDSCalling(calling, getOrg(calling.getParentOrg()).getOrgTypeId(), callback);
+    }
+    public void deleteLDSCalling(Calling calling, Response.Listener callback) throws JSONException {
+
+    }
+
     /* Member data. */
     public String getMemberName(Long id) {
         if(id != null) {

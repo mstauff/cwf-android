@@ -52,7 +52,7 @@ public class OrgCallingBuilder {
             try {
                 JSONObject orgJson = orgsJson.getJSONObject(i);
                 Org org = extractOrg(orgJson);
-                if(org != null) {
+                if(org != null && org.getOrgTypeId() > 0) {
                     orgs.add(org);
                 }
             } catch(JSONException e) {

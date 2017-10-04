@@ -12,6 +12,7 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.android.volley.Response;
 
@@ -25,6 +26,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
+
+import static org.ldscd.callingworkflow.display.CallingDetailFragment.INDIVIDUAL_ID;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -43,6 +46,7 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
     private View view;
     private MemberLookupAdapter adapter;
     private ListView listView;
+    private Member currentSelection;
 
     /* Popup items. */
     private FilterOption filterOption;
@@ -122,6 +126,24 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
     }
 
     private void init() {
+        final TextView currentSelectionLabel = (TextView) view.findViewById(R.id.member_lookup_current_selection_label);
+        Bundle bundle = this.getArguments();
+        if (bundle != null && !bundle.isEmpty()) {
+            Long individualId = bundle.getLong(INDIVIDUAL_ID, 0);
+            if(individualId > 0) {
+                currentSelection = dataManager.getMember(individualId);
+                currentSelectionLabel.setText(currentSelection.getFormattedName());
+            }
+        }
+        ImageButton removeSelection = (ImageButton) view.findViewById(R.id.member_lookup_clear_selection_button);
+        removeSelection.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                currentSelectionLabel.setText("");
+                mListener.onMemberLookupFragmentInteraction(null);
+                getFragmentManager().popBackStack();
+            }
+        });
         listView = (ListView) view.findViewById(R.id.member_lookup_member_list);
         if(adapter == null) {
             setAdapter();
