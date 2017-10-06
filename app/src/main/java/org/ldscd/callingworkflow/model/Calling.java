@@ -19,6 +19,8 @@ public class Calling implements Serializable {
     private Long positionId;
     /* cwfId is and Id that if LCR doesn't have one we generate an Id. */
     private String cwfId;
+    /* cwfOnly is true for callings created in CWF that haven't been saved/don't exist in LCR */
+    private boolean cwfOnly;
     private Long memberId;
     private Long proposedIndId;
     private String activeDate;
@@ -34,18 +36,19 @@ public class Calling implements Serializable {
     public Calling() {}
 
     public Calling(Calling calling) {
-        this(calling.getId(), calling.getCwfId(), calling.getMemberId(), calling.getProposedIndId(),
+        this(calling.getId(), calling.getCwfId(), calling.isCwfOnly(), calling.getMemberId(), calling.getProposedIndId(),
                 calling.getActiveDateTime(), calling.getPosition(), calling.getExistingStatus(),
                 calling.getProposedStatus(), calling.getNotes(), calling.getParentOrg());
     }
 
-    public Calling(Long positionId, String cwfId, Long memberId, Long proposedIndId, DateTime activeDateTime, Position position,
+    public Calling(Long positionId, String cwfId, boolean cwfOnly, Long memberId, Long proposedIndId, DateTime activeDateTime, Position position,
                    String existingStatus, CallingStatus proposedStatus, String notes, Long parentOrg) {
         this.positionId = positionId;
         /* If we don't have a unique id then we create an internal one. */
         if(positionId == null || positionId == 0) {
             this.cwfId = (cwfId != null && cwfId.length() > 0) ? cwfId : UUID.randomUUID().toString();
         }
+        this.cwfOnly = cwfOnly;
         this.memberId = memberId;
         this.proposedIndId = proposedIndId;
         this.activeDateTime = activeDateTime;
@@ -73,6 +76,9 @@ public class Calling implements Serializable {
     public void setCwfId(String cwfId) {
         this.cwfId = cwfId;
     }
+
+    public boolean isCwfOnly() { return cwfOnly; }
+    public void setCwfOnly(boolean cwfOnly) { this.cwfOnly = cwfOnly; }
 
     public Long getMemberId() {
         return memberId;

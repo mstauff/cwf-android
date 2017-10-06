@@ -18,6 +18,7 @@ public class PositionSerializer  implements JsonSerializer<Calling> {
         JsonObject obj = new JsonObject();
         obj.addProperty("positionId", src.getId() != null && src.getId() > 0 ? src.getId() : null);
         obj.addProperty("cwfId", src.getCwfId() != null ? src.getCwfId() : null);
+        obj.addProperty("cwfOnly", src.isCwfOnly());
         obj.addProperty("memberId", src.getMemberId() != null && src.getMemberId() > 0 ? src.getMemberId() : null);
         obj.addProperty("proposedIndId", src.getProposedIndId() != null && src.getProposedIndId() > 0 ? src.getProposedIndId() : null);
         obj.addProperty("activeDate", src.getActiveDate() != null ? src.getActiveDate() : null);

@@ -49,7 +49,7 @@ public class CreateCallingFragment extends Fragment implements MemberLookupFragm
     }
 
     public Calling getNewCalling() {
-
+        boolean cwfOnly = true;
         Long parentId = parentOrg.getId();
         Long proposedId = null;
         if(proposedMember != null) {
@@ -59,7 +59,7 @@ public class CreateCallingFragment extends Fragment implements MemberLookupFragm
         CallingStatus status = (CallingStatus) statusDropdown.getSelectedItem();
         String notes = notesBox.getText().toString();
 
-        return new Calling(null, null, null, proposedId, null, position, null, status, notes, parentId);
+        return new Calling(null, null, cwfOnly, null, proposedId, null, position, null, status, notes, parentId);
     }
 
     @Override

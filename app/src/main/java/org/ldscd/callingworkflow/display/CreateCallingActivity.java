@@ -24,7 +24,6 @@ public class CreateCallingActivity extends AppCompatActivity implements CreateCa
     @Inject
     DataManager dataManager;
 
-    private Org parentOrg;
     private boolean subFragmentOpen;
     private ActionBar actionBar;
     private Menu actionBarMenu;
@@ -37,7 +36,6 @@ public class CreateCallingActivity extends AppCompatActivity implements CreateCa
         ((CWFApplication)getApplication()).getNetComponent().inject(this);
         setContentView(R.layout.activity_create_calling);
         long parentOrgId = getIntent().getLongExtra(PARENT_ORG_ID, 0);
-        parentOrg = dataManager.getOrg(parentOrgId);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);

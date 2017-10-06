@@ -22,6 +22,7 @@ public class OrgCallingBuilder {
     private static final String unitNumberFieldName = "unitNumber";
     private static final String orgIdFieldName = "subOrgId";
     private static final String positionCwfIdFieldName = "cwfId";
+    private static final String cwfOnlyFieldName = "cwfOnly";
     private static final String defaultNameFieldName = "defaultOrgName";
     private static final String customNameFieldName = "customOrgName";
     private static final String orgTypeIdFieldName = "firstOrgTypeId";
@@ -109,6 +110,10 @@ public class OrgCallingBuilder {
         if(!json.isNull(positionIdFieldName)) {
             id = json.getLong(positionIdFieldName);
         }
+        boolean cwfOnly = false;
+        if(!json.isNull(cwfOnlyFieldName)) {
+            cwfOnly = json.getBoolean(cwfOnlyFieldName);
+        }
         String existingStatus = json.has(existingStatusFieldName) ? json.getString(existingStatusFieldName) : null;
         if(existingStatus != null && existingStatus.equals("null")) {
             existingStatus = null;
@@ -131,7 +136,7 @@ public class OrgCallingBuilder {
             notes = null;
         }
 
-        return new Calling(id, cwfId, currentMemberId, proposedIndId, activeDate, extractPosition(json), existingStatus, proposedStatus, notes, parentId);
+        return new Calling(id, cwfId, cwfOnly, currentMemberId, proposedIndId, activeDate, extractPosition(json), existingStatus, proposedStatus, notes, parentId);
     }
 
     public Position extractPosition(JSONObject json) throws JSONException {

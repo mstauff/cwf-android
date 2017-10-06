@@ -224,43 +224,104 @@ public class CallingData {
         mergeCallings(lcrOrg, cwfOrg);
     }
 
+    //This merges callings from both orgs into the lcrOrg
     private void mergeCallings(Org lcrOrg, Org cwfOrg) {
         List<Calling> lcrCallings = lcrOrg.getCallings();
         if(cwfOrg.getCallings() != null) {
+            //initialize a map by position type to list the empty callings which we have no way of matching
+            //we can deal with them as a group once the list is complete
+            Map<Integer, List<Calling>> cwfVacantCallingsByType = new HashMap<>();
             for (Calling cwfCalling : cwfOrg.getCallings()) {
-                boolean matchFound = false;
-                //Check for a match by Id, if so import cwf data
-                for (Calling lcrCalling : lcrCallings) {
 
-                    if (cwfCalling.isEqualsTo(lcrCalling)) {
-                        // todo - this needs to be persisted to google drive
-                        //if the proposed member has become the current we can discard the old proposed info
-                        if(!(cwfCalling.getProposedIndId() > 0 && cwfCalling.getProposedIndId().equals(lcrCalling.getMemberId()))) {
+                //if it's cwfOnly then we only try to merge by cwfId in case it has been added on previously
+                if(cwfCalling.isCwfOnly()) {
+                    boolean matchFound = false;
+                    for(Calling lcrCalling: lcrCallings) {
+                        if(cwfCalling.getCwfId().equals(lcrCalling.getCwfId())) {
                             lcrCalling.importCWFData(cwfCalling);
-                        } else {
-                            lcrCalling.setCwfId(cwfCalling.getCwfId());
+                            matchFound = true;
+                            break;
                         }
-                        matchFound = true;
-                        break;
+                    }
+                    if(!matchFound) {
+                        lcrCallings.add(cwfCalling);
                     }
                 }
-
-                if (!matchFound) {
-                    //see if there's a matching current id for the proposed id
-                    boolean potentialMatchesActual = false;
+                //Check if calling is one of the empty unmatchable callings, callings where multiples aren't allowed they can be matched on type without the list so we don't include them
+                else if((cwfCalling.getId() == null || cwfCalling.getId().equals(0)) && cwfCalling.getPosition().getAllowMultiple()) {
+                    if(!cwfVacantCallingsByType.containsKey(cwfCalling.getPosition().getPositionTypeId())) {
+                        cwfVacantCallingsByType.put(cwfCalling.getPosition().getPositionTypeId(), new ArrayList<Calling>());
+                    }
+                    cwfVacantCallingsByType.get(cwfCalling.getPosition().getPositionTypeId()).add(cwfCalling);
+                }
+                //special cases have been handled, now try to merge and set conflict flags if a match wasn't found
+                else {
+                    boolean matchFound = false;
+                    //Check for a match by Id, if so import cwf data
                     for (Calling lcrCalling : lcrCallings) {
-                        if (lcrCalling.getPosition().equals(cwfCalling.getPosition()) && lcrCalling.getMemberId().equals(cwfCalling.getProposedIndId())) {
-                            potentialMatchesActual = true;
+
+                        if (cwfCalling.isEqualsTo(lcrCalling)) {
+                            // todo - this needs to be persisted to google drive
+                            //if the proposed member has become the current we can discard the old proposed info
+                            if (!(cwfCalling.getProposedIndId() > 0 && cwfCalling.getProposedIndId().equals(lcrCalling.getMemberId()))) {
+                                lcrCalling.importCWFData(cwfCalling);
+                            } else {
+                                lcrCalling.setCwfId(cwfCalling.getCwfId());
+                            }
+                            matchFound = true;
+                            break;
                         }
                     }
 
-                    //set the flag if there's a match, else if lcr based id is present then it previously existed so mark it as deleted
-                    if (potentialMatchesActual) {
-                        cwfCalling.setConflictCause(ConflictCause.EQUIVALENT_POTENTIAL_AND_ACTUAL);
-                    } else if(cwfCalling.getId() != null && cwfCalling.getId() > 0) {
-                        cwfCalling.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
+                    if (!matchFound) {
+                        //see if there's a matching current id for the proposed id
+                        boolean potentialMatchesActual = false;
+                        for (Calling lcrCalling : lcrCallings) {
+                            if (lcrCalling.getPosition().equals(cwfCalling.getPosition())) {
+                                if (lcrCalling.getMemberId().equals(cwfCalling.getProposedIndId())) {
+                                    potentialMatchesActual = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        //set the flag if there's a match, else if lcr based id is present then it previously existed so mark it as deleted
+                        //if neither of those is true then look at the empty calling, if there is one we'll merge it with this one, if not mark it deleted
+                        if (potentialMatchesActual) {
+                            cwfCalling.setConflictCause(ConflictCause.EQUIVALENT_POTENTIAL_AND_ACTUAL);
+                        } else {
+                            cwfCalling.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
+                        }
+                        lcrCallings.add(cwfCalling);
                     }
-                    lcrCallings.add(cwfCalling);
+                }
+            }
+
+            //all empty calling lists for cwf should now be complete, we'll build lcr lists to match up with them
+            if(cwfVacantCallingsByType.size() > 0) {
+                Map<Integer, List<Calling>> lcrVacantCallingsByType = new HashMap<>();
+                for(Calling lcrCalling: lcrCallings) {
+                    if(!lcrCalling.isCwfOnly() && (lcrCalling.getId() == null || lcrCalling.getId().equals(0)) && lcrCalling.getPosition().getAllowMultiple()) {
+                        if(!lcrVacantCallingsByType.containsKey(lcrCalling.getPosition().getPositionTypeId())) {
+                            lcrVacantCallingsByType.put(lcrCalling.getPosition().getPositionTypeId(), new ArrayList<Calling>());
+                        }
+                        lcrVacantCallingsByType.get(lcrCalling.getPosition().getPositionTypeId()).add(lcrCalling);
+                    }
+                }
+                //Since there's no real difference between the empty callings, we'll just merge them together in order and any extras we'll flag and add to the end
+                for(Integer vacantPositionTypeId: cwfVacantCallingsByType.keySet()) {
+                    List<Calling> cwfVacantCallings = cwfVacantCallingsByType.get(vacantPositionTypeId);
+                    List<Calling> lcrVacantCallings = lcrVacantCallingsByType.containsKey(vacantPositionTypeId) ? lcrVacantCallingsByType.get(vacantPositionTypeId) : new ArrayList<Calling>();
+                    for(int i=0; i < cwfVacantCallings.size(); i++) {
+
+                        if(i < lcrVacantCallings.size()) {
+                            lcrVacantCallings.get(i).importCWFData(cwfVacantCallings.get(i));
+                        } else {
+                            Calling calling = cwfVacantCallings.get(i);
+                            calling.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
+                            lcrCallings.add(calling);
+                        }
+                    }
                 }
             }
         }
