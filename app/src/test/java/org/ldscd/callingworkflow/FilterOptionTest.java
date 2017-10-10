@@ -262,7 +262,7 @@ public class FilterOptionTest {
         if (numberOfMonthsInCalling.length > 0) {
             for(int i = 0; i < numberOfMonthsInCalling.length; i++) {
                 DateTime activeDate = DateTime.now().minusMonths(numberOfMonthsInCalling[i]);
-                callings.add(new Calling(id * 100 + numberOfMonthsInCalling[i], null, id, 0L, activeDate, position, null, null, null, 0L) );
+                callings.add(new Calling(id * 100 + numberOfMonthsInCalling[i], null, false, id, 0L, activeDate, position, null, null, null, 0L) );
             }
         }
 
@@ -274,7 +274,7 @@ public class FilterOptionTest {
         List<Calling> callings = new ArrayList<Calling>();
         if (numCallings > 0) {
             for(int i = 0; i < numCallings; i++) {
-                callings.add(new Calling(id * 100 + i, null, id, 0L, null, position, null, null, null, 0L) );
+                callings.add(new Calling(id * 100 + i, null, false, id, 0L, null, position, null, null, null, 0L) );
             }
         }
 

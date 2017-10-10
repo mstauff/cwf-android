@@ -248,7 +248,7 @@ public class CallingData {
                     }
                 }
                 //Check if calling is one of the empty unmatchable callings, callings where multiples aren't allowed they can be matched on type without the list so we don't include them
-                else if((cwfCalling.getId() == null || cwfCalling.getId().equals(0)) && cwfCalling.getPosition().getAllowMultiple()) {
+                else if((cwfCalling.getId() == null || cwfCalling.getId() < 1) && cwfCalling.getPosition().getAllowMultiple()) {
                     if(!cwfVacantCallingsByType.containsKey(cwfCalling.getPosition().getPositionTypeId())) {
                         cwfVacantCallingsByType.put(cwfCalling.getPosition().getPositionTypeId(), new ArrayList<Calling>());
                     }
@@ -301,7 +301,7 @@ public class CallingData {
             if(cwfVacantCallingsByType.size() > 0) {
                 Map<Integer, List<Calling>> lcrVacantCallingsByType = new HashMap<>();
                 for(Calling lcrCalling: lcrCallings) {
-                    if(!lcrCalling.isCwfOnly() && (lcrCalling.getId() == null || lcrCalling.getId().equals(0)) && lcrCalling.getPosition().getAllowMultiple()) {
+                    if(!lcrCalling.isCwfOnly() && (lcrCalling.getId() == null || lcrCalling.getId() < 1) && lcrCalling.getPosition().getAllowMultiple()) {
                         if(!lcrVacantCallingsByType.containsKey(lcrCalling.getPosition().getPositionTypeId())) {
                             lcrVacantCallingsByType.put(lcrCalling.getPosition().getPositionTypeId(), new ArrayList<Calling>());
                         }
