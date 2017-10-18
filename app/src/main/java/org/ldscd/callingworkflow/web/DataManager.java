@@ -6,11 +6,13 @@ import android.widget.ProgressBar;
 import com.android.volley.Response;
 
 import org.json.JSONException;
+import org.ldscd.callingworkflow.constants.CallingStatus;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.LdsUser;
 import org.ldscd.callingworkflow.model.Member;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.model.PositionMetaData;
+import org.ldscd.callingworkflow.model.UnitSettings;
 
 import java.util.List;
 
@@ -18,6 +20,7 @@ public interface DataManager {
     /* User Info */
     void getUserInfo(Response.Listener<LdsUser> listener);
     /* Calling data. */
+    void getCallingStatus(Response.Listener<List<CallingStatus>> listener);
     Calling getCalling(String id);
     Org getOrg(long id);
     List<Org> getOrgs();
@@ -38,4 +41,7 @@ public interface DataManager {
     void updateCalling(Response.Listener<Boolean> listener, Calling calling);
     void deleteCalling(Response.Listener<Boolean> listener, Calling calling, Org org);
     List<Calling> getUnfinalizedCallings();
+    /* Unit Settings */
+    void getUnitSettings(Response.Listener<UnitSettings> listener);
+    void saveUnitSettings(Response.Listener<Boolean> listener, UnitSettings unitSettings);
 }

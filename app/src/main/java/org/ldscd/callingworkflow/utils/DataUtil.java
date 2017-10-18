@@ -1,7 +1,5 @@
 package org.ldscd.callingworkflow.utils;
 
-import android.util.Log;
-
 import org.joda.time.DateTime;
 import org.joda.time.Months;
 import org.ldscd.callingworkflow.constants.UnitLevelOrgType;
@@ -9,10 +7,16 @@ import org.ldscd.callingworkflow.model.Org;
 
 public class DataUtil {
     static String fileDelimiter = "-";
-    static String fileExtension = ".json";
+    static String jsonFileExtension = ".json";
+    static String configFileExtension = ".config";
+    static String SETTINGS = "settings";
 
-    public static String getFileName(Org org) {
-        return UnitLevelOrgType.get(org.getOrgTypeId()).getOrgName() + fileDelimiter + org.getId() + fileExtension;
+    public static String getOrgFileName(Org org) {
+        return UnitLevelOrgType.get(org.getOrgTypeId()).getOrgName() + fileDelimiter + org.getId() + jsonFileExtension;
+    }
+
+    public static String getUnitFileName(Long unitNumber) {
+        return SETTINGS + fileDelimiter + unitNumber + configFileExtension;
     }
 
     public static int getMonthsSinceActiveDate(String activeDate) {

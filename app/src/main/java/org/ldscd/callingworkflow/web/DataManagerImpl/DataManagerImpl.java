@@ -14,6 +14,7 @@ import org.ldscd.callingworkflow.model.LdsUser;
 import org.ldscd.callingworkflow.model.Member;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.model.PositionMetaData;
+import org.ldscd.callingworkflow.model.UnitSettings;
 import org.ldscd.callingworkflow.model.permissions.AuthorizableOrg;
 import org.ldscd.callingworkflow.model.permissions.PermissionManager;
 import org.ldscd.callingworkflow.model.permissions.constants.Permission;
@@ -66,6 +67,10 @@ public class DataManagerImpl implements DataManager {
     }
 
     /* calling data. */
+    @Override
+    public void getCallingStatus(Response.Listener<List<CallingStatus>> listener) {
+        callingData.getCallingStatus(listener, getUnitNumber());
+    }
     public Calling getCalling(String id) {
         return callingData.getCalling(id);
     }
@@ -156,7 +161,7 @@ public class DataManagerImpl implements DataManager {
             @Override
             public void onResponse(Org newOrg) {
                 updateCalling(newOrg, calling, operation);
-                googleDataService.saveFile(listener, newOrg);
+                googleDataService.saveOrgFile(listener, newOrg);
                 callingData.mergeOrgs(org, newOrg);
                 callingData.extractOrg(newOrg, newOrg.getId());
                 if(operation.equals(Operation.DELETE)) {
@@ -201,4 +206,16 @@ public class DataManagerImpl implements DataManager {
         return callingData.getUnfinalizedCallings();
     }
 
+    /* Unit Settings */
+    @Override
+    public void getUnitSettings(Response.Listener<UnitSettings> listener) {
+        googleDataService.getUnitSettings(listener, getUnitNumber());
+    }
+    @Override
+    public void saveUnitSettings(Response.Listener<Boolean> listener, UnitSettings unitSettings) {
+        googleDataService.saveUnitSettings(listener, unitSettings);
+    }
+    private Long getUnitNumber() {
+        return currentUser != null ? currentUser.getUnitNumber() : 0L;
+    }
 }

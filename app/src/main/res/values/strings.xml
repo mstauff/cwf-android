@@ -67,7 +67,16 @@
     <string name="done">Done</string>
     <string name="plus_months">+ Month(s)</string>
     <string name="plus_years">+ Year(s)</string>
-    <!-- Test Info. -->
+    <string name="saving_error">There was a problem saving your changes.</string>
+    <string name="items_saved">Your changes have been saved</string>
+    <string name="warning">Warning</string>
+    <string name="warning_update_message">This will record %1$s as %2$s in LCR. This will make the change official and public. </string>
+    <string name="warning_update_release_message">This will record %1$s and release %2$s as %3$s in LCR. This will make the change official and public.  This should only be done after the individuals have been sustained and released in Sacrament Meeting. Do you want to record the release on lds.org?</string>
+    <string name="warning_release_message">This will release %1$s as %2$s on lds.org (LCR). This will make the release public (it will appear in lds.org sites, LDS Tools, etc.). Generally this should only be done after the individual has been released in Sacrament Meeting. Do you want to record the release on lds.org?</string>
+    <string name="warning_delete_message">This will remove %1$s from ward lists and directories. Do you want to continue?</string>
+    <string name="error_update_Message">You have selected a member that does not meet the requirements for the calling selected.  You may not be able to save these changes in LCR</string>
+
+
     <string name="action_settings">setting</string>
     <string name="title_activity_base">BaseActivity</string>
     <string name="login_heading">LDS User Info</string>
@@ -90,4 +99,23 @@
     <string name="proposed_calling_with_status">%1$s (%2$s)</string>
     <string name="current_calling_with_duration">%1$s (%2$d months)</string>
     <string name="additional_lines_sum">%1$d more…</string>
+
+    <!-- Strings related to settings -->
+    <string name="title_activity_ldsaccount">LDS Account</string>
+    <string name="prompt_username">Username</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in and Save</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="error_invalid_email">This username is invalid</string>
+    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_field_required">This field is required</string>
+    <string name="permission_rationale">"Permissions are needed for this app to function correctly</string>
+    <string name="title_activity_settings">Settings</string>
+    <string name="lds_credentials">LDS Credentials</string>
+    <string name="sync_options">Sharing/Sync Options</string>
+    <string name="edit_calling_status">Edit Calling Status</string>
+    <string name="calling_status_edit_disclaimer">Please select the statuses you want to be displayed for the calling edit and create status options. If you do not have any selected, the system will use all of them by default.</string>
+    <string name="title_activity_status_edit">Edit Status</string>
+    <string name="manage_data">Manage Data</string>
 </resources>

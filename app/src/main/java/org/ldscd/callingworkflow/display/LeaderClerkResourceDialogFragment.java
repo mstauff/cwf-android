@@ -2,12 +2,14 @@ package org.ldscd.callingworkflow.display;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.BottomSheetDialogFragment;
 import android.support.design.widget.CoordinatorLayout;
+import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,14 +30,32 @@ import org.ldscd.callingworkflow.model.Calling;
  */
 public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment {
 
-    private static final String UNIT_NUMBER = "unit_number";
-    private static final String CALLING = "calling";
     private LeaderClerkResourceListener mListener;
-    private Calling calling;
-    private Long unitNumber;
+    private static String PROPOSED_NAME = "proposedMemberName";
+    private static String CURRENTLY_CALLED_NAME = "currentlyCalledMemberName";
+    private static String CALLING_NAME = "callingName";
+    private String proposedMemberName;
+    private String currentlyCalledMemberName;
+    private String callingName;
 
-    public static LeaderClerkResourceDialogFragment newInstance() {
-        return new LeaderClerkResourceDialogFragment();
+    public static LeaderClerkResourceDialogFragment newInstance(String proposedMemberName, String currentlyCalledMemberName, String callingName) {
+        LeaderClerkResourceDialogFragment fragment = new LeaderClerkResourceDialogFragment();
+        Bundle args = new Bundle();
+        args.putString(PROPOSED_NAME, proposedMemberName);
+        args.putString(CURRENTLY_CALLED_NAME, currentlyCalledMemberName);
+        args.putString(CALLING_NAME, callingName);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            proposedMemberName = getArguments().getString(PROPOSED_NAME);
+            currentlyCalledMemberName = getArguments().getString(CURRENTLY_CALLED_NAME);
+            callingName = getArguments().getString(CALLING_NAME);
+        }
     }
 
     @Nullable
@@ -53,15 +73,25 @@ public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment
     }
 
     private void wireupButtons(View v) {
+        final LeaderClerkResourceListener tempListener = mListener;
         Button releaseButton = (Button)v.findViewById(R.id.button_release_current_in_lcr);
         releaseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try {
-                    mListener.onLeaderClerkResourceFragmentInteraction(Operation.RELEASE);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+                AlertDialog.Builder adb = getAlertDialog();
+                adb.setMessage(getResources().getString(R.string.warning_release_message, currentlyCalledMemberName, callingName));
+                adb.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            try {
+                                tempListener.onLeaderClerkResourceFragmentInteraction(Operation.RELEASE);
+                                dialog.dismiss();
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                );
+                adb.show();
                 dismiss();
             }
         });
@@ -70,11 +100,23 @@ public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment
         updateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try {
-                    mListener.onLeaderClerkResourceFragmentInteraction(Operation.UPDATE);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+                AlertDialog.Builder adb = getAlertDialog();
+                String message = currentlyCalledMemberName != null && currentlyCalledMemberName.length() > 0
+                        ? getResources().getString(R.string.warning_update_release_message, proposedMemberName, currentlyCalledMemberName, callingName)
+                        : getResources().getString(R.string.warning_update_message, proposedMemberName, callingName);
+                adb.setMessage(message);
+                adb.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            try {
+                                tempListener.onLeaderClerkResourceFragmentInteraction(Operation.UPDATE);
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            dialog.dismiss();
+                        }
+                    }
+                );
+                adb.show();
                 dismiss();
             }
         });
@@ -83,14 +125,46 @@ public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment
         deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try {
-                    mListener.onLeaderClerkResourceFragmentInteraction(Operation.DELETE);
-                } catch (JSONException e) {
-                    e.printStackTrace();
+            AlertDialog.Builder adb = getAlertDialog();
+            adb.setMessage(getResources().getString(R.string.warning_release_message, currentlyCalledMemberName, callingName));
+            final LeaderClerkResourceListener tempListener = mListener;
+            adb.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        try {
+                            tempListener.onLeaderClerkResourceFragmentInteraction(Operation.DELETE);
+                            dialog.dismiss();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
-                dismiss();
+            );
+            adb.show();
+            dismiss();
             }
         });
+    }
+
+    private void navigateUrlChanges() {
+        try {
+            mListener.onLeaderClerkResourceFragmentInteraction(Operation.UPDATE);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private AlertDialog.Builder getAlertDialog() {
+        AlertDialog.Builder adb = new AlertDialog.Builder(getContext());
+        adb.setIcon(android.R.drawable.ic_dialog_alert);
+        adb.setTitle(getResources().getString(R.string.warning));
+        adb.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            }
+        );
+
+        return adb;
     }
 
     @Override

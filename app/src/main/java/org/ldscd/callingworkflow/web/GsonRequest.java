@@ -83,8 +83,8 @@ public class GsonRequest<T> extends Request<T> {
     }
 
     @Override
-    protected VolleyError parseNetworkError(VolleyError volleyError){
-        if(volleyError.networkResponse != null && volleyError.networkResponse.data != null && volleyError.networkResponse.statusCode==400){
+    protected VolleyError parseNetworkError(VolleyError volleyError) {
+        if(volleyError.networkResponse != null && volleyError.networkResponse.data != null && volleyError.networkResponse.statusCode==400) {
             volleyError = new VolleyError(new String(volleyError.networkResponse.data));
         }
 

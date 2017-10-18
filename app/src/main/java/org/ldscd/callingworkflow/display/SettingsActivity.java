@@ -1,74 +1,28 @@
 package org.ldscd.callingworkflow.display;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
+import android.preference.PreferenceActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
-import com.google.android.gms.drive.*;
-import com.google.android.gms.drive.query.Filters;
-import com.google.android.gms.drive.query.Query;
-import com.google.android.gms.drive.query.SearchableField;
+import android.widget.TextView;
+
 import org.ldscd.callingworkflow.R;
-import org.ldscd.callingworkflow.google.ConflictResolver;
-import org.ldscd.callingworkflow.google.ConflictUtil;
-import org.ldscd.callingworkflow.web.IWebResources;
 
-import javax.inject.Inject;
-import java.io.*;
-
-/* User Sign-in with LDS Credentials. */
+/**
+ * Represents a list of links for application setup and customization(s).
+ */
 public class SettingsActivity extends AppCompatActivity {
 
-    private static final String TAG = "SignInActivity";
-
-    protected EditText usernameEditText;
-    protected EditText passwordEditText;
-    protected Button authConfirmButton;
-
-    @Inject
-    IWebResources webResources;
-
     @Override
-    protected void onCreate(Bundle b) {
-        super.onCreate(b);
-        ((CWFApplication)getApplication()).getNetComponent().inject(this);
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
         wireUpToolbar();
-        usernameEditText = (EditText) findViewById(R.id.userText);
-        passwordEditText = (EditText) findViewById(R.id.passwordText);
-        authConfirmButton = (Button) findViewById(R.id.auth_confirm);
-        authConfirmButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String user = usernameEditText.getText().toString();
-                String password = passwordEditText.getText().toString();
-                if(!user.equals("") && !password.equals("")) {
-                    webResources.setCredentials(user, password);
-                }
-            }
-        });
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
+        wireupLinks();
     }
 
     @Override
@@ -96,5 +50,32 @@ public class SettingsActivity extends AppCompatActivity {
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
+    }
+
+    private void wireupLinks() {
+        TextView ldsCredentialsLink = (TextView) findViewById(R.id.settings_lds_credentials_link);
+        ldsCredentialsLink.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), LDSAccountActivity.class);
+                getApplicationContext().startActivity(intent);
+            }
+        });
+        TextView syncDataLink = (TextView) findViewById(R.id.settings_sync_data_link);
+        syncDataLink.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), ManageDataActivity.class);
+                getApplicationContext().startActivity(intent);
+            }
+        });
+        TextView editCallingStatusLink = (TextView) findViewById(R.id.settings_edit_calling_status_link);
+        editCallingStatusLink.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), StatusEditActivity.class);
+                getApplicationContext().startActivity(intent);
+            }
+        });
     }
 }

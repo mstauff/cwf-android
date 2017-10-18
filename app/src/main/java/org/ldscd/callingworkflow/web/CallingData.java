@@ -16,13 +16,13 @@ import org.ldscd.callingworkflow.constants.ConflictCause;
 import org.ldscd.callingworkflow.constants.Gender;
 import org.ldscd.callingworkflow.constants.MemberClass;
 import org.ldscd.callingworkflow.constants.Priesthood;
-import org.ldscd.callingworkflow.constants.UnitLevelOrgType;
 import org.ldscd.callingworkflow.model.*;
 import org.ldscd.callingworkflow.model.permissions.PermissionManager;
 import org.ldscd.callingworkflow.services.GoogleDataService;
 import org.ldscd.callingworkflow.utils.JsonUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -422,5 +422,26 @@ public class CallingData {
 
     public PositionMetaData getPositionMetadata(int positionTypeId) {
         return positionMetaDataByPositionTypeId.get(positionTypeId);
+    }
+
+    /* Returns a filtered list of calling status' */
+    public void getCallingStatus(final Response.Listener<List<CallingStatus>> listener, Long unitNumber) {
+        googleDataService.getUnitSettings(new Response.Listener<UnitSettings>() {
+            @Override
+            public void onResponse(UnitSettings unitSettings) {
+                List<CallingStatus> statuses = new ArrayList<CallingStatus>();
+                if(unitSettings.getDisabledStatuses().size()+1 == CallingStatus.values().length) {
+                    statuses.clear();
+                    statuses.addAll(Arrays.asList(CallingStatus.values()));
+                } else {
+                    for (CallingStatus status : CallingStatus.values()) {
+                        if (!unitSettings.getDisabledStatuses().contains(status)) {
+                            statuses.add((status));
+                        }
+                    }
+                }
+                listener.onResponse(statuses);
+            }
+        }, unitNumber);
     }
 }

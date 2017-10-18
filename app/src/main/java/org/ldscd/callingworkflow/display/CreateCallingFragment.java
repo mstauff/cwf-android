@@ -1,7 +1,6 @@
 package org.ldscd.callingworkflow.display;
 
 import android.support.v4.app.Fragment;
-import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,16 +11,17 @@ import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.android.volley.Response;
+
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.constants.CallingStatus;
+import org.ldscd.callingworkflow.display.adapters.PositionArrayAdapter;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Member;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.model.Position;
 import org.ldscd.callingworkflow.web.DataManager;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -88,16 +88,22 @@ public class CreateCallingFragment extends Fragment implements MemberLookupFragm
             //Position Dropdown
             List<Position> potentialPositions = parentOrg.potentialNewPositions();
             positionDropdown = (Spinner) view.findViewById(R.id.new_calling_position_dropdown);
-            ArrayAdapter positionAdapter = new ArrayAdapter<Position>(getActivity(), android.R.layout.simple_list_item_1, potentialPositions);
+            PositionArrayAdapter positionAdapter = new PositionArrayAdapter<Position>(getContext(), android.R.layout.simple_list_item_1, potentialPositions);
             positionDropdown.setAdapter(positionAdapter);
         }
 
         //Status Dropdown
-        List<CallingStatus> statusOptions = new ArrayList(Arrays.asList(CallingStatus.values()));
-        statusOptions.remove(CallingStatus.UNKNOWN);
-        statusDropdown = (Spinner) view.findViewById(R.id.new_calling_status_dropdown);
-        ArrayAdapter statusAdapter = new ArrayAdapter<CallingStatus>(getActivity(), android.R.layout.simple_list_item_1, statusOptions);
-        statusDropdown.setAdapter(statusAdapter);
+        dataManager.getCallingStatus(new Response.Listener<List<CallingStatus>>() {
+            @Override
+            public void onResponse(List<CallingStatus> statusOptions) {
+                if(statusOptions != null) {
+                    statusOptions.remove(CallingStatus.UNKNOWN);
+                    statusDropdown = (Spinner) view.findViewById(R.id.new_calling_status_dropdown);
+                    ArrayAdapter statusAdapter = new ArrayAdapter<CallingStatus>(getActivity(), android.R.layout.simple_list_item_1, statusOptions);
+                    statusDropdown.setAdapter(statusAdapter);
+                }
+            }
+        });
 
         //notes editbox
         notesBox = (EditText) view.findViewById(R.id.new_calling_notes);

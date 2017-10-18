@@ -11,10 +11,11 @@ import org.ldscd.callingworkflow.display.CreateCallingFragment;
 import org.ldscd.callingworkflow.display.DirectoryActivity;
 import org.ldscd.callingworkflow.display.IndividualInformationFragment;
 import org.ldscd.callingworkflow.display.MemberLookupFragment;
-import org.ldscd.callingworkflow.display.SettingsActivity;
 import org.ldscd.callingworkflow.display.ExpandableOrgsListActivity;
 import org.ldscd.callingworkflow.display.OrgListActivity;
+import org.ldscd.callingworkflow.display.SettingsActivity;
 import org.ldscd.callingworkflow.display.SplashActivity;
+import org.ldscd.callingworkflow.display.StatusEditActivity;
 
 import javax.inject.Singleton;
 
@@ -35,4 +36,5 @@ public interface NetComponent {
     void inject(MemberLookupFragment activity);
     void inject(CallingFiltersFragment activity);
     void inject(CreateCallingFragment fragment);
+    void inject(StatusEditActivity activity);
 }

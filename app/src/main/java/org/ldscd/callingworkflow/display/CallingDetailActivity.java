@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.android.volley.Response;
 
@@ -98,7 +99,8 @@ public class CallingDetailActivity
             dataManager.updateCalling(new Response.Listener<Boolean>() {
                 @Override
                 public void onResponse(Boolean response) {
-                    //TODO: probably need to show a Toast or something if the save occured.
+                    String message = response ? getResources().getString(R.string.items_saved) : getResources().getString(R.string.new_calling_failed);
+                    Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
                 }
             }, calling);
         }

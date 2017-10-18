@@ -5,20 +5,13 @@ import com.android.volley.NetworkResponse;
 import com.android.volley.ParseError;
 import com.android.volley.Request;
 import com.android.volley.Response;
+import com.android.volley.VolleyError;
 import com.android.volley.toolbox.HttpHeaderParser;
-
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
-import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Org;
-import org.ldscd.callingworkflow.model.Position;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -58,5 +51,14 @@ public class OrgsListRequest extends Request<List<Org>> {
             return Response.error(new ParseError(e));
         }
         return Response.success(orgsList, HttpHeaderParser.parseCacheHeaders(response));
+    }
+
+    @Override
+    protected VolleyError parseNetworkError(VolleyError volleyError) {
+        if(volleyError.networkResponse != null && volleyError.networkResponse.data != null && volleyError.networkResponse.statusCode==400) {
+            volleyError = new VolleyError(new String(volleyError.networkResponse.data));
+        }
+
+        return volleyError;
     }
 }

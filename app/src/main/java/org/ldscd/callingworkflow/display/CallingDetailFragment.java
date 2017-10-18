@@ -16,11 +16,14 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 import com.android.volley.Response;
 
+import org.joda.time.DateTime;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.constants.CallingStatus;
 import org.ldscd.callingworkflow.constants.Operation;
@@ -28,8 +31,6 @@ import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Member;
 import org.ldscd.callingworkflow.web.DataManager;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -55,6 +56,7 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     private Calling calling;
     private View view;
     private OnCallingDetailFragmentListener mListener;
+    private Operation operation;
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -93,6 +95,7 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
 
     @Override
     public void onLeaderClerkResourceFragmentInteraction(Operation operation) throws JSONException {
+        this.operation = operation;
         if(operation == Operation.RELEASE) {
             dataManager.releaseLDSCalling(calling, LCRResposne);
         } else if(operation == Operation.UPDATE) {
@@ -102,11 +105,51 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
         }
 
     }
-    protected Response.Listener<Object> LCRResposne = new Response.Listener<Object>() {
+    protected Response.Listener<JSONObject> LCRResposne = new Response.Listener<JSONObject>() {
         @Override
-        public void onResponse(Object response) {
-            if (response != null) {
-
+        public void onResponse(JSONObject jsonObject) {
+            if (jsonObject != null) {
+                if(jsonObject.has("error")) {
+                    Toast.makeText(getContext(), getResources().getString(R.string.error_update_Message), Toast.LENGTH_LONG).show();
+                } else {
+                    try {
+                        if(jsonObject.has("positionId")) {
+                            calling.setId(jsonObject.getLong("positionId"));
+                        }
+                        /* Release will only affect actual not potential */
+                        if(operation.equals(Operation.RELEASE)) {
+                            /* Update Google drive by removing the current memberId, active date, and callingId */
+                            calling.setActiveDate(null);
+                            calling.setActiveDateTime(null);
+                            calling.setMemberId(0);
+                            calling.setCwfId(null);
+                        } else if(operation.equals(Operation.DELETE)) {
+                            /* Callings that do not allow multiples we do not show delete option */
+                            calling.setNotes("");
+                            calling.setExistingStatus(null);
+                            calling.setProposedIndId(0);
+                            calling.setProposedStatus(CallingStatus.NONE);
+                            calling.setActiveDate(null);
+                            calling.setActiveDateTime(null);
+                            calling.setMemberId(0);
+                            calling.setCwfId(null);
+                            calling.setConflictCause(null);
+                        } else {
+                            calling.setNotes("");
+                            calling.setExistingStatus(null);
+                            calling.setProposedIndId(0);
+                            calling.setProposedStatus(CallingStatus.NONE);
+                            calling.setActiveDate(DateTime.now());
+                            calling.setActiveDateTime(DateTime.now());
+                            calling.setMemberId(calling.getProposedIndId());
+                            calling.setCwfId(null);
+                            calling.setConflictCause(null);
+                        }
+                        mListener.onFragmentInteraction(calling, true);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         }
     };
@@ -218,25 +261,29 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     }
 
     private void wireUpStatusDropdown() {
-        List<CallingStatus> statusList = new ArrayList(Arrays.asList(CallingStatus.values()));
-        if(calling.getProposedStatus() == null || !calling.getProposedStatus().equals(CallingStatus.UNKNOWN)) {
-            statusList.remove(CallingStatus.UNKNOWN);
-        }
-        Spinner statusDropdown = (Spinner)view.findViewById(R.id.calling_detail_status_dropdown);
-        ArrayAdapter adapter = new ArrayAdapter<CallingStatus>(this.getContext(), android.R.layout.simple_list_item_1, statusList);
-        statusDropdown.setAdapter(adapter);
-        if(calling != null && calling.getProposedStatus() != null) {
-            statusDropdown.setSelection(adapter.getPosition(calling.getProposedStatus()));
-        }
-        statusDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        dataManager.getCallingStatus(new Response.Listener<List<CallingStatus>>() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                submitOrgChanges();
-            }
+            public void onResponse(List<CallingStatus> statusList) {
+                if(calling.getProposedStatus() == null || !calling.getProposedStatus().equals(CallingStatus.UNKNOWN)) {
+                    statusList.remove(CallingStatus.UNKNOWN);
+                }
+                Spinner statusDropdown = (Spinner)view.findViewById(R.id.calling_detail_status_dropdown);
+                ArrayAdapter adapter = new ArrayAdapter<CallingStatus>(getContext(), android.R.layout.simple_list_item_1, statusList);
+                statusDropdown.setAdapter(adapter);
+                if(calling != null && calling.getProposedStatus() != null) {
+                    statusDropdown.setSelection(adapter.getPosition(calling.getProposedStatus()));
+                }
+                statusDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        submitOrgChanges();
+                    }
 
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
 
+                    }
+                });
             }
         });
     }
@@ -282,7 +329,15 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     }
 
     private void updateLCR() {
-        LeaderClerkResourceDialogFragment leaderClerkResourceDialogFragment = new LeaderClerkResourceDialogFragment();
+        Member currentlyCalledMember = null;
+        if(calling.getMemberId() > 0) {
+            currentlyCalledMember = dataManager.getMember(calling.getMemberId());
+        }
+        LeaderClerkResourceDialogFragment leaderClerkResourceDialogFragment =
+                LeaderClerkResourceDialogFragment.newInstance(
+                        proposedMember != null ? proposedMember.getFormattedName() : null,
+                        currentlyCalledMember != null ? currentlyCalledMember.getFormattedName() : null,
+                        calling.getPosition().getName());
         leaderClerkResourceDialogFragment.OnLCRCallingUpdateListener(this);
         leaderClerkResourceDialogFragment.show(getFragmentManager(), null);
     }
