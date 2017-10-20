@@ -40,6 +40,9 @@ public class PositionRequirements {
         this.age = age;
     }
 
+    public boolean getIsAdult() {
+        return age > 17;
+    }
     public List<Priesthood> getPriesthood() {
         return priesthood;
     }

@@ -217,6 +217,7 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
         if(calling.getProposedIndId() > 0) {
             Bundle args = new Bundle();
             args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, calling.getProposedIndId());
+            args.putInt(MemberLookupFragment.positionTypeIdName, calling.getPosition().getPositionTypeId());
             memberLookupFragment.setArguments(args);
         }
         memberLookupFragment.setMemberLookupListener(this);

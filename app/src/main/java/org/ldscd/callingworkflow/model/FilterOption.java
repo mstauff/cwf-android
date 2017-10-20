@@ -186,6 +186,53 @@ public class FilterOption {
     }
 
     /* Methods */
+    public void setFilterOptions(PositionMetaData positionMetaData) {
+        if(positionMetaData != null) {
+            PositionRequirements requirements = positionMetaData.getRequirements();
+            if(requirements != null) {
+                if(requirements.getIsAdult()) {
+                    this.setEighteenPlus(true);
+                    this.setTwelveSeventeen(false);
+                }
+                if(requirements.getAge() > 0) {
+                    if(requirements.getAge() > 17) {
+                        this.setEighteenPlus(true);
+                        this.setTwelveSeventeen(false);
+                    } else {
+                        this.setTwelveSeventeen(true);
+                        this.setEighteenPlus(false);
+                    }
+                }
+                if(requirements.getGender() != null) {
+                    if(requirements.getGender().equals(Gender.FEMALE)) {
+                        this.setFemale(true);
+                        this.setMale(false);
+                    } else {
+                        this.setMale(true);
+                        this.setFemale(false);
+                    }
+                }
+                if(requirements.getPriesthood() != null) {
+                    if(requirements.getPriesthood().contains(Priesthood.DEACON)) {
+                        this.setDeacons(true);
+                    }
+                    if(requirements.getPriesthood().contains(Priesthood.TEACHER)) {
+                        this.setTeachers(true);
+                    }
+                    if(requirements.getPriesthood().contains(Priesthood.PRIEST)) {
+                        this.setPriests(true);
+                    }
+                    if(requirements.getPriesthood().contains(Priesthood.ELDER)) {
+                        this.setElders(true);
+                    }
+                    if(requirements.getPriesthood().contains(Priesthood.HIGH_PRIEST)) {
+                        this.setHighPriest(true);
+                    }
+                }
+            }
+        }
+    }
+
     private void setDefault() {
         /* Initialize all the filters to default. */
         setNumberCallings(new boolean[] {false, false, false, false});

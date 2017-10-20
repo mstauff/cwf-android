@@ -20,6 +20,7 @@ import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.display.adapters.MemberLookupAdapter;
 import org.ldscd.callingworkflow.model.FilterOption;
 import org.ldscd.callingworkflow.model.Member;
+import org.ldscd.callingworkflow.model.PositionMetaData;
 import org.ldscd.callingworkflow.web.DataManager;
 
 import java.util.ArrayList;
@@ -38,6 +39,8 @@ import static org.ldscd.callingworkflow.display.CallingDetailFragment.INDIVIDUAL
 public class MemberLookupFragment extends Fragment implements MemberLookupFilterFragment.OnMemberLookupFilterListener {
     /* Fields. */
     public static String FRAG_NAME = "MEMBER_LOOKUP_FRAGMENT";
+    public static String positionTypeIdName = "POSITION_TYPE_ID";
+    public Integer positionTypeId;
     @Inject
     DataManager dataManager;
 
@@ -65,6 +68,11 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         /* Inflate the view. */
         view = inflater.inflate(R.layout.fragment_member__lookup_, container, false);
+        Bundle bundle = this.getArguments();
+        if (bundle != null && !bundle.isEmpty()) {
+            /* Get the positionTypeId */
+            positionTypeId = bundle.getInt(positionTypeIdName, 0);
+        }
         /* Inflate and wireup the filter button. */
         wireUpFilterButton(view);
         /* Initialize the listview of members. */
@@ -77,9 +85,6 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
         filterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(filterOption == null) {
-                    filterOption = new FilterOption(true);
-                }
                 createMemberLookupFilterFragment(filterOption);
             }
         });
@@ -197,8 +202,13 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
 
     private void createAdapter() {
         final MemberLookupFragment cFrag = this;
-        if(filterOption == null) {
-            filterOption = new FilterOption(true);
+        filterOption = new FilterOption(true);
+        if(positionTypeId != null && positionTypeId > 0) {
+            /* TODO: Create pre-set filter options */
+            PositionMetaData positionMetaData = dataManager.getPositionMetadata(positionTypeId);
+            if(positionMetaData != null) {
+                filterOption.setFilterOptions(positionMetaData);
+            }
         }
 
         ArrayList<Member> filterMembers = filterOption.filterMembers(members);
