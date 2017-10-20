@@ -204,7 +204,7 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
         final MemberLookupFragment cFrag = this;
         filterOption = new FilterOption(true);
         if(positionTypeId != null && positionTypeId > 0) {
-            /* TODO: Create pre-set filter options */
+            /* Create pre-set filter options */
             PositionMetaData positionMetaData = dataManager.getPositionMetadata(positionTypeId);
             if(positionMetaData != null) {
                 filterOption.setFilterOptions(positionMetaData);
