@@ -201,6 +201,14 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
             if(formattedName != null) {
                 TextView name = (TextView) view.findViewById(R.id.member_lookup_name);
                 name.setText(formattedName);
+                if(proposedMember != null && proposedMember.getIndividualId() > 0) {
+                    name.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            wireUpIndividualInformationFragments(proposedMember.getIndividualId());
+                        }
+                    });
+                }
             }
         }
         ImageButton searchButton = (ImageButton) view.findViewById(R.id.member_lookup_button);
@@ -364,6 +372,16 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
             hasChanges = true;
         }
         mListener.onFragmentInteraction(calling, hasChanges);
+    }
+
+    public void wireUpIndividualInformationFragments(Long individualId) {
+        if (individualId != null) {
+            IndividualInformationFragment member_information_fragment = new IndividualInformationFragment();
+            Bundle args = new Bundle();
+            args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, individualId);
+            member_information_fragment.setArguments(args);
+            member_information_fragment.show(getFragmentManager(), null);
+        }
     }
 
     private void wireUpFragments(Bundle savedInstanceState) {
