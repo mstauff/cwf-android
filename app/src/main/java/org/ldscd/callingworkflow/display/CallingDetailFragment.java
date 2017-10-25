@@ -262,6 +262,14 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
             final TextView currentlyCalled = (TextView)view.findViewById(R.id.calling_detail_currently_called);
             String name = dataManager.getMemberName(calling.getMemberId());
             currentlyCalled.setText(name);
+            if(calling.getMemberId() != null && calling.getMemberId() > 0) {
+                currentlyCalled.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        wireUpIndividualInformationFragments(calling.getMemberId());
+                    }
+                });
+            }
             TextView notes = (TextView) view.findViewById(R.id.notes_calling_detail);
             if(calling.getNotes() != null && calling.getNotes().length() > 0)  {
                 notes.setText(calling.getNotes());

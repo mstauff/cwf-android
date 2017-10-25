@@ -43,7 +43,6 @@
     android:textColor="@color/ldstools_black"
     android:layout_alignBottom="@id/label_calling_detail_currently_called"
     android:ems="30"
-    android:enabled="false"
     android:id="@+id/calling_detail_currently_called" />
 <TextView
     android:layout_width="match_parent"
