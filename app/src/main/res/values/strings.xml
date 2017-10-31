@@ -99,6 +99,9 @@
     <string name="proposed_calling_with_status">%1$s (%2$s)</string>
     <string name="current_calling_with_duration">%1$s (%2$d months)</string>
     <string name="additional_lines_sum">%1$d more…</string>
+    <string name="calling_changed_message">This calling has been changed in LCR. %1$s and likely should be deleted.</string>
+    <string name="equivalent_deleted_explanation"> It appears that this calling has been removed from LCR </string>
+    <string name="equivalent_potential_and_actual_explaination">It appears that this assignment has been finalized in LCR </string>
 
     <!-- Strings related to settings -->
     <string name="title_activity_ldsaccount">LDS Account</string>
@@ -118,4 +121,7 @@
     <string name="calling_status_edit_disclaimer">Please select the statuses you want to be displayed for the calling edit and create status options. If you do not have any selected, the system will use all of them by default.</string>
     <string name="title_activity_status_edit">Edit Status</string>
     <string name="manage_data">Manage Data</string>
+    <string name="conflict_info_title">Sync Conflict</string>
+    <string name="conflict_info_delete_text">Remove</string>
+    <string name="conflict_info_dismiss_text">Keep</string>
 </resources>

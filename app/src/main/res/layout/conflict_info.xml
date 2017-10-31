@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/text_margin"
+            app:srcCompat="?android:attr/alertDialogIcon" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:text="@string/conflict_info_title"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"/>
+    </LinearLayout>
+
+    <View android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@color/light_grey"/>
+
+    <TextView
+        android:id="@+id/conflict_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/text_margin"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/separator_margin">
+        <Button
+            android:id="@+id/conflict_info_delete"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/text_margin"
+            android:text="@string/conflict_info_delete_text"
+            android:layout_weight="1"/>
+        <Button
+            android:id="@+id/conflict_info_dismiss"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/text_margin"
+            android:text="@string/conflict_info_dismiss_text"
+            android:layout_weight="1"/>
+    </LinearLayout>
+
+</LinearLayout>
