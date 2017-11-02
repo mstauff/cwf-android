@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -19,6 +18,7 @@ import com.android.volley.Response;
 
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.display.adapters.DirectoryAdapter;
+import org.ldscd.callingworkflow.model.FilterOption;
 import org.ldscd.callingworkflow.model.Member;
 import org.ldscd.callingworkflow.web.DataManager;
 
@@ -30,6 +30,7 @@ public class DirectoryActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     AppCompatActivity activity = this;
+    DirectoryAdapter adapter;
 
     @Inject
     DataManager dataManager;
@@ -64,7 +65,7 @@ public class DirectoryActivity extends AppCompatActivity
         dataManager.getWardList(new Response.Listener<List<Member>>() {
             @Override
             public void onResponse(List<Member> members) {
-                DirectoryAdapter adapter = new DirectoryAdapter(members);
+                adapter = new DirectoryAdapter(members);
                 recyclerView.setAdapter(adapter);
             }
         });
@@ -83,44 +84,21 @@ public class DirectoryActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.list_display_options, menu);
+        getMenuInflater().inflate(R.menu.filter, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.display_view_organization) {
-            item.setChecked(true);
-        } else if(id == R.id.display_view_indvidual) {
-            item.setChecked(true);
-        } else if(id == R.id.display_filter_proposed) {
-            item.setChecked(!item.isChecked());
-        } else if(id == R.id.display_filter_approved) {
-            item.setChecked(!item.isChecked());
-        } else if(id == R.id.display_filter_extended) {
-            item.setChecked(!item.isChecked());
+        if (id == R.id.edit_filters) {
+            FilterOption filterOption = adapter.getCurrentFilterOption();
+            MemberLookupFilterFragment memberLookupFilterFragment = MemberLookupFilterFragment.newInstance(filterOption);
+            memberLookupFilterFragment.setMemberLookupFilterListener(adapter);
+            memberLookupFilterFragment.show(getSupportFragmentManager(), MemberLookupFragment.FRAG_NAME);
         }
-
-        //This section keeps the menu from closing when items are selected
-        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
-        item.setActionView(new View(activity.getApplicationContext()));
-        MenuItemCompat.setOnActionExpandListener(item, new MenuItemCompat.OnActionExpandListener() {
-            @Override
-            public boolean onMenuItemActionExpand(MenuItem item) {
-                return false;
-            }
-
-            @Override
-            public boolean onMenuItemActionCollapse(MenuItem item) {
-                return false;
-            }
-        });
 
         return false;
     }

@@ -30,7 +30,7 @@ public class MemberLookupAdapter extends ArrayAdapter<Member> implements Filtera
 
     /* Constructor */
     public MemberLookupAdapter(Context context, MemberLookupFragment fragment, int viewResourceId,
-                               ArrayList<Member> members) {
+                               List<Member> members) {
         super(context, viewResourceId);
         mContext = context;
         this.fragment = fragment;

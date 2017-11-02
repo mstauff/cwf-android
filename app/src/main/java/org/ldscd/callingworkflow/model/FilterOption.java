@@ -252,7 +252,7 @@ public class FilterOption {
         setFemale(false);
     }
 
-    public ArrayList<Member> filterMembers(ArrayList<Member> members) {
+    public List<Member> filterMembers(List<Member> members) {
         /* Create a list of selected filters. */
         List<SearchFilter> searchFilters = createSearchFilters();
         /* If filters haven't been selected avoid going through the checks. */
