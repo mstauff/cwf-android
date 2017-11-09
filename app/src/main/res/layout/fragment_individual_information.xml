@@ -24,12 +24,32 @@
         android:ems="30"
         android:paddingLeft="10dp"
         android:paddingTop="10dp"
-        android:text="@string/navigation_drawer_callings"
+        android:text="@string/callings"
         android:textColor="@color/app_theme_color"
         android:textStyle="bold" />
 
     <TextView
         android:id="@+id/member_information_calling"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="10dp"
+        android:paddingLeft="25dp"
+        android:paddingTop="10dp"
+        android:textColor="@color/ldstools_black" />
+
+    <TextView
+        android:id="@+id/member_information_proposed_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="30"
+        android:paddingLeft="10dp"
+        android:paddingTop="10dp"
+        android:text="@string/list_display_options_proposed"
+        android:textColor="@color/app_theme_color"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/member_information_proposed_calling"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingBottom="10dp"

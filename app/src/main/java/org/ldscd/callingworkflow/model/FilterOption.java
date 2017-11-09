@@ -186,8 +186,8 @@ public class FilterOption {
     }
 
     /* Methods */
-    public void setFilterOptions(PositionMetaData positionMetaData) {
-        if(positionMetaData != null) {
+    public void setFilterOptions(PositionMetaData positionMetaData, boolean firstTime) {
+        if(positionMetaData != null && firstTime) {
             PositionRequirements requirements = positionMetaData.getRequirements();
             if(requirements != null) {
                 if(requirements.getIsAdult()) {

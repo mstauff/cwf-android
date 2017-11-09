@@ -82,6 +82,15 @@ public class IndividualInformationFragment extends BottomSheetDialogFragment {
                 callingView.setText(member.getCurrentCallings().toString());
             }
 
+            TextView proposedCalling = (TextView) v.findViewById(R.id.member_information_proposed_calling);
+            if(member.getProposedCallings() != null && member.getProposedCallings().size() > 0) {
+                proposedCalling.setText(member.getProposedCallings().toString());
+            }
+            else {
+                TextView proposedCallingLabel = (TextView) v.findViewById(R.id.member_information_proposed_label);
+                proposedCallingLabel.setVisibility(View.GONE);
+                proposedCalling.setVisibility(View.GONE);
+            }
             createViewItems(v, member);
         }
         return v;

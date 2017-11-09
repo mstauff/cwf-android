@@ -10,10 +10,15 @@ import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.BottomSheetDialogFragment;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.PopupMenu;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.ldscd.callingworkflow.R;
@@ -34,16 +39,27 @@ public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment
     private static String PROPOSED_NAME = "proposedMemberName";
     private static String CURRENTLY_CALLED_NAME = "currentlyCalledMemberName";
     private static String CALLING_NAME = "callingName";
+    private static String CAN_DELETE = "canDelete";
+    private static String CAN_DELETE_LCR = "canDeleteLCR";
     private String proposedMemberName;
     private String currentlyCalledMemberName;
     private String callingName;
+    private boolean canDelete = false;
+    private boolean canDeleteLCR = false;
 
-    public static LeaderClerkResourceDialogFragment newInstance(String proposedMemberName, String currentlyCalledMemberName, String callingName) {
+    public static LeaderClerkResourceDialogFragment newInstance(
+            String proposedMemberName,
+            String currentlyCalledMemberName,
+            String callingName,
+            Boolean canDelete,
+            Boolean canDeletLCR) {
         LeaderClerkResourceDialogFragment fragment = new LeaderClerkResourceDialogFragment();
         Bundle args = new Bundle();
         args.putString(PROPOSED_NAME, proposedMemberName);
         args.putString(CURRENTLY_CALLED_NAME, currentlyCalledMemberName);
         args.putString(CALLING_NAME, callingName);
+        args.putBoolean(CAN_DELETE, canDelete);
+        args.putBoolean(CAN_DELETE_LCR, canDeletLCR);
         fragment.setArguments(args);
         return fragment;
     }
@@ -55,12 +71,15 @@ public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment
             proposedMemberName = getArguments().getString(PROPOSED_NAME);
             currentlyCalledMemberName = getArguments().getString(CURRENTLY_CALLED_NAME);
             callingName = getArguments().getString(CALLING_NAME);
+            canDelete = getArguments().getBoolean(CAN_DELETE);
+            canDeleteLCR = getArguments().getBoolean(CAN_DELETE_LCR);
         }
     }
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
+    public View onCreateView(LayoutInflater inflater,
+                             @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_leaderclerkresource_dialog, container, false);
         wireupButtons(v);
@@ -72,7 +91,7 @@ public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment
         mListener = listener;
     }
 
-    private void wireupButtons(View v) {
+    private void wireupButtons(final View v) {
         final LeaderClerkResourceListener tempListener = mListener;
         Button releaseButton = (Button)v.findViewById(R.id.button_release_current_in_lcr);
         releaseButton.setOnClickListener(new View.OnClickListener() {
@@ -122,27 +141,63 @@ public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment
         });
 
         Button deleteButton = (Button)v.findViewById(R.id.button_delete_calling_in_lcr);
-        deleteButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-            AlertDialog.Builder adb = getAlertDialog();
-            adb.setMessage(getResources().getString(R.string.warning_release_message, currentlyCalledMemberName, callingName));
-            final LeaderClerkResourceListener tempListener = mListener;
-            adb.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        try {
-                            tempListener.onLeaderClerkResourceFragmentInteraction(Operation.DELETE);
-                            dialog.dismiss();
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
+        if(canDelete) {
+            deleteButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(final View view) {
+                    showPopup(view);
+                    /*AlertDialog.Builder adb = getAlertDialog();
+                    adb.setMessage(getResources().getString(R.string.warning_release_message, currentlyCalledMemberName, callingName));
+                    final LeaderClerkResourceListener tempListener = mListener;
+                    adb.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    showPopup(view);
+                                    dialog.dismiss();
+                                }
+                            }
+                    );
+                    adb.show();*/
+                   //dismiss();
                 }
-            );
-            adb.show();
-            dismiss();
+            });
+        } else {
+            deleteButton.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    public void showAlert() {
+        AlertDialog.Builder adb = getAlertDialog();
+        adb.setMessage(getResources().getString(R.string.warning_release_message, currentlyCalledMemberName, callingName));
+        final LeaderClerkResourceListener tempListener = mListener;
+        adb.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
             }
-        });
+        );
+        adb.show();
+    }
+    public void showPopup(View v) {
+        PopupMenu popup = new PopupMenu(this.getContext(), v);
+        MenuInflater inflater = popup.getMenuInflater();
+        inflater.inflate(R.menu.delete_calling, popup.getMenu());
+        popup.show();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.calling_detail_lcr_delete:
+                showAlert();
+                dismiss();
+                return true;
+            case R.id.calling_detail_google_drive_delete:
+                showAlert();
+                dismiss();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     private void navigateUrlChanges() {

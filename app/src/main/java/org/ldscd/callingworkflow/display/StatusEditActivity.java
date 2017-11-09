@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -13,7 +14,6 @@ import com.google.android.flexbox.FlexboxLayout;
 
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.constants.CallingStatus;
-import org.ldscd.callingworkflow.display.adapters.CallingFiltersAdapter;
 import org.ldscd.callingworkflow.model.UnitSettings;
 import org.ldscd.callingworkflow.web.DataManager;
 
@@ -35,11 +35,10 @@ public class StatusEditActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_status_edit);
         wireUpToolbar();
-        wireUpButtons();
-
+        init();
     }
 
-    private void wireUpButtons() {
+    private void init() {
         dataManager.getUnitSettings(new Response.Listener<UnitSettings>() {
             @Override
             public void onResponse(UnitSettings response) {
@@ -50,37 +49,13 @@ public class StatusEditActivity extends AppCompatActivity {
                 }
             }
         });
-        final TextView doneButton = (TextView) findViewById(R.id.edit_status_done_button);
-        doneButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                List<CallingStatus> statuses = new ArrayList<CallingStatus>();
-                for(CallingStatus status : CallingStatus.values()) {
-                    if(selectedStatus.contains(status) && !status.equals(CallingStatus.NONE)) {
-                        statuses.add(status);
-                    }
-                }
-                unitSettings.setDisabledStatuses(statuses);
-                dataManager.saveUnitSettings(new Response.Listener<Boolean>() {
-                    @Override
-                    public void onResponse(Boolean response) {
-                        if(response) {
-                            Toast.makeText(getApplicationContext(), getResources().getText(R.string.items_saved), Toast.LENGTH_LONG).show();
-                            finish();
-                        } else {
-                            Toast.makeText(getApplicationContext(), getResources().getText(R.string.saving_error), Toast.LENGTH_LONG).show();
-                        }
-                    }
-                }, unitSettings);
-            }
-        });
     }
 
     private void wireUpStatus() {
         FlexboxLayout statusLayout = (FlexboxLayout) findViewById(R.id.status_list);
         selectedStatus = unitSettings.getDisabledStatuses();
-        for(final CallingStatus status: CallingStatus.values()) {
-            if(!status.equals(CallingStatus.NONE)) {
+        for (final CallingStatus status : CallingStatus.values()) {
+            if (!status.equals(CallingStatus.NONE)) {
                 TextView statusView = new TextView(statusLayout.getContext());
                 statusView.setText(status.toString());
                 statusView.setPadding(16, 16, 16, 16);
@@ -108,6 +83,36 @@ public class StatusEditActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        /* Initialize the top menu items. */
+        int id = item.getItemId();
+        /* If the back button is pushed save the status changes. */
+        if (id == android.R.id.home) {
+            /* Save status items. */
+            List<CallingStatus> statuses = new ArrayList<CallingStatus>();
+            for(CallingStatus status : CallingStatus.values()) {
+                if(selectedStatus.contains(status) && !status.equals(CallingStatus.NONE)) {
+                    statuses.add(status);
+                }
+            }
+            unitSettings.setDisabledStatuses(statuses);
+            dataManager.saveUnitSettings(new Response.Listener<Boolean>() {
+                @Override
+                public void onResponse(Boolean response) {
+                    if(response) {
+                        Toast.makeText(getApplicationContext(), getResources().getText(R.string.items_saved), Toast.LENGTH_LONG).show();
+                        finish();
+                    } else {
+                        Toast.makeText(getApplicationContext(), getResources().getText(R.string.saving_error), Toast.LENGTH_LONG).show();
+                    }
+                }
+            }, unitSettings);
+            finish();
+            return true;
+        }
+        return true;
+    }
     private void wireUpToolbar() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.edit_status_toolbar);
         setSupportActionBar(toolbar);

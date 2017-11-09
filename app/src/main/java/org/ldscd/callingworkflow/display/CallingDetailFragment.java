@@ -222,12 +222,14 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
 
     public void createMemberLookupFragment() {
         MemberLookupFragment memberLookupFragment = new MemberLookupFragment();
+
+        Bundle args = new Bundle();
         if(calling.getProposedIndId() > 0) {
-            Bundle args = new Bundle();
             args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, calling.getProposedIndId());
-            args.putInt(MemberLookupFragment.positionTypeIdName, calling.getPosition().getPositionTypeId());
-            memberLookupFragment.setArguments(args);
         }
+        args.putInt(MemberLookupFragment.positionTypeIdName, calling.getPosition().getPositionTypeId());
+        memberLookupFragment.setArguments(args);
+
         memberLookupFragment.setMemberLookupListener(this);
         getFragmentManager()
                 .beginTransaction()
@@ -354,7 +356,9 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
                 LeaderClerkResourceDialogFragment.newInstance(
                         proposedMember != null ? proposedMember.getFormattedName() : null,
                         currentlyCalledMember != null ? currentlyCalledMember.getFormattedName() : null,
-                        calling.getPosition().getName());
+                        calling.getPosition().getName(),
+                        dataManager.canDeleteCalling(calling, dataManager.getOrg(calling.getParentOrg())),
+                        calling.getId() != null && calling.getId() > 0);
         leaderClerkResourceDialogFragment.OnLCRCallingUpdateListener(this);
         leaderClerkResourceDialogFragment.show(getFragmentManager(), null);
     }

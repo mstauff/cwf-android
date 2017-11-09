@@ -106,6 +106,16 @@ public class Org {
         return null;
     }
 
+    public List<Calling> getCallingByPositionTypeId(int positionTypeId) {
+        List<Calling> callings = new ArrayList<>();
+        for(Calling calling : allOrgCallings()) {
+            if(calling.getPosition().getPositionTypeId() == positionTypeId) {
+                callings.add(calling);
+            }
+        }
+        return callings;
+    }
+
     public List<Position> potentialNewPositions() {
         List<Integer> existingPositionTypeIds = new ArrayList<>();
         for(Calling calling : callings) {

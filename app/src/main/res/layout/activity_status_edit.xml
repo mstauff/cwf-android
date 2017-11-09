@@ -42,19 +42,4 @@
         </LinearLayout>
 
     </ScrollView>
-    <LinearLayout android:orientation="vertical"
-                  android:layout_width="match_parent"
-                  android:layout_height="wrap_content"
-                  android:layout_alignParentBottom="true">
-        <View android:layout_width="match_parent"
-              android:layout_height="2dp"
-              android:background="@color/light_grey"/>
-        <TextView
-            android:id="@+id/edit_status_done_button"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/footer_buttons_height"
-            android:gravity="center"
-            android:text="@string/done"
-            android:textAppearance="@style/TextAppearance.AppCompat.Medium"/>
-    </LinearLayout>
 </RelativeLayout>

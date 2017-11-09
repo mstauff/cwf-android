@@ -100,7 +100,7 @@ public class DataManagerImpl implements DataManager {
         callingData.updateLDSCalling(calling, getOrg(calling.getParentOrg()).getOrgTypeId(), callback);
     }
     public void deleteLDSCalling(Calling calling, Response.Listener callback) throws JSONException {
-
+        callingData.deleteLDSCalling(calling, getOrg(calling.getParentOrg()).getOrgTypeId(), callback);
     }
 
     /* Member data. */
@@ -147,13 +147,24 @@ public class DataManagerImpl implements DataManager {
         }
     }
     @Override
-    public void deleteCalling(Response.Listener<Boolean> listener, Calling calling, Org org) {
+    public void deleteCalling(final Response.Listener<Boolean> listener, final Calling calling, final Org org) {
         if(permissionManager.isAuthorized(currentUser.getUnitRoles(),
                 Permission.POTENTIAL_CALLING_DELETE,
                 new AuthorizableOrg(org.getUnitNumber(), UnitLevelOrgType.get(org.getOrgTypeId()), org.getOrgTypeId()))) {
-            saveCalling(listener, org, calling, Operation.DELETE);
+            if(canDeleteCalling(calling, org)) {
+                googleDataService.getOrgData(new Response.Listener<Org>() {
+                    @Override
+                    public void onResponse(Org newOrg) {
+                        Calling newCalling = newOrg.getCallingById(calling.getCallingId());
+                        newCalling = null;
+                        googleDataService.saveOrgFile(listener, newOrg);
+                        callingData.mergeOrgs(org, newOrg);
+                        callingData.extractOrg(newOrg, newOrg.getId());
+                        getMember(calling.getProposedIndId()).removeProposedCalling(calling);
+                    }
+                }, null, org);
+            }
         }
-
     }
     /* Calling and Google Data */
     private void saveCalling(final Response.Listener<Boolean> listener, final Org org, final Calling calling, final Operation operation) {
@@ -164,11 +175,7 @@ public class DataManagerImpl implements DataManager {
                 googleDataService.saveOrgFile(listener, newOrg);
                 callingData.mergeOrgs(org, newOrg);
                 callingData.extractOrg(newOrg, newOrg.getId());
-                if(operation.equals(Operation.DELETE)) {
-
-                } else {
-                    getMember(calling.getProposedIndId()).addProposedCalling(calling);
-                }
+                getMember(calling.getProposedIndId()).addProposedCalling(calling);
             }
         }, null, org);
     }
@@ -204,6 +211,21 @@ public class DataManagerImpl implements DataManager {
     @Override
     public List<Calling> getUnfinalizedCallings() {
         return callingData.getUnfinalizedCallings();
+    }
+
+    @Override
+    public boolean canDeleteCalling(Calling calling, Org org) {
+        boolean canDelete = false;
+        if(calling != null) {
+            if(!calling.getPosition().getAllowMultiple()) {
+                return false;
+            } else {
+                if(org.getCallingByPositionTypeId(calling.getPosition().getPositionTypeId()).size() > 1) {
+                    canDelete = true;
+                }
+            }
+        }
+        return canDelete;
     }
 
     /* Unit Settings */

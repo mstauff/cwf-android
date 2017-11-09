@@ -31,6 +31,7 @@ public interface DataManager {
     void releaseLDSCalling(Calling calling, Response.Listener callback) throws JSONException;
     void updateLDSCalling(Calling calling, Response.Listener callback) throws JSONException;
     void deleteLDSCalling(Calling calling, Response.Listener callback) throws JSONException;
+    boolean canDeleteCalling(Calling calling, Org org);
     /* Member data. */
     String getMemberName(Long id);
     Member getMember(Long id);

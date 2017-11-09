@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/calling_detail_lcr_delete"
+            android:title="@string/delete_calling_in_lcr" />
+        <item
+            android:id="@+id/calling_detail_google_drive_delete"
+            android:title="@string/delete_calling_in_workflow" />
+    </group>
+</menu>

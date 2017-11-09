@@ -21,6 +21,9 @@ import com.google.android.gms.drive.DriveId;
 import com.google.android.gms.drive.DriveResource;
 import com.google.android.gms.drive.Metadata;
 import com.google.android.gms.drive.MetadataChangeSet;
+import com.google.android.gms.drive.query.Filters;
+import com.google.android.gms.drive.query.Query;
+import com.google.android.gms.drive.query.SearchableField;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -52,7 +55,8 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
 
     protected Activity activity;
     protected Response.Listener<Boolean> listener;
-    private List<Org> organizationList;
+    private UnitSettings unitSettings;
+    private Metadata unitSettingsMetadata;
     /*
      * Object for creating an instance of an object of type Org Listener.
      * Serves to inject into a callback method from passed in parameters.
@@ -162,113 +166,134 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
         if(metaFileMap == null) {
             metaFileMap = new HashMap<>();
         }
+        this.unitSettings = null;
     }
 
     @Override
-    public void getUnitSettings(final Response.Listener<UnitSettings> listener, Long unitNumber) {
-        Metadata metadata = metaFileMap.get(DataUtil.getUnitFileName(unitNumber));
-        if(metadata != null) {
-            DriveId driveId = metadata.getDriveId();
-            if (driveId != null) {
-                cwFile = driveId.asDriveFile();
-            }
+    public void getUnitSettings(final Response.Listener<UnitSettings> listener, final Long unitNumber) {
+        if(unitSettings == null) {
+            DriveFolder appFolder = Drive.DriveApi.getAppFolder(mGoogleApiClient);
             /* From the drive file do invoke the call to open a fresh copy of the file from google drive. */
-            if (cwFile != null) {
-                cwFile.open(mGoogleApiClient, DriveFile.MODE_READ_ONLY, null)
-                    .setResultCallback(new ResultCallback<DriveApi.DriveContentsResult>() {
-                        @Override
-                        public void onResult(DriveApi.DriveContentsResult driveContentsResult) {
-                            /* Read the results from the callback as content and turn it into a stream. */
-                            cwFileContent = driveContentsResult.getDriveContents();
-                            if(cwFileContent != null) {
-                                InputStream inputStream = cwFileContent.getInputStream();
-                                /* Convert the stream into a string for usability. */
-                                String cwStr = ConflictUtil.getStringFromInputStream(inputStream);
-                                /* Convert the json string into an UnitSettings Object.
-                                    Then inject the UnitSettings object into the callback. */
-
-                                UnitSettings unitSettings = new Gson().fromJson(cwStr, UnitSettings.class);
-                                listener.onResponse(unitSettings);
-                            }
+            if (appFolder != null) {
+                Query query = new Query.Builder()
+                        .addFilter(Filters.eq(SearchableField.TITLE, DataUtil.getUnitFileName(unitNumber)))
+                        .build();
+                appFolder.queryChildren(mGoogleApiClient, query)
+                .setResultCallback(new ResultCallback<DriveApi.MetadataBufferResult>() {
+                    @Override
+                    public void onResult(@NonNull DriveApi.MetadataBufferResult metadataBufferResult) {
+                        if (!metadataBufferResult.getStatus().isSuccess()) {
+                            return;
                         }
-                    });
+                        int results = metadataBufferResult.getMetadataBuffer().getCount();
+                        if (results > 0) {
+                            // If the file exists then use it.
+                            Metadata metadata = metadataBufferResult.getMetadataBuffer().get(0);
+                            if (metadata != null && metadata.getFileExtension().equals("config")) {
+                                /* Check to see if there are duplicate files.  If so, remove
+                                    the file that is newest and keep the oldest file.
+                                */
+                                unitSettingsMetadata = metadata;
+                                DriveFile file = metadata.getDriveId().asDriveFile();
+                                file.open(mGoogleApiClient, DriveFile.MODE_READ_ONLY, null)
+                                    .setResultCallback(new ResultCallback<DriveApi.DriveContentsResult>() {
+                                        @Override
+                                        public void onResult(DriveApi.DriveContentsResult driveContentsResult) {
+                                            /* Read the results from the callback as content and turn it into a stream. */
+                                            cwFileContent = driveContentsResult.getDriveContents();
+                                            if(cwFileContent != null) {
+                                                InputStream inputStream = cwFileContent.getInputStream();
+                                                /* Convert the stream into a string for usability. */
+                                                String cwStr = ConflictUtil.getStringFromInputStream(inputStream);
+                                                /* Convert the json string into an UnitSettings Object.
+                                                    Then inject the UnitSettings object into the callback. */
+                                                unitSettings = new Gson().fromJson(cwStr, UnitSettings.class);;
+                                                listener.onResponse(unitSettings);
+                                            }
+                                        }
+                                    });
+                            }
+                        } else {
+                            /* Creates the unit settings file */
+                            final UnitSettings tempSettings = new UnitSettings(unitNumber, new ArrayList<CallingStatus>());
+                            createUnitSettingsFile(new Response.Listener<Boolean>() {
+                                @Override
+                                public void onResponse(Boolean response) {
+                                    if(response) {
+                                        unitSettings = tempSettings;
+                                        listener.onResponse(unitSettings);
+                                    } else {
+                                        listener.onResponse(null);
+                                    }
+                                }
+                            }, tempSettings);
+                            Log.e(TAG, "Failed to retrieve unit settings data from Google Drive.");
+                        }
+                    }
+                });
             }
         } else {
-            // invoke error listener
-            Log.e(TAG, "Failed to retrieve unit settings data from Google Drive.");
+            listener.onResponse(unitSettings);
         }
     }
 
     @Override
     public void saveUnitSettings(final Response.Listener<Boolean> listener, final UnitSettings unitSettings) {
-        String fileName = DataUtil.getUnitFileName(unitSettings.getUnitNumber());
-        if (metaFileMap != null) {
-            final Metadata metadata = metaFileMap.get(fileName);
-            if(metadata == null) {
-                syncDriveIds(new Response.Listener<Boolean>() {
+        if (unitSettingsMetadata != null) {
+            unitSettingsMetadata.getDriveId().asDriveFile().open(mGoogleApiClient, DriveFile.MODE_WRITE_ONLY, null)
+                .setResultCallback(new ResultCallback<DriveApi.DriveContentsResult>() {
                     @Override
-                    public void onResponse(Boolean response) {
-                        listener.onResponse(response);
-                    }
-                }, null);
-            }
-            if (metadata != null) {
-                DriveId driveId = metadata.getDriveId();
-                cwFile = driveId.asDriveFile();
-                cwFile.open(mGoogleApiClient, DriveFile.MODE_WRITE_ONLY, null)
-                    .setResultCallback(new ResultCallback<DriveApi.DriveContentsResult>() {
-                        @Override
-                        public void onResult(DriveApi.DriveContentsResult driveContentsResult) {
-                            listener.onResponse(driveContentsResult.getStatus().isSuccess());
-                            if (!driveContentsResult.getStatus().isSuccess()) {
-                                Log.e(TAG, "Unable to load unit settings data.");
-                                return;
-                            }
-                            /* Create Gson object with custom formatting on the unit settings. */
-                            GsonBuilder gsonBuilder = new GsonBuilder();
-                            gsonBuilder.serializeNulls();
-                            String flattenedJson = gsonBuilder.create().toJson(unitSettings, UnitSettings.class);
-                            if(flattenedJson != null && flattenedJson.length() > 0) {
-                                try {
-                                    /* Write Unit Settings content to DriveContents. */
-                                    cwFileContent = driveContentsResult.getDriveContents();
-                                    OutputStream outputStream = cwFileContent.getOutputStream();
-                                    outputStream.write(flattenedJson.getBytes());
-                                    outputStream.close();
-                                    if(mGoogleApiClient.isConnected()) {
-                                        cwFileContent.commit(mGoogleApiClient, null)
-                                            .setResultCallback(new ResultCallback<Status>() {
-                                                @Override
-                                                public void onResult(@NonNull Status status) {
-                                                    listener.onResponse(status.getStatus().isSuccess());
-                                                    if(status.getStatus().isSuccess()) {
-                                                        Log.i("Update Method", status.getStatus().toString());
-                                                    }
+                    public void onResult(DriveApi.DriveContentsResult driveContentsResult) {
+                        listener.onResponse(driveContentsResult.getStatus().isSuccess());
+                        if (!driveContentsResult.getStatus().isSuccess()) {
+                            Log.e(TAG, "Unable to load unit settings data.");
+                            return;
+                        }
+                        /* Create Gson object with custom formatting on the unit settings. */
+                        GsonBuilder gsonBuilder = new GsonBuilder();
+                        gsonBuilder.serializeNulls();
+                        String flattenedJson = gsonBuilder.create().toJson(unitSettings, UnitSettings.class);
+                        if(flattenedJson != null && flattenedJson.length() > 0) {
+                            try {
+                                /* Write Unit Settings content to DriveContents. */
+                                cwFileContent = driveContentsResult.getDriveContents();
+                                OutputStream outputStream = cwFileContent.getOutputStream();
+                                outputStream.write(flattenedJson.getBytes());
+                                outputStream.close();
+                                if(mGoogleApiClient.isConnected()) {
+                                    cwFileContent.commit(mGoogleApiClient, null)
+                                        .setResultCallback(new ResultCallback<Status>() {
+                                            @Override
+                                            public void onResult(@NonNull Status status) {
+                                                listener.onResponse(status.getStatus().isSuccess());
+                                                if(status.getStatus().isSuccess()) {
+                                                    Log.i("Update Method", status.getStatus().toString());
                                                 }
-                                            });
-                                    } else {
-                                        mGoogleApiClient.connect();
-                                        cwFileContent.commit(mGoogleApiClient, null);
-                                    }
-                                } catch (IOException e) {
-                                    Log.e(TAG, e.getMessage());
-                                    listener.onResponse(false);
+                                            }
+                                        });
+                                } else {
+                                    mGoogleApiClient.connect();
+                                    cwFileContent.commit(mGoogleApiClient, null);
                                 }
+                            } catch (IOException e) {
+                                Log.e(TAG, e.getMessage());
+                                listener.onResponse(false);
                             }
                         }
-                    });
-            } else {
-                createUnitSettingsFile(new Response.Listener<Boolean>() {
-                    @Override
-                    public void onResponse(Boolean response) {
-                        listener.onResponse(response);
                     }
-                }, unitSettings);
-            }
+                });
+        } else {
+            createUnitSettingsFile(new Response.Listener<Boolean>() {
+                @Override
+                public void onResponse(Boolean response) {
+                    listener.onResponse(response);
+                }
+            }, unitSettings);
         }
     }
 
     private void createUnitSettingsFile(final Response.Listener<Boolean> listener, final UnitSettings unitSettings) {
+        this.unitSettings = unitSettings;
         /* Meta data for the file to be saved. */
         final MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
                 .setTitle(DataUtil.getUnitFileName(unitSettings.getUnitNumber()))
@@ -352,6 +377,7 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
                 /* From the drive file do invoke the call to open a fresh copy of the file from google drive. */
                 if (cwFile != null) {
                     cwFile.open(mGoogleApiClient, DriveFile.MODE_READ_ONLY, null)
+                            //TODO: look at the other .setResultCallback method with optional parameters to help with throttling
                             .setResultCallback(new ResultCallback<DriveApi.DriveContentsResult>() {
                                 @Override
                                 public void onResult(DriveApi.DriveContentsResult driveContentsResult) {
@@ -362,7 +388,7 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
                                         /* Convert the stream into a string for usability. */
                                         String cwStr = ConflictUtil.getStringFromInputStream(inputStream);
                                         /* Convert the json string into an Org.  Then inject the org into the callback. */
-                                    OrgCallingBuilder orgCallingBuilder = new OrgCallingBuilder();
+                                        OrgCallingBuilder orgCallingBuilder = new OrgCallingBuilder();
                                         JSONArray jsonArray = null;
                                         JSONObject jsonObject = null;
                                         List<Org> orgs = null;
@@ -393,49 +419,25 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
     }
 
     @Override
-    public void getOrgs(final Response.Listener<List<Org>> listener, Response.ErrorListener errorListener) {
-        final int[] numOfOrgsReturned = {0}; //this must be an array to be able to increment it in the callback
-        /* We have to break up the list of calls to Google drive because
-           they only allow for 10 at a time.  This will need to be reworked to be more elegant.
-         */
-        final Set<Org> orgSet = new HashSet<>(metaFileMap.size());
-        int size = Math.round(metaFileMap.size()/2);
-        List<Metadata> metadataList = new ArrayList<Metadata>(metaFileMap.values());
-        for(int i = 0; i <= size; i++) {
-            Metadata metadata = metadataList.get(i);
-            if(metadata.getFileExtension().equals("json")) {
-                getOrgFromMeta(metadata, new Response.Listener<Org>() {
-                    @Override
-                    public void onResponse(Org response) {
-                        // todo - potential threading issues if multiple threads handle responses the ++ may not be correct
-                        if (response != null) {
-                            orgSet.add(response);
-                        }
-                        numOfOrgsReturned[0]++;
-                        if (numOfOrgsReturned[0] == metaFileMap.size()) {
-                            listener.onResponse(new ArrayList<Org>(orgSet));
-                        }
+    public void getOrgs(final Response.Listener<List<Org>> listener, final Response.ErrorListener errorListener) {
+        /* A callback promise queue */
+        final int[] promiseQueue = {0};
+        final Set<Org> orgList = new HashSet<>(metaFileMap.size());
+        final List<Metadata> metadataList = new ArrayList<Metadata>(metaFileMap.values());
+        for(Metadata metadata : metadataList) {
+            getOrgFromMeta(metadata, new Response.Listener<Org>() {
+                @Override
+                public void onResponse(Org response) {
+                    if (response != null) {
+                        orgList.add(response);
                     }
-                }, errorListener);
-            }
-        }
-        for(int i = metaFileMap.size()-1; i >= size; i--) {
-            Metadata metadata = metadataList.get(i);
-            if(metadata.getFileExtension().equals("json")) {
-                getOrgFromMeta(metadata, new Response.Listener<Org>() {
-                    @Override
-                    public void onResponse(Org response) {
-                        // todo - potential threading issues if multiple threads handle responses the ++ may not be correct
-                        if (response != null) {
-                            orgSet.add(response);
-                        }
-                        numOfOrgsReturned[0]++;
-                        if (numOfOrgsReturned[0] == metaFileMap.size()) {
-                            listener.onResponse(new ArrayList<Org>(orgSet));
-                        }
+                    promiseQueue[0]++;
+                    /* When all the orgs have been responded to return the listener */
+                    if (promiseQueue[0] == metadataList.size()) {
+                        listener.onResponse(new ArrayList(orgList));
                     }
-                }, errorListener);
-            }
+                }
+            }, errorListener);
         }
     }
 
@@ -444,6 +446,9 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
         fileName = DataUtil.getOrgFileName(org);
         if (metaFileMap != null) {
             final Metadata metadata = metaFileMap.get(fileName);
+            /* TODO: fix return listener giving a false positive.  Possibly use resync method or Task object from sdk.
+             * the if statement should go away.
+             */
             if(metadata == null) {
                 syncDriveIds(new Response.Listener<Boolean>() {
                     @Override
@@ -539,7 +544,6 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
 
     @Override
     public void syncDriveIds(final Response.Listener<Boolean> listener, final List<Org> orgList) {
-        organizationList = orgList;
         Drive.DriveApi.requestSync(mGoogleApiClient).setResultCallback(new ResultCallback<Status>() {
             @Override
             public void onResult(Status status) {
@@ -548,71 +552,68 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
                 }
                 DriveFolder folder = Drive.DriveApi.getAppFolder(mGoogleApiClient);
                 folder.listChildren(mGoogleApiClient).setResultCallback(new ResultCallback<DriveApi.MetadataBufferResult>() {
-                        @Override
-                        public void onResult(DriveApi.MetadataBufferResult metadataBufferResult) {
-                            if (!metadataBufferResult.getStatus().isSuccess()) {
-                                return;
-                            }
-                            int results = metadataBufferResult.getMetadataBuffer().getCount();
-                            if (results > 0) {
-                                // If the file exists then use it.
-                                boolean hasUnitSettings = false;
-                                for (Metadata metadata : metadataBufferResult.getMetadataBuffer()) {
-                                    metaFileMap.put(metadata.getTitle(), metadata);
-                                    /* This commented code is for removing a specified file and reloading it afresh. */
-                                    /*if(metadata != null && metadata.getOriginalFilename().contains("RS")) {
-                                        DriveId fileId = metadata.getDriveId();
-                                        DriveFile orgFile = fileId.asDriveFile();
-                                         //Call to delete app data file. Unable to use trash because it's not a visible file.
-                                        orgFile.delete(mGoogleApiClient);
-                                    }*/
-                                    if(!hasUnitSettings && metadata.getFileExtension().equals("config")) {
-                                        hasUnitSettings = true;
-                                    }
-                                }
-                                if(orgList != null) {
-                                    List<Org> itemsToCreate = new ArrayList<Org>();
-                                    for (Org org : orgList) {
-                                        if (org.getOrgTypeId() > 0 && !metaFileMap.containsKey(DataUtil.getOrgFileName(org))) {
-                                            itemsToCreate.add(org);
+                    @Override
+                    public void onResult(DriveApi.MetadataBufferResult metadataBufferResult) {
+                        if (!metadataBufferResult.getStatus().isSuccess()) {
+                            return;
+                        }
+                        int results = metadataBufferResult.getMetadataBuffer().getCount();
+                        if (results > 0) {
+                            // If the file exists then use it.
+                            boolean hasUnitSettings = false;
+                            for (Metadata metadata : metadataBufferResult.getMetadataBuffer()) {
+                                if(metadata.getFileExtension().equals("json")) {
+                                    /* Check to see if there are duplicate files.  If so, remove
+                                        the file that is newest and keep the oldest file.
+                                    */
+                                    Metadata existingMeta = metaFileMap.get(metadata.getTitle());
+                                    if (existingMeta != null) {
+                                        if (existingMeta.getCreatedDate().after(metadata.getCreatedDate())) {
+                                            metaFileMap.put(metadata.getTitle(), metadata);
+                                            DriveId fileId = existingMeta.getDriveId();
+                                            DriveFile orgFile = fileId.asDriveFile();
+                                            orgFile.delete(mGoogleApiClient);
+                                        } else {
+                                            DriveId fileId = metadata.getDriveId();
+                                            DriveFile orgFile = fileId.asDriveFile();
+                                            orgFile.delete(mGoogleApiClient);
                                         }
-                                    }
-                                    if(!itemsToCreate.isEmpty()) {
-                                        createOrgFile(new Response.Listener<Boolean>() {
-                                            @Override
-                                            public void onResponse(Boolean response) {
-                                                listener.onResponse(response);
-                                            }
-                                        }, itemsToCreate);
+                                    } else {
+                                        metaFileMap.put(metadata.getTitle(), metadata);
                                     }
                                 }
-                                if(!hasUnitSettings && orgList != null && orgList.size() > 0) {
-                                    createUnitSettingsFile(new Response.Listener<Boolean>() {
+                            }
+                            /* Possible orgs that need to be created */
+                            if(orgList != null) {
+                                List<Org> itemsToCreate = new ArrayList<Org>();
+                                for (Org org : orgList) {
+                                    if (org.getOrgTypeId() > 0 && !metaFileMap.containsKey(DataUtil.getOrgFileName(org))) {
+                                        itemsToCreate.add(org);
+                                    }
+                                }
+                                if(!itemsToCreate.isEmpty()) {
+                                    createOrgFile(new Response.Listener<Boolean>() {
                                         @Override
                                         public void onResponse(Boolean response) {
                                             listener.onResponse(response);
                                         }
-                                    }, new UnitSettings(orgList.get(0).getUnitNumber(), new ArrayList<CallingStatus>()));
+                                    }, itemsToCreate);
                                 }
-                            } else {
-                                // If the file does not exist then create one.
-                                createOrgFile(new Response.Listener<Boolean>() {
-                                    @Override
-                                    public void onResponse(Boolean response) {
-                                        listener.onResponse(response);
-                                    }
-                                }, orgList);
-                                createUnitSettingsFile(new Response.Listener<Boolean>() {
-                                    @Override
-                                    public void onResponse(Boolean response) {
-                                        listener.onResponse(response);
-                                    }
-                                }, new UnitSettings(orgList.get(0).getUnitNumber(), new ArrayList<CallingStatus>()));
                             }
-                            // TODO: compare orglist with driveIDMap and create possible files that are not currently in google drive
-                            listener.onResponse(true);
+                        } else {
+                            /* If zero files exist in google drive they will be created. */
+                            /* Creates all org files */
+                            createOrgFile(new Response.Listener<Boolean>() {
+                                @Override
+                                public void onResponse(Boolean response) {
+                                    listener.onResponse(response);
+                                }
+                            }, orgList);
                         }
-                    });
+                        //TODO : add a meaningful response
+                        listener.onResponse(true);
+                    }
+                });
             }
         });
     }

@@ -50,6 +50,7 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
     private MemberLookupAdapter adapter;
     private ListView listView;
     private Member currentSelection;
+    private boolean firstTime;
 
     /* Popup items. */
     private FilterOption filterOption;
@@ -72,6 +73,7 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
         if (bundle != null && !bundle.isEmpty()) {
             /* Get the positionTypeId */
             positionTypeId = bundle.getInt(positionTypeIdName, 0);
+            firstTime = true;
         }
         /* Inflate and wireup the filter button. */
         wireUpFilterButton(view);
@@ -202,12 +204,15 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
 
     private void createAdapter() {
         final MemberLookupFragment cFrag = this;
-        filterOption = new FilterOption(true);
+        if(firstTime) {
+            filterOption = new FilterOption(true);
+        }
         if(positionTypeId != null && positionTypeId > 0) {
             /* Create pre-set filter options */
             PositionMetaData positionMetaData = dataManager.getPositionMetadata(positionTypeId);
             if(positionMetaData != null) {
-                filterOption.setFilterOptions(positionMetaData);
+                filterOption.setFilterOptions(positionMetaData, firstTime);
+                firstTime = false;
             }
         }
 
