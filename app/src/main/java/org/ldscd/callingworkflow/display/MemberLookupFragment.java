@@ -216,7 +216,7 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
             }
         }
 
-        ArrayList<Member> filterMembers = filterOption.filterMembers(members);
+        List<Member> filterMembers = filterOption.filterMembers(members);
         adapter = new MemberLookupAdapter(getContext(), cFrag, view.getId(), filterMembers);
     }
 

@@ -2,6 +2,7 @@ package org.ldscd.callingworkflow.display.adapters;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.PorterDuff;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
@@ -9,10 +10,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.constants.CallingStatus;
+import org.ldscd.callingworkflow.display.ConflictInfoFragment;
 import org.ldscd.callingworkflow.display.ExpandableOrgsListActivity;
 import org.ldscd.callingworkflow.display.CreateCallingActivity;
 import org.ldscd.callingworkflow.model.Calling;
@@ -152,7 +155,7 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
         return convertView;
     }
 
-    private View getCallingView(Calling calling, View convertView, ViewGroup parentView, boolean childView) {
+    private View getCallingView(final Calling calling, View convertView, ViewGroup parentView, boolean childView) {
         if(convertView == null || convertView.getId() != R.id.calling_item) {
             convertView = LayoutInflater.from(parentView.getContext())
                     .inflate(R.layout.list_calling_item, parentView, false);
@@ -161,6 +164,7 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
         TextView callingTitle = (TextView) convertView.findViewById(R.id.calling_item_title);
         TextView current = (TextView) convertView.findViewById(R.id.calling_item_current);
         TextView proposed = (TextView) convertView.findViewById(R.id.calling_item_proposed);
+        final ImageView conflictIcon = (ImageView) convertView.findViewById(R.id.calling_conflict_icon);
 
         //set calling name
         callingTitle.setText(calling.getPosition().getName());
@@ -198,6 +202,24 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
             convertView.setBackgroundColor(ContextCompat.getColor(ctx, R.color.light_grey));
         } else {
             convertView.setPadding(GROUP_INDENT, 0, 0, 0);
+            convertView.setBackgroundColor(ContextCompat.getColor(ctx, R.color.white_background));
+        }
+
+        //Manage conflict icon
+        if(calling.getConflictCause() != null) {
+            conflictIcon.setVisibility(View.VISIBLE);
+            convertView.getBackground().setColorFilter(ContextCompat.getColor(ctx, R.color.conflict_background), PorterDuff.Mode.MULTIPLY);
+            conflictIcon.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    ConflictInfoFragment conflictInfo = new ConflictInfoFragment();
+                    conflictInfo.setCalling(calling);
+                    conflictInfo.show(fragmentManager, "ConflictInfo");
+                }
+            });
+        } else {
+            conflictIcon.setVisibility(View.GONE);
+            convertView.getBackground().clearColorFilter();
         }
 
         return convertView;

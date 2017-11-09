@@ -111,7 +111,7 @@ public class ExpandableOrgsListActivity extends AppCompatActivity {
     }
 
     private void setupListView(@NonNull final ExpandableListView callingListView, final Org org) {
-        FragmentManager fragmentManager = twoPane ? getSupportFragmentManager() : null;
+        FragmentManager fragmentManager = getSupportFragmentManager();
         adapter = new ExpandableOrgListAdapter(org, dataManager, twoPane, fragmentManager, activity);
         callingListView.setAdapter(adapter);
 

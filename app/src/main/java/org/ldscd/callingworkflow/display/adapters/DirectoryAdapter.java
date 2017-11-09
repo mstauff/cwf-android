@@ -11,19 +11,25 @@ import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.display.CallingDetailSearchFragment;
 import org.ldscd.callingworkflow.display.DirectoryActivity;
 import org.ldscd.callingworkflow.display.IndividualInformationFragment;
+import org.ldscd.callingworkflow.display.MemberLookupFilterFragment;
 import org.ldscd.callingworkflow.model.Calling;
+import org.ldscd.callingworkflow.model.FilterOption;
 import org.ldscd.callingworkflow.model.Member;
 import org.ldscd.callingworkflow.utils.DataUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class DirectoryAdapter extends RecyclerView.Adapter<DirectoryAdapter.ViewHolder> {
+public class DirectoryAdapter extends RecyclerView.Adapter<DirectoryAdapter.ViewHolder> implements MemberLookupFilterFragment.OnMemberLookupFilterListener {
 
-    private List<Member> values;
+    private List<Member> members;
+    private List<Member> displayedMembers;
+    private FilterOption filterOption;
 
     public DirectoryAdapter(List<Member> items) {
-        values = items;
+        members = items;
+        displayedMembers = items;
+        filterOption = new FilterOption(true);
     }
 
     @Override
@@ -35,7 +41,7 @@ public class DirectoryAdapter extends RecyclerView.Adapter<DirectoryAdapter.View
 
     @Override
     public void onBindViewHolder(final DirectoryAdapter.ViewHolder holder, int position) {
-        holder.memberItem = values.get(position);
+        holder.memberItem = displayedMembers.get(position);
 
         //set member name
         holder.memberNameView.setText(holder.memberItem.getFormattedName());
@@ -101,7 +107,18 @@ public class DirectoryAdapter extends RecyclerView.Adapter<DirectoryAdapter.View
 
     @Override
     public int getItemCount() {
-        return values.size();
+        return displayedMembers.size();
+    }
+
+    @Override
+    public void OnFilterOptionsChangedListener(FilterOption filterOption) {
+        this.filterOption = filterOption;
+        displayedMembers = filterOption.filterMembers(members);
+        notifyDataSetChanged();
+    }
+
+    public FilterOption getCurrentFilterOption() {
+        return filterOption;
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

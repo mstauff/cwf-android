@@ -6,7 +6,6 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.GravityCompat;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -78,7 +77,7 @@ public class CallingListActivity extends AppCompatActivity
 
     private void setupRecyclerView(@NonNull final RecyclerView recyclerView) {
         List<Calling> callings = dataManager.getUnfinalizedCallings();
-        FragmentManager fragmentManager = twoPane ? getSupportFragmentManager() : null;
+        FragmentManager fragmentManager = getSupportFragmentManager();
         adapter = new CallingListAdapter(callings, dataManager, twoPane, fragmentManager);
         recyclerView.setAdapter(adapter);
     }
