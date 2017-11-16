@@ -133,6 +133,7 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
     }
 
     private void init() {
+        ImageButton removeSelection = (ImageButton) view.findViewById(R.id.member_lookup_clear_selection_button);
         final TextView currentSelectionLabel = (TextView) view.findViewById(R.id.member_lookup_current_selection_label);
         Bundle bundle = this.getArguments();
         if (bundle != null && !bundle.isEmpty()) {
@@ -140,9 +141,14 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
             if(individualId > 0) {
                 currentSelection = dataManager.getMember(individualId);
                 currentSelectionLabel.setText(currentSelection.getFormattedName());
+                currentSelectionLabel.setVisibility(View.VISIBLE);
+                removeSelection.setVisibility(View.VISIBLE);
+            } else {
+                currentSelectionLabel.setVisibility(View.GONE);
+                removeSelection.setVisibility(View.GONE);
             }
         }
-        ImageButton removeSelection = (ImageButton) view.findViewById(R.id.member_lookup_clear_selection_button);
+
         removeSelection.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

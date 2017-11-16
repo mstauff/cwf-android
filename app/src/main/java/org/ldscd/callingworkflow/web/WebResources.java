@@ -31,6 +31,8 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.CookieManager;
 import java.net.HttpCookie;
@@ -81,6 +83,7 @@ public class WebResources implements IWebResources {
     private final CookieManager cookieManager;
     private HttpCookie httpCookie;
     private URI uri;
+    private Context context;
 
     public WebResources(Context context, RequestQueue requestQueue, SharedPreferences preferences) {
         this.requestQueue = requestQueue;
@@ -92,6 +95,7 @@ public class WebResources implements IWebResources {
         this.password = "password1";
         this.httpCookie = null;
         this.cookieManager = new CookieManager();
+        this.context = context;
         try {
             uri = new URI(CONFIG_URL);
         } catch (URISyntaxException e) {
@@ -154,19 +158,26 @@ public class WebResources implements IWebResources {
     }
 
     private void getAuthCookie(final Response.Listener<String> authCallback) {
+        /* Capture the cookie info stored in preferences as well check to verify it's not expired. */
         if(preferences.contains("Cookie") && httpCookie != null && !httpCookie.hasExpired()) {
             authCookie = preferences.getString("Cookie", null);
+            //TODO: Not sure if the httpCookie needs to be refreshed when kept active or it does it automagically
             authCallback.onResponse(authCookie);
         } else {
+            /* Authentication Request to the LDS church. */
             AuthenticationRequest authRequest = new AuthenticationRequest(userName, password, configInfo.getEndpointUrl("SIGN_IN"),
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
+                        /* This cookie url has specific params for the TEST environment */
                         authCookie = "clerk-resources-beta-terms=true; clerk-resources-beta-eula=4.2; " + response;
                         Log.i(TAG, "auth call successful");
                         httpCookie = new HttpCookie("cwf", authCookie);
+                        /* Sets the maximum age of the cookie in seconds. */
                         httpCookie.setMaxAge(1500);
                         cookieManager.getCookieStore().add(uri, httpCookie);
+                        /* Sets the cookie, username and password in long term storage.
+                         * This is only accessible through this application.  */
                         SharedPreferences.Editor editor = preferences.edit();
                         editor.putString(prefUsername, encrypt(userName));
                         editor.putString(prefPassword, encrypt(password));
@@ -194,66 +205,89 @@ public class WebResources implements IWebResources {
         if(userInfo != null) {
             userCallback.onResponse(userInfo);
         } else {
+            /* Get config info because it has the URL strings */
             getConfigInfo(new Response.Listener<ConfigInfo>() {
                 @Override
                 public void onResponse(ConfigInfo config) {
+                    /* If the current username and password are blank they need to be retrieved and set from somewhere. */
                     if (userName == null || password == null) {
                       loadCredentials();
                     }
+                    /* get the cookie because it has the information for the rest headers */
                     getAuthCookie(new Response.Listener<String>() {
                         @Override
                         public void onResponse(final String authCookie) {
-                            final List<Position> positions = new ArrayList<Position>();
-                            JsonObjectRequest userRequest = new JsonObjectRequest(
-                                    Request.Method.GET,
-                                    configInfo.getUserDataUrl(),
-                                    null,
-                                    new Response.Listener<JSONObject>() {
-                                        @Override
-                                        public void onResponse(JSONObject json) {
-                                            LdsUser user = null;
-                                            Log.i(TAG, "User call successful");
-                                            Log.i(TAG, json.toString());
-                                            try {
-                                                JSONArray assignments = json.getJSONArray("memberAssignments");
-                                                OrgCallingBuilder builder = new OrgCallingBuilder();
-                                                for(int i = 0; i < assignments.length(); i++) {
-                                                    positions.add(builder.extractPosition((JSONObject) assignments.get(i)));
-                                                }
-                                                unitNumber = json.getJSONArray("memberAssignments").getJSONObject(0).getString("unitNo");
-                                                long individualId = json.getLong("individualId");
-                                                user = new LdsUser(individualId, positions);
-                                            } catch (JSONException e) {
-                                                e.printStackTrace();
-                                            }
-
-                                            userCallback.onResponse(user);
-                                        }
-                                    },
-                                    new Response.ErrorListener() {
-                                        @Override
-                                        public void onErrorResponse(VolleyError error) {
-                                            Log.e(TAG, "load user error");
-                                            error.printStackTrace();
-                                            userCallback.onResponse(null);
-                                        }
-                                    }
-                            ) {
+                            /* Make the rest call to get the current users information. */
+                            getUser(new Response.Listener<Boolean>() {
                                 @Override
-                                public Map<String, String> getHeaders() {
-                                    Map<String, String> headers = new HashMap<>();
-                                    headers.put("Cookie", authCookie);
-                                    return headers;
+                                public void onResponse(Boolean response) {
+                                    //TODO: possibly do something more intelligently with the response object.
+                                    userCallback.onResponse(userInfo);
                                 }
-                            };
-                            userRequest.setRetryPolicy(getRetryPolicy());
-                            requestQueue.add(userRequest);
-
+                            }, authCookie);
                         }
                     });
                 }
             });
         }
+    }
+
+    private void getUser(final Response.Listener<Boolean> userCallback, final String authCookie) {
+        /* Create a list of calling(s)/Positions(s) for the current user. */
+        final List<Position> positions = new ArrayList<Position>();
+        /* Make a rest call to the lds church to capture the last information on the specified user. */
+        JsonObjectRequest userRequest = new JsonObjectRequest(
+                Request.Method.GET,
+                configInfo.getUserDataUrl(),
+                null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject json) {
+                        LdsUser user = null;
+                        Log.i(TAG, "User call successful");
+                        Log.i(TAG, json.toString());
+                        try {
+                            /* Parse out the returned json to capture the positions occupied by this person. */
+                            JSONArray assignments = json.getJSONArray("memberAssignments");
+                            OrgCallingBuilder builder = new OrgCallingBuilder();
+                            for(int i = 0; i < assignments.length(); i++) {
+                                positions.add(builder.extractPosition((JSONObject) assignments.get(i)));
+                            }
+                            /* Gets the Unit Number for this person by way of the position they hold.
+                            *  Currently we are only storing the unit number for the first calling we get.
+                            *  If they have callings in multiple units this will not be supported.
+                            */
+                            unitNumber = json.getJSONArray("memberAssignments").getJSONObject(0).getString("unitNo");
+                            long individualId = json.getLong("individualId");
+                            user = new LdsUser(individualId, positions);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            userCallback.onResponse(false);
+                        }
+                        /* Set the class level user to the newly established user. */
+                        userInfo = user;
+                        /* Returns true when all is done. */
+                        userCallback.onResponse(true);
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e(TAG, "load user error");
+                        error.printStackTrace();
+                        userCallback.onResponse(false);
+                    }
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Cookie", authCookie);
+                return headers;
+            }
+        };
+        userRequest.setRetryPolicy(getRetryPolicy());
+        requestQueue.add(userRequest);
     }
 
     @Override
@@ -377,7 +411,25 @@ public class WebResources implements IWebResources {
         }
     }
 
-    public void getPositionMetaData(Response.Listener<String> callback) {}
+    public void getPositionMetaData(Response.Listener<String> callback) {
+        callback.onResponse(getJSONFromAssets("position-metadata.json"));
+    }
+
+    private String getJSONFromAssets(String fileName) {
+        String json = null;
+        try {
+            InputStream is = context.getAssets().open(fileName);
+            int size = is.available();
+            byte[] buffer = new byte[size];
+            is.read(buffer);
+            is.close();
+            json = new String(buffer, "UTF-8");
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+        return json;
+    }
 
     private LdsUser extractUser(JSONObject json) throws JSONException {
         List<Position> positions = new ArrayList<>();

@@ -24,7 +24,7 @@
                 android:layout_weight="0"
                 android:background="#ffffff"
                 android:contentDescription="Clear Selected Member button"
-                android:padding="3dp"
+                android:padding="4dp"
                 app:srcCompat="@drawable/garbage" />
             <TextView
                 android:id="@+id/member_lookup_current_selection_label"
@@ -34,7 +34,8 @@
                 android:paddingLeft="25dp"
                 android:paddingTop="10dp"
                 android:layout_gravity="bottom"
-                android:textColor="@color/ldstools_black" />
+                android:textSize="20sp"
+                android:textColor="@color/ldstools_green" />
         </TableRow>
 
     </TableLayout>

@@ -56,13 +56,6 @@ public class CallingDetailActivity
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        /* Inflate the menu; this adds items to the action bar if it is present. */
-        getMenuInflater().inflate(R.menu.calling_detail, menu);
-        return true;
-    }
-
-    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         /* Initialize the top menu items. */
         int id = item.getItemId();
@@ -85,10 +78,6 @@ public class CallingDetailActivity
             /* Go to the list of callings if the back button is pushed. */
             finish();
             return true;
-        } else if(proceed && id == R.id.calling_detail_release_current_in_lcr) {
-            // Send event to LCR
-        } else if(proceed && id == R.id.calling_detail_delete_current_calling_in_lcr) {
-            // Send event to LCR
         }
         return true;
     }
