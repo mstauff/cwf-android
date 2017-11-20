@@ -1,13 +1,11 @@
 package org.ldscd.callingworkflow.display;
 
 import android.support.v4.app.Fragment;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -48,7 +46,6 @@ public class CallingDetailActivity
 
         /* Capture passed in arguments. */
         orgId = getIntent().getLongExtra(ExpandableOrgsListActivity.ARG_ORG_ID, 0);
-        org = dataManager.getOrg(orgId);
         String callingId = getIntent().getStringExtra(CallingDetailFragment.CALLING_ID);
         /* Commence the hydration of the UI and objects involved. */
         hydrateCalling(callingId);
@@ -98,6 +95,7 @@ public class CallingDetailActivity
     private void hydrateCalling(String callingId) {
         /* Get the Calling object from the passed in Calling ID. */
         calling = dataManager.getCalling(callingId);
+        org = dataManager.getOrg(calling.getParentOrg());
         /* Tool bar is wired up after the calling object is found so to get the name of the calling for display. */
         wireUpToolbar();
     }
@@ -105,7 +103,7 @@ public class CallingDetailActivity
     private void wireUpToolbar() {
         /* Once the calling is found we can then set the title of the Toolbar and initialize it. */
         Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
-        toolbar.setTitle(org.getDefaultOrgName() + " - " + calling.getPosition().getName());
+        toolbar.setTitle(org.getDefaultOrgName());
         setSupportActionBar(toolbar);
 
         // Show the Up button in the action bar.
