@@ -68,11 +68,15 @@ public class MemberData {
     public void addCallingToMembers(Calling calling) {
         if(calling.getMemberId() != null && calling.getMemberId() > 0) {
             Member currentMember = getMember(calling.getMemberId());
-            currentMember.addCurrentCalling(calling);
+            if(currentMember != null) {
+                currentMember.addCurrentCalling(calling);
+            }
         }
         if(calling.getProposedIndId() != null && calling.getProposedIndId() > 0) {
             Member proposedMember = getMember(calling.getProposedIndId());
-            proposedMember.addProposedCalling(calling);
+            if(proposedMember != null) {
+                proposedMember.addProposedCalling(calling);
+            }
         }
     }
 

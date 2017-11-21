@@ -203,9 +203,6 @@ public class DataManagerImpl implements DataManager {
                 updateCalling(newOrg, calling, operation);
                 callingData.mergeOrgs(org, newOrg);
                 callingData.extractOrg(org, org.getId());
-                if (calling.getProposedIndId() != null && calling.getProposedIndId() > 0) {
-                    getMember(calling.getProposedIndId()).addProposedCalling(calling);
-                }
 
                 //Save to google drive and revert local changes if the save fails
                 googleDataService.saveOrgFile(new Response.Listener<Boolean>() {

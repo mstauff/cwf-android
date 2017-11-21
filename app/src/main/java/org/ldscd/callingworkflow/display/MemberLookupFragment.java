@@ -140,9 +140,11 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
             Long individualId = bundle.getLong(INDIVIDUAL_ID, 0);
             if(individualId > 0) {
                 currentSelection = dataManager.getMember(individualId);
-                currentSelectionLabel.setText(currentSelection.getFormattedName());
-                currentSelectionLabel.setVisibility(View.VISIBLE);
-                removeSelection.setVisibility(View.VISIBLE);
+                if(currentSelection != null) {
+                    currentSelectionLabel.setText(currentSelection.getFormattedName());
+                    currentSelectionLabel.setVisibility(View.VISIBLE);
+                    removeSelection.setVisibility(View.VISIBLE);
+                }
             } else {
                 currentSelectionLabel.setVisibility(View.GONE);
                 removeSelection.setVisibility(View.GONE);
