@@ -15,7 +15,9 @@ import org.ldscd.callingworkflow.display.MemberLookupFilterFragment;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.FilterOption;
 import org.ldscd.callingworkflow.model.Member;
+import org.ldscd.callingworkflow.model.PositionMetaData;
 import org.ldscd.callingworkflow.utils.DataUtil;
+import org.ldscd.callingworkflow.web.DataManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,10 +27,12 @@ public class DirectoryAdapter extends RecyclerView.Adapter<DirectoryAdapter.View
     private List<Member> members;
     private List<Member> displayedMembers;
     private FilterOption filterOption;
+    private DataManager dataManager;
 
-    public DirectoryAdapter(List<Member> items) {
+    public DirectoryAdapter(List<Member> items, DataManager dataManager) {
         members = items;
         displayedMembers = items;
+        this.dataManager = dataManager;
         filterOption = new FilterOption(true);
     }
 
@@ -51,7 +55,12 @@ public class DirectoryAdapter extends RecyclerView.Adapter<DirectoryAdapter.View
         for(int i=0; i < holder.currentCallingViews.length; i++) {
             if (currentCallings.size() > i) {
                 Calling calling = currentCallings.get(i);
-                String title = calling.getPosition().getName();
+
+                PositionMetaData metaData = dataManager.getPositionMetadata(calling.getPosition().getPositionTypeId());
+                String title = metaData != null ? metaData.getMediumName() : null;
+                if(title == null) {
+                    title = calling.getPosition().getName();
+                }
                 int callingAge = DataUtil.getMonthsSinceActiveDate(calling.getActiveDate());
                 String callingDisplayText = holder.currentCallingViews[i].getResources().getString(R.string.current_calling_with_duration, title, callingAge);
 
@@ -74,7 +83,11 @@ public class DirectoryAdapter extends RecyclerView.Adapter<DirectoryAdapter.View
         for(int i=0; i < holder.proposedCallingViews.length; i++) {
             if (proposedCallings.size() > i) {
                 Calling calling = proposedCallings.get(i);
-                String title = calling.getPosition().getName();
+                PositionMetaData metaData = dataManager.getPositionMetadata(calling.getPosition().getPositionTypeId());
+                String title = metaData != null ? metaData.getMediumName() : null;
+                if(title == null) {
+                    title = calling.getPosition().getName();
+                }
                 String status = calling.getProposedStatus().name();
                 String callingDisplayText = holder.proposedCallingViews[i].getResources().getString(R.string.proposed_calling_with_status, title, status);
 

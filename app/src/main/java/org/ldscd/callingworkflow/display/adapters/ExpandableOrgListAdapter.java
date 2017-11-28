@@ -16,10 +16,10 @@ import android.widget.TextView;
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.constants.CallingStatus;
 import org.ldscd.callingworkflow.display.ConflictInfoFragment;
-import org.ldscd.callingworkflow.display.ExpandableOrgsListActivity;
 import org.ldscd.callingworkflow.display.CreateCallingActivity;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Org;
+import org.ldscd.callingworkflow.model.PositionMetaData;
 import org.ldscd.callingworkflow.utils.DataUtil;
 import org.ldscd.callingworkflow.web.DataManager;
 
@@ -167,7 +167,12 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
         final ImageView conflictIcon = (ImageView) convertView.findViewById(R.id.calling_conflict_icon);
 
         //set calling name
-        callingTitle.setText(calling.getPosition().getName());
+        PositionMetaData metaData = dataManager.getPositionMetadata(calling.getPosition().getPositionTypeId());
+        String positionName = metaData != null ? metaData.getShortName() : null;
+        if(positionName == null) {
+            positionName = calling.getPosition().getName();
+        }
+        callingTitle.setText(positionName);
 
         //set proposed member and status
         String proposedName = "";

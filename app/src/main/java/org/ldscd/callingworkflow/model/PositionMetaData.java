@@ -7,12 +7,14 @@ public class PositionMetaData {
     /* Fields */
     int positionTypeId;
     String shortName;
+    String mediumName;
     PositionRequirements requirements;
 
     /* Constructor */
-    public PositionMetaData(int positionTypeId, String shortName, PositionRequirements requirements) {
+    public PositionMetaData(int positionTypeId, String shortName, String mediumName, PositionRequirements requirements) {
         this.positionTypeId = positionTypeId;
         this.shortName = shortName;
+        this.mediumName = mediumName;
         this.requirements = requirements;
     }
 
@@ -25,10 +27,17 @@ public class PositionMetaData {
     }
 
     public String getShortName() {
-        return shortName;
+        return shortName != null ? shortName : mediumName;
     }
     public void setShortName(String shortName) {
         this.shortName = shortName;
+    }
+
+    public String getMediumName() {
+        return mediumName;
+    }
+    public void setMediumName(String mediumName) {
+        this.mediumName = mediumName;
     }
 
     public PositionRequirements getRequirements() {
