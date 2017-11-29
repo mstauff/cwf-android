@@ -79,12 +79,12 @@ public class IndividualInformationFragment extends BottomSheetDialogFragment {
             nameView.setText(member.getFormattedName());
             TextView callingView = (TextView) v.findViewById(R.id.member_information_calling);
             if(member.getCurrentCallings() != null && !member.getCurrentCallings().isEmpty()) {
-                callingView.setText(member.getCurrentCallings().toString());
+                callingView.setText(member.getCurrentCallings().toString().replace("[", "").replace("]", ""));
             }
 
             TextView proposedCalling = (TextView) v.findViewById(R.id.member_information_proposed_calling);
             if(member.getProposedCallings() != null && member.getProposedCallings().size() > 0) {
-                proposedCalling.setText(member.getProposedCallings().toString());
+                proposedCalling.setText(member.getProposedCallings().toString().replace("[", "").replace("]", ""));
             }
             else {
                 TextView proposedCallingLabel = (TextView) v.findViewById(R.id.member_information_proposed_label);

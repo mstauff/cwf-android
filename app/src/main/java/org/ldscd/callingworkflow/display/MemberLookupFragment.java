@@ -210,7 +210,7 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
 
     private void createAdapter() {
         final MemberLookupFragment cFrag = this;
-        if(firstTime || filterOption == null) {
+        if(filterOption == null) {
             filterOption = new FilterOption(true);
         }
         if(positionTypeId != null && positionTypeId > 0) {

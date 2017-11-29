@@ -93,7 +93,6 @@ public class MemberLookupAdapter extends ArrayAdapter<Member> implements Filtera
                 }
                 holder.calling.setText(sb.toString());
             } else {
-                holder.calling.setText("");
             }
             if(member.getProposedCallings() != null && member.getProposedCallings().size() > 0) {
                 StringBuilder sb = new StringBuilder();
@@ -106,9 +105,10 @@ public class MemberLookupAdapter extends ArrayAdapter<Member> implements Filtera
                         sb.append(' ');
                     }
                 }
-                holder.proposedCalling.setText(sb.toString());
+                String value = sb.toString();
+                holder.proposedCalling.setText(value);
             } else {
-                holder.proposedCalling.setText("");
+                holder.proposedCalling.setVisibility(View.GONE);
             }
 
             holder.contact_info.setOnClickListener(new View.OnClickListener() {
