@@ -36,6 +36,7 @@ public class CallingData {
     private static final String MEMBER_CLASS = "memberClasses";
     private static final String POSITION_TYPE_ID = "positionTypeId";
     private static final String SHORT_NAME = "shortName";
+    private static final String MEDIUM_NAME = "mediumName";
     private static final String REQUIREMENTS = "requirements";
 
     private IWebResources webResources;
@@ -403,7 +404,8 @@ public class CallingData {
                         }
                         PositionMetaData positionMetaData = new PositionMetaData(
                                 json.has(POSITION_TYPE_ID) ? json.getInt(POSITION_TYPE_ID) : 0,
-                                json.has(SHORT_NAME) ? json.getString(SHORT_NAME) : null,
+                                json.has(SHORT_NAME) && !json.isNull(SHORT_NAME) ? json.getString(SHORT_NAME) : null,
+                                json.has(MEDIUM_NAME) && !json.isNull(MEDIUM_NAME) ? json.getString(MEDIUM_NAME) : null,
                                 requirement);
 
                         allPositionMetadata.add(positionMetaData);

@@ -1,9 +1,11 @@
 package org.ldscd.callingworkflow.web.DataManagerImpl;
 
 import android.app.Activity;
+import android.util.Log;
 import android.widget.ProgressBar;
 
 import com.android.volley.Response;
+import com.android.volley.VolleyError;
 
 import org.json.JSONException;
 import org.ldscd.callingworkflow.constants.CallingStatus;
@@ -154,15 +156,38 @@ public class DataManagerImpl implements DataManager {
             if(canDeleteCalling(calling, org)) {
                 googleDataService.getOrgData(new Response.Listener<Org>() {
                     @Override
-                    public void onResponse(Org newOrg) {
-                        Calling newCalling = newOrg.getCallingById(calling.getCallingId());
-                        newCalling = null;
-                        googleDataService.saveOrgFile(listener, newOrg);
+                    public void onResponse(final Org newOrg) {
+                        //Here we're pulling a fresh copy of the base org to keep from overwriting any remote changes within the base org
+                        //we have to manually remove the calling from both the fresh copy and locally since the merge process doesn't always remove callings,
+                        //but we still need to merge to include any remote changes
+                        memberData.removeMemberCallings(org.getCallings()); //this must be done before changes are made, they are repopulated while merging orgs
+                        Org parentOrg = findSubOrg(newOrg, calling.getParentOrg());
+                        Calling callingToRemove = parentOrg.getCallingById(calling.getCallingId());
+                        parentOrg.getCallings().remove(callingToRemove);
+                        Org localParentOrg = callingData.getOrg(calling.getParentOrg());
+                        Calling localCallingToRemove = localParentOrg.getCallingById(calling.getCallingId());
+                        localParentOrg.getCallings().remove(localCallingToRemove);
                         callingData.mergeOrgs(org, newOrg);
-                        callingData.extractOrg(newOrg, newOrg.getId());
-                        getMember(calling.getProposedIndId()).removeProposedCalling(calling);
+                        callingData.extractOrg(org, org.getId());
+                        googleDataService.saveOrgFile(new Response.Listener<Boolean>() {
+                            @Override
+                            public void onResponse(Boolean success) {
+                                if(!success) {
+                                    updateCalling(newOrg, calling, Operation.CREATE);
+                                    callingData.mergeOrgs(org, newOrg);
+                                    callingData.extractOrg(org, org.getId());
+                                }
+                                listener.onResponse(success);
+                            }
+                        }, newOrg);
                     }
-                }, null, org);
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e(TAG, error.getMessage());
+                        listener.onResponse(false);
+                    }
+                }, org);
             }
         }
     }
@@ -170,14 +195,45 @@ public class DataManagerImpl implements DataManager {
     private void saveCalling(final Response.Listener<Boolean> listener, final Org org, final Calling calling, final Operation operation) {
         googleDataService.getOrgData(new Response.Listener<Org>() {
             @Override
-            public void onResponse(Org newOrg) {
+            public void onResponse(final Org newOrg) {
+                //Here we're pulling a fresh copy of the base org to keep from overwriting any remote changes within the base org
+                //We'll make the changes to the calling in the fresh copy, merge them into our local data and save them back to google drive
+                memberData.removeMemberCallings(org.getCallings()); //this must be done before changes are made, they are repopulated while merging orgs
+                final Calling backupCalling = operation.equals(Operation.CREATE) ? null : new Calling(newOrg.getCallingById(calling.getCallingId()));
                 updateCalling(newOrg, calling, operation);
-                googleDataService.saveOrgFile(listener, newOrg);
                 callingData.mergeOrgs(org, newOrg);
-                callingData.extractOrg(newOrg, newOrg.getId());
-                getMember(calling.getProposedIndId()).addProposedCalling(calling);
+                callingData.extractOrg(org, org.getId());
+
+                //Save to google drive and revert local changes if the save fails
+                googleDataService.saveOrgFile(new Response.Listener<Boolean>() {
+                    @Override
+                    public void onResponse(Boolean success) {
+                        memberData.removeMemberCallings(org.getCallings());
+                        if(!success) {
+                            if (operation.equals(Operation.UPDATE)) {
+                                updateCalling(newOrg, backupCalling, operation);
+                            } else if (operation.equals(Operation.CREATE)) {
+                                Org parentOrg = findSubOrg(newOrg, calling.getParentOrg());
+                                Calling callingToRemove = parentOrg.getCallingById(calling.getCallingId());
+                                parentOrg.getCallings().remove(callingToRemove);
+                                Org localParentOrg = callingData.getOrg(calling.getParentOrg());
+                                callingToRemove = localParentOrg.getCallingById(calling.getCallingId());
+                                localParentOrg.getCallings().remove(callingToRemove);
+                            }
+                            callingData.mergeOrgs(org, newOrg);
+                            callingData.extractOrg(org, org.getId());
+                        }
+                        listener.onResponse(success);
+                    }
+                }, newOrg);
             }
-        }, null, org);
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e(TAG, error.getMessage());
+                listener.onResponse(false);
+            }
+        }, org);
     }
 
     private void updateCalling(Org baseOrg, Calling updatedCalling, Operation operation) {

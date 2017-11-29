@@ -65,7 +65,7 @@ public class DirectoryActivity extends AppCompatActivity
         dataManager.getWardList(new Response.Listener<List<Member>>() {
             @Override
             public void onResponse(List<Member> members) {
-                adapter = new DirectoryAdapter(members);
+                adapter = new DirectoryAdapter(members, dataManager);
                 recyclerView.setAdapter(adapter);
             }
         });
