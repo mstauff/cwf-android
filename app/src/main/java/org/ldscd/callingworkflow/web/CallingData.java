@@ -385,7 +385,7 @@ public class CallingData {
                     for(int i = 0; i < jsonArray.length(); i++) {
                         JSONObject json = jsonArray.getJSONObject(i);
 
-                        JSONObject jsonRequirements = json.has(REQUIREMENTS) ? json.getJSONObject(REQUIREMENTS) : null;
+                        JSONObject jsonRequirements = json.has(REQUIREMENTS) && !json.isNull(REQUIREMENTS) ? json.getJSONObject(REQUIREMENTS) : null;
                         PositionRequirements requirement = null;
                         if(jsonRequirements != null) {
                             List<Priesthood> priesthoodList = jsonRequirements.has(PRIESTHOOD)

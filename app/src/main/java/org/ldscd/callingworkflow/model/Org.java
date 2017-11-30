@@ -4,7 +4,9 @@ import org.ldscd.callingworkflow.constants.ConflictCause;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
 /**
  * Represents an auxiliary.  i.e. primary, R.S. or E.Q.
@@ -104,6 +106,20 @@ public class Org {
             }
         }
         return null;
+    }
+
+    public boolean removeCalling(Calling param) {
+        if(this.getId() == param.getParentOrg()) {
+            List<Calling> callings = this.getCallings();
+            for (Iterator<Calling> callingIterator = callings.iterator(); callingIterator.hasNext(); ) {
+                Calling calling = callingIterator.next();
+                if (calling.getCallingId().equals(param.getCallingId())) {
+                    callings.remove(calling);
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public List<Calling> getCallingByPositionTypeId(int positionTypeId) {

@@ -149,33 +149,41 @@ public class DataManagerImpl implements DataManager {
         }
     }
     @Override
-    public void deleteCalling(final Response.Listener<Boolean> listener, final Calling calling, final Org org) {
+    public void deleteCalling(final Response.Listener<Boolean> listener, final Calling calling) {
+        final Org org = callingData.getBaseOrg(calling.getParentOrg());
         if(permissionManager.isAuthorized(currentUser.getUnitRoles(),
                 Permission.POTENTIAL_CALLING_DELETE,
                 new AuthorizableOrg(org.getUnitNumber(), UnitLevelOrgType.get(org.getOrgTypeId()), org.getOrgTypeId()))) {
             if(canDeleteCalling(calling, org)) {
+                /* Get the latest file from google drive. */
                 googleDataService.getOrgData(new Response.Listener<Org>() {
                     @Override
                     public void onResponse(final Org newOrg) {
-                        //Here we're pulling a fresh copy of the base org to keep from overwriting any remote changes within the base org
-                        //we have to manually remove the calling from both the fresh copy and locally since the merge process doesn't always remove callings,
-                        //but we still need to merge to include any remote changes
-                        memberData.removeMemberCallings(org.getCallings()); //this must be done before changes are made, they are repopulated while merging orgs
-                        Org parentOrg = findSubOrg(newOrg, calling.getParentOrg());
-                        Calling callingToRemove = parentOrg.getCallingById(calling.getCallingId());
-                        parentOrg.getCallings().remove(callingToRemove);
-                        Org localParentOrg = callingData.getOrg(calling.getParentOrg());
-                        Calling localCallingToRemove = localParentOrg.getCallingById(calling.getCallingId());
-                        localParentOrg.getCallings().remove(localCallingToRemove);
+                        final Calling originalCalling = new Calling(calling);
+                        /* Remove the callings that belong to the Org from the members with a proposed calling. */
+                        memberData.removeMemberCallings(org.getCallings());
+                        /* Get's the subOrg within the main org(ie. instructors subOrg in the EQ Org) */
+                        Org newParentOrg = findSubOrg(newOrg, calling.getParentOrg());
+                        /* Removes the calling from within the new org */
+                        newParentOrg.removeCalling(calling);
+                        /* Get's the old parent org */
+                        Org oldParentOrg = callingData.getOrg(calling.getParentOrg());
+                        /* Removes the calling from the old parent org */
+                        oldParentOrg.removeCalling(calling);
+                        /* Merge the changes in the old and new orgs */
                         callingData.mergeOrgs(org, newOrg);
+                        /* Extract recent subOrgs and callings to cached items */
                         callingData.extractOrg(org, org.getId());
+                        /* Save the changes back to google drive */
                         googleDataService.saveOrgFile(new Response.Listener<Boolean>() {
                             @Override
                             public void onResponse(Boolean success) {
                                 if(!success) {
-                                    updateCalling(newOrg, calling, Operation.CREATE);
+                                    updateCalling(newOrg, originalCalling, Operation.CREATE);
                                     callingData.mergeOrgs(org, newOrg);
                                     callingData.extractOrg(org, org.getId());
+                                } else if(originalCalling.getProposedIndId() > 0) {
+                                    getMember(originalCalling.getProposedIndId()).removeProposedCalling(calling);
                                 }
                                 listener.onResponse(success);
                             }
@@ -191,6 +199,29 @@ public class DataManagerImpl implements DataManager {
             }
         }
     }
+    /* final Org org = callingData.getBaseOrg(calling.getParentOrg());
+        if(permissionManager.isAuthorized(currentUser.getUnitRoles(),
+                Permission.POTENTIAL_CALLING_DELETE,
+                new AuthorizableOrg(org.getUnitNumber(), UnitLevelOrgType.get(org.getOrgTypeId()), org.getOrgTypeId()))) {
+            if(canDeleteCalling(calling, org)) {
+                googleDataService.getOrgData(new Response.Listener<Org>() {
+                    @Override
+                    public void onResponse(Org newOrg) {
+                        callingData.mergeOrgs(org, newOrg);
+                        callingData.extractOrg(newOrg, newOrg.getId());
+                        Org parentOrg = callingData.getOrg(calling.getParentOrg());
+                        boolean deleted = parentOrg.removeCalling(calling);
+                        if(deleted) {
+                            googleDataService.saveOrgFile(listener, newOrg);
+                            if (calling.getProposedIndId() != null && calling.getProposedIndId() > 0) {
+                                getMember(calling.getProposedIndId()).removeProposedCalling(calling);
+                            }
+                        }
+                    }
+                }, null, org);
+            }
+        }
+        */
     /* Calling and Google Data */
     private void saveCalling(final Response.Listener<Boolean> listener, final Org org, final Calling calling, final Operation operation) {
         googleDataService.getOrgData(new Response.Listener<Org>() {

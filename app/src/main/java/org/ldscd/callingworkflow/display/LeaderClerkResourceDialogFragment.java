@@ -115,6 +115,10 @@ public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment
             }
         });
 
+        if(!canDeleteLCR) {
+            releaseButton.setVisibility(View.GONE);
+        }
+
         Button updateButton = (Button)v.findViewById(R.id.button_update_calling_in_lcr);
         updateButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -145,67 +149,58 @@ public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment
             deleteButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(final View view) {
-                    showPopup(view);
-                    /*AlertDialog.Builder adb = getAlertDialog();
-                    adb.setMessage(getResources().getString(R.string.warning_release_message, currentlyCalledMemberName, callingName));
-                    final LeaderClerkResourceListener tempListener = mListener;
-                    adb.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    showPopup(view);
-                                    dialog.dismiss();
-                                }
-                            }
-                    );
-                    adb.show();*/
-                   //dismiss();
+                showPopup(view);
                 }
             });
         } else {
-            deleteButton.setVisibility(View.INVISIBLE);
+            deleteButton.setVisibility(View.GONE);
         }
     }
 
-    public void showAlert() {
+    public void showAlert(final Operation operation) {
         AlertDialog.Builder adb = getAlertDialog();
-        adb.setMessage(getResources().getString(R.string.warning_release_message, currentlyCalledMemberName, callingName));
+        if(canDeleteLCR) {
+            adb.setMessage(getResources().getString(R.string.warning_release_message, currentlyCalledMemberName, callingName));
+        } else {
+            adb.setMessage(getResources().getString(R.string.warning_delete_message, proposedMemberName));
+        }
         final LeaderClerkResourceListener tempListener = mListener;
         adb.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
+                    try {
+                        tempListener.onLeaderClerkResourceFragmentInteraction(operation);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                     dialog.dismiss();
                 }
             }
         );
         adb.show();
     }
+
     public void showPopup(View v) {
         PopupMenu popup = new PopupMenu(this.getContext(), v);
         MenuInflater inflater = popup.getMenuInflater();
         inflater.inflate(R.menu.delete_calling, popup.getMenu());
+        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.calling_detail_lcr_delete:
+                        showAlert(Operation.DELETE_LCR);
+                        dismiss();
+                        return true;
+                    case R.id.calling_detail_google_drive_delete:
+                        showAlert(Operation.DELETE);
+                        dismiss();
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+        });
         popup.show();
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.calling_detail_lcr_delete:
-                showAlert();
-                dismiss();
-                return true;
-            case R.id.calling_detail_google_drive_delete:
-                showAlert();
-                dismiss();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-
-    private void navigateUrlChanges() {
-        try {
-            mListener.onLeaderClerkResourceFragmentInteraction(Operation.UPDATE);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
     }
 
     private AlertDialog.Builder getAlertDialog() {

@@ -2,6 +2,7 @@ package org.ldscd.callingworkflow.display;
 
 import android.content.Context;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -97,20 +98,22 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     public void onLeaderClerkResourceFragmentInteraction(Operation operation) throws JSONException {
         this.operation = operation;
         if(operation == Operation.RELEASE) {
-            dataManager.releaseLDSCalling(calling, LCRResposne);
+            dataManager.releaseLDSCalling(calling, UpdateLCRResponse);
         } else if(operation == Operation.UPDATE) {
-            dataManager.updateLDSCalling(calling, LCRResposne);
+            dataManager.updateLDSCalling(calling, UpdateLCRResponse);
         } else if(operation == Operation.DELETE) {
-            dataManager.deleteLDSCalling(calling, LCRResposne);
+            dataManager.deleteCalling(DeleteLCRResponse, calling);
+        }else if(operation == Operation.DELETE_LCR) {
+            dataManager.deleteLDSCalling(calling, UpdateLCRResponse);
         }
 
     }
-    protected Response.Listener<JSONObject> LCRResposne = new Response.Listener<JSONObject>() {
+    protected Response.Listener<JSONObject> UpdateLCRResponse = new Response.Listener<JSONObject>() {
         @Override
         public void onResponse(JSONObject jsonObject) {
             if (jsonObject != null) {
                 if(jsonObject.has("error")) {
-                    Toast.makeText(getContext(), getResources().getString(R.string.error_update_Message), Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), getResources().getString(R.string.error_update_Message), Toast.LENGTH_SHORT).show();
                 } else {
                     try {
                         if(jsonObject.has("positionId")) {
@@ -123,17 +126,6 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
                             calling.setActiveDateTime(null);
                             calling.setMemberId(0);
                             calling.setCwfId(null);
-                        } else if(operation.equals(Operation.DELETE)) {
-                            /* Callings that do not allow multiples we do not show delete option */
-                            calling.setNotes("");
-                            calling.setExistingStatus(null);
-                            calling.setProposedIndId(0);
-                            calling.setProposedStatus(CallingStatus.NONE);
-                            calling.setActiveDate(null);
-                            calling.setActiveDateTime(null);
-                            calling.setMemberId(0);
-                            calling.setCwfId(null);
-                            calling.setConflictCause(null);
                         } else {
                             calling.setNotes("");
                             calling.setExistingStatus(null);
@@ -145,11 +137,38 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
                             calling.setCwfId(null);
                             calling.setConflictCause(null);
                         }
-                        mListener.onFragmentInteraction(calling, true);
+                        changeActivities();
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
                 }
+            }
+        }
+    };
+
+    private void changeActivities() {
+        Intent intent = new Intent(getActivity(), OrgListActivity.class);
+        startActivity(intent);
+    }
+
+    protected Response.Listener<Boolean> DeleteLCRResponse = new Response.Listener<Boolean>() {
+        @Override
+        public void onResponse(Boolean response) {
+            if(!response) {
+                Toast.makeText(getContext(), getResources().getString(R.string.error_update_Message), Toast.LENGTH_SHORT).show();
+            } else {
+                /* Callings that do not allow multiples we do not show delete option */
+                calling.setNotes("");
+                calling.setExistingStatus(null);
+                calling.setProposedIndId(0);
+                calling.setProposedStatus(CallingStatus.NONE);
+                calling.setActiveDate(null);
+                calling.setActiveDateTime(null);
+                calling.setMemberId(0);
+                calling.setCwfId(null);
+                calling.setConflictCause(null);
+
+                changeActivities();
             }
         }
     };
@@ -349,7 +368,8 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
 
     private void updateLCR() {
         Member currentlyCalledMember = null;
-        if(calling.getMemberId() > 0) {
+        /* Calling object may have some null fields if it was recently created in the UI. */
+        if(calling != null && calling.getMemberId() != null && calling.getMemberId() > 0) {
             currentlyCalledMember = dataManager.getMember(calling.getMemberId());
         }
         LeaderClerkResourceDialogFragment leaderClerkResourceDialogFragment =

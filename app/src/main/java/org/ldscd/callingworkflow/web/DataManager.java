@@ -40,7 +40,7 @@ public interface DataManager {
     /* Google data. */
     void addCalling(Response.Listener<Boolean> listener, Calling calling);
     void updateCalling(Response.Listener<Boolean> listener, Calling calling);
-    void deleteCalling(Response.Listener<Boolean> listener, Calling calling, Org org);
+    void deleteCalling(Response.Listener<Boolean> listener, Calling calling);
     List<Calling> getUnfinalizedCallings();
     /* Unit Settings */
     void getUnitSettings(Response.Listener<UnitSettings> listener);

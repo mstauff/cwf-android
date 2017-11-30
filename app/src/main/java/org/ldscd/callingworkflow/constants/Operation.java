@@ -8,7 +8,8 @@ public enum Operation {
     READ("Read"),
     UPDATE("Update"),
     DELETE("Delete"),
-    RELEASE("Release");
+    RELEASE("Release"),
+    DELETE_LCR("Delete LCR");
 
     String selection;
     Operation(String selection) {
