@@ -72,7 +72,9 @@ public class GsonRequest<T> extends Request<T> {
             String json = new String(
                     response.data,
                     HttpHeaderParser.parseCharset(response.headers));
-            return Response.success(
+            return clazz.equals(String.class)
+                    ? (Response<T>) Response.success(json, HttpHeaderParser.parseCacheHeaders(response))
+                    : (Response<T>) Response.success(
                     gson.fromJson(json, clazz),
                     HttpHeaderParser.parseCacheHeaders(response));
         } catch (UnsupportedEncodingException e) {

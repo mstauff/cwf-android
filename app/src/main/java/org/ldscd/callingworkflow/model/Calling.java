@@ -161,19 +161,12 @@ public class Calling implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Calling calling = (Calling) o;
-
-        if (positionId != null ? !positionId.equals(calling.positionId) : calling.positionId != null)
-            return false;
-        return cwfId != null ? cwfId.equals(calling.cwfId) : calling.cwfId == null;
-
+        return (getCallingId().equals(((Calling) o).getCallingId()));
     }
 
     @Override
     public int hashCode() {
-        int result = positionId != null ? positionId.hashCode() : 0;
-        result = 31 * result + (cwfId != null ? cwfId.hashCode() : 0);
-        return result;
+        return getCallingId().hashCode();
     }
 
     public void importCWFData(Calling sourceCalling) {
