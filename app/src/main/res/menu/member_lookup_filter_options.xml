@@ -7,5 +7,6 @@
         android:checkable="true"
         android:enabled="true"
         android:title="Priesthood"
+        android:fontFamily="@font/roboto"
         android:visible="true" />
 </menu>

@@ -17,6 +17,7 @@
             android:layout_height="@dimen/default_label_height"
             android:layout_marginTop="10dp"
             android:ems="30"
+            android:fontFamily="@font/roboto"
             android:text="@string/new_calling_label_position"
             android:textColor="#201f1f"
             android:textStyle="bold" />
@@ -32,6 +33,7 @@
             android:layout_height="@dimen/default_label_height"
             android:layout_marginTop="25dp"
             android:ems="30"
+            android:fontFamily="@font/roboto"
             android:text="@string/new_calling_label_proposed"
             android:textColor="#201f1f"
             android:textStyle="bold" />
@@ -47,6 +49,7 @@
                 android:drawablePadding="10dp"
                 android:textColor="@color/ldstools_black"
                 android:ems="30"
+                android:fontFamily="@font/roboto"
                 android:gravity="left"
                 android:paddingBottom="10dp"
                 android:paddingLeft="25dp"
@@ -68,6 +71,7 @@
             android:textStyle="bold"
             android:textColor="#201f1f"
             android:ems="30"
+            android:fontFamily="@font/roboto"
             android:id="@+id/label_new_calling_status" />
         <Spinner
             android:layout_width="match_parent"
@@ -79,6 +83,7 @@
             android:layout_width="match_parent"
             android:layout_height="150dp"
             android:layout_marginTop="10dp"
+            android:fontFamily="@font/roboto"
             android:hint="@string/notes"
             android:inputType="text|textMultiLine"
             android:background="#f4fcf9"

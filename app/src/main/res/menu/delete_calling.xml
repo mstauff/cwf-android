@@ -3,9 +3,11 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/calling_detail_lcr_delete"
+            android:fontFamily="@font/roboto"
             android:title="@string/delete_calling_in_lcr" />
         <item
             android:id="@+id/calling_detail_google_drive_delete"
+            android:fontFamily="@font/roboto"
             android:title="@string/delete_calling_in_workflow" />
     </group>
 </menu>

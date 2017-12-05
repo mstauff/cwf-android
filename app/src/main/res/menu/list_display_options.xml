@@ -6,9 +6,11 @@
         android:checkableBehavior="single">
         <item
             android:id="@+id/display_view_organization"
+            android:fontFamily="@font/roboto"
             android:title="@string/list_display_options_organization" />
         <item
             android:id="@+id/display_view_indvidual"
+            android:fontFamily="@font/roboto"
             android:title="@string/list_display_options_individual" />
     </group>
     <item android:title="@string/list_display_options_filter" android:enabled="false" />
@@ -17,13 +19,16 @@
         android:checkableBehavior="all">
         <item
             android:id="@+id/display_filter_proposed"
+            android:fontFamily="@font/roboto"
             android:title="@string/list_display_options_proposed" />
         <item
             android:paddingLeft="26dp"
             android:id="@+id/display_filter_approved"
+            android:fontFamily="@font/roboto"
             android:title="@string/list_display_options_approved" />
         <item
             android:id="@+id/display_filter_extended"
+            android:fontFamily="@font/roboto"
             android:title="@string/list_display_options_extended" />
     </group>
 </menu>

@@ -18,33 +18,42 @@
                 android:layout_height="fill_parent" android:layout_alignParentTop="true"
                 android:layout_alignParentLeft="true" android:layout_alignParentStart="true"
                 android:id="@+id/linearLayoutActivity">
+
             <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="@string/user_name"
-                    android:id="@+id/user_name_label" android:clickable="false" android:labelFor="@string/user_name"/>
+                android:id="@+id/user_name_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="false"
+                android:fontFamily="@font/roboto"
+                android:labelFor="@string/user_name"
+                android:text="@string/user_name"
+                android:textAppearance="?android:attr/textAppearanceMedium"/>
             <EditText
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:id="@+id/userName" android:inputType="text"/>
+
             <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="@string/password"
-                    android:id="@+id/textView3" android:labelFor="@string/password"/>
+                android:id="@+id/textView3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/roboto"
+                android:labelFor="@string/password"
+                android:text="@string/password"
+                android:textAppearance="?android:attr/textAppearanceMedium"/>
             <EditText
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textPassword"
                     android:ems="10"
                     android:id="@+id/password"/>
+
             <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/sync"
-                    android:id="@+id/button"/>
+                android:id="@+id/button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/roboto"
+                android:text="@string/sync"/>
         </LinearLayout>
     </ScrollView>
 </RelativeLayout>

@@ -17,6 +17,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/text_margin"
+                android:fontFamily="@font/roboto"
                 android:text="@string/calling_filters_heading"
                 android:textAppearance="@style/TextAppearance.AppCompat.Large"/>
 
@@ -25,6 +26,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/text_margin"
                 android:layout_marginLeft="@dimen/text_margin"
+                android:fontFamily="@font/roboto"
                 android:text="@string/calling_filters_status_heading"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"/>
 
@@ -33,6 +35,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/text_margin"
+                android:fontFamily="@font/roboto"
                 app:flexWrap="wrap"/>
 
             <TextView
@@ -40,6 +43,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/text_margin"
                 android:layout_marginLeft="@dimen/text_margin"
+                android:fontFamily="@font/roboto"
                 android:text="@string/calling_filters_orgs_heading"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"/>
             <com.google.android.flexbox.FlexboxLayout
@@ -47,6 +51,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/text_margin"
+                android:fontFamily="@font/roboto"
                 app:flexWrap="wrap"/>
 
         </LinearLayout>
@@ -62,6 +67,7 @@
             android:id="@+id/calling_filters_confirm"
             android:layout_width="match_parent"
             android:layout_height="@dimen/footer_buttons_height"
+            android:fontFamily="@font/roboto"
             android:gravity="center"
             android:text="@string/calling_filters_confirm"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"/>

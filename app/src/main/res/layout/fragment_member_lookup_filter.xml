@@ -25,6 +25,7 @@
         android:layout_weight="4"
         android:textStyle="bold"
         android:textSize="20sp"
+        android:fontFamily="@font/roboto"
         android:textColor="@color/ldstools_black"
         android:text="@string/search_filters" />
     <TableLayout
@@ -44,6 +45,7 @@
                     android:textColor="@color/ldstools_black"
                     android:textStyle="bold"
                     android:textSize="15sp"
+                    android:fontFamily="@font/roboto"
                     android:layout_gravity="center_vertical"
                     android:text="@string/callings" />
             </FrameLayout>
@@ -55,6 +57,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="16dp"
+                    android:fontFamily="@font/roboto"
                     android:text="@string/zero" />
             </FrameLayout>
             <FrameLayout
@@ -65,6 +68,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="16dp"
+                    android:fontFamily="@font/roboto"
                     android:text="@string/one" />
             </FrameLayout>
             <FrameLayout
@@ -75,6 +79,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="16dp"
+                    android:fontFamily="@font/roboto"
                     android:text="@string/two"/>
             </FrameLayout>
             <FrameLayout
@@ -85,6 +90,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="16dp"
+                    android:fontFamily="@font/roboto"
                     android:text="@string/three_plus" />
             </FrameLayout>
         </TableRow>
@@ -102,6 +108,7 @@
                 android:textColor="@color/ldstools_black"
                 android:textStyle="bold"
                 android:textSize="15sp"
+                android:fontFamily="@font/roboto"
                 android:text="@string/time_in_calling" />
             <TextView
                 android:layout_width="wrap_content"
@@ -113,6 +120,7 @@
                 android:paddingBottom="10dp"
                 android:textColor="@color/ldstools_gray"
                 android:textStyle="bold"
+                android:fontFamily="@font/roboto"
                 android:textSize="13sp" />
         </TableRow>
     </TableLayout>
@@ -121,6 +129,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingBottom="10dp"
+        android:fontFamily="@font/roboto"
         android:max="10" />
     <TableLayout
         android:layout_width="match_parent"
@@ -135,6 +144,7 @@
                 android:textColor="@color/ldstools_black"
                 android:textStyle="bold"
                 android:textSize="15sp"
+                android:fontFamily="@font/roboto"
                 android:text="@string/age" />
             <TextView
                 android:id="@+id/member_lookup_filter_twelve_to_seventeen"
@@ -143,12 +153,14 @@
                 android:layout_marginRight="40dp"
                 android:layout_marginLeft="40dp"
                 android:padding="16dp"
+                android:fontFamily="@font/roboto"
                 android:text="@string/twelve_to_seventeen" />
             <TextView
                 android:id="@+id/member_lookup_filter_eighteen_plus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="16dp"
+                android:fontFamily="@font/roboto"
                 android:text="@string/eighteen_plus" />
         </TableRow>
     </TableLayout>
@@ -165,6 +177,7 @@
                 android:textColor="@color/ldstools_black"
                 android:textStyle="bold"
                 android:textSize="15sp"
+                android:fontFamily="@font/roboto"
                 android:text="@string/gender" />
             <TextView
                 android:id="@+id/member_lookup_filter_male"
@@ -173,12 +186,14 @@
                 android:layout_marginRight="40dp"
                 android:layout_marginLeft="40dp"
                 android:padding="16dp"
+                android:fontFamily="@font/roboto"
                 android:text="@string/male" />
             <TextView
                 android:id="@+id/member_lookup_filter_female"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="16dp"
+                android:fontFamily="@font/roboto"
                 android:text="@string/female" />
         </TableRow>
     </TableLayout>
@@ -194,6 +209,7 @@
                 android:textColor="@color/ldstools_black"
                 android:textStyle="bold"
                 android:textSize="15sp"
+                android:fontFamily="@font/roboto"
                 android:text="@string/priesthood" />
         </TableRow>
         <TableRow>
@@ -205,12 +221,14 @@
                 android:layout_marginRight="40dp"
                 android:layout_marginLeft="40dp"
                 android:padding="16dp"
+                android:fontFamily="@font/roboto"
                 android:text="@string/high_priest" />
             <TextView
                 android:id="@+id/member_lookup_filter_elders_quorum"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="16dp"
+                android:fontFamily="@font/roboto"
                 android:text="@string/elders_quorum" />
         </TableRow>
         <TableRow>
@@ -222,12 +240,14 @@
                 android:layout_marginRight="40dp"
                 android:layout_marginLeft="40dp"
                 android:padding="16dp"
+                android:fontFamily="@font/roboto"
                 android:text="@string/priest" />
             <TextView
                 android:id="@+id/member_lookup_filter_teacher"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="16dp"
+                android:fontFamily="@font/roboto"
                 android:text="@string/teacher" />
         </TableRow>
         <TableRow>
@@ -239,6 +259,7 @@
                 android:layout_marginRight="40dp"
                 android:layout_marginLeft="40dp"
                 android:padding="16dp"
+                android:fontFamily="@font/roboto"
                 android:text="@string/deacon" />
         </TableRow>
     </TableLayout>
@@ -254,6 +275,7 @@
                 android:textColor="@color/ldstools_black"
                 android:textStyle="bold"
                 android:textSize="15sp"
+                android:fontFamily="@font/roboto"
                 android:text="@string/church_class" />
         </TableRow>
         <TableRow>
@@ -265,12 +287,14 @@
                 android:layout_marginRight="40dp"
                 android:layout_marginLeft="40dp"
                 android:padding="16dp"
+                android:fontFamily="@font/roboto"
                 android:text="@string/relief_society" />
             <TextView
                 android:id="@+id/member_lookup_filter_laurel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="16dp"
+                android:fontFamily="@font/roboto"
                 android:text="@string/laurel" />
         </TableRow>
         <TableRow>
@@ -282,6 +306,7 @@
                 android:layout_marginRight="40dp"
                 android:layout_marginLeft="40dp"
                 android:padding="16dp"
+                android:fontFamily="@font/roboto"
                 android:text ="@string/mia_maid" />
             <TextView
                 android:id="@+id/member_lookup_filter_beehive"
@@ -303,6 +328,7 @@
             android:layout_height="1dp"
             android:paddingTop="20dp"
             android:paddingBottom="20dp"
+              android:fontFamily="@font/roboto"
             android:background="@color/ldstools_gray_light" />
 
         <Button
@@ -310,6 +336,7 @@
             android:layout_width="wrap_content"
             android:layout_height="@dimen/footer_buttons_height"
             android:layout_gravity="center_horizontal"
+            android:fontFamily="@font/roboto"
             android:text="@string/done" />
     </LinearLayout>
 

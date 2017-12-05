@@ -12,6 +12,7 @@
         android:id="@+id/member_item_name"
         android:layout_height="wrap_content"
         android:textAppearance="?attr/textAppearanceListItem"
+        android:fontFamily="@font/roboto"
         android:layout_width="wrap_content" />
 
     <LinearLayout
@@ -23,34 +24,40 @@
         <TextView
             android:id="@+id/member_item_current1"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/roboto" />
         <TextView
             android:id="@+id/member_item_current2"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/roboto" />
         <TextView
             android:id="@+id/member_item_current3"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/roboto" />
 
         <TextView
             android:id="@+id/member_item_proposed1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceListItem"
-            android:textColor="@color/highlight_name"/>
+            android:textColor="@color/highlight_name"
+            android:fontFamily="@font/roboto" />
         <TextView
             android:id="@+id/member_item_proposed2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceListItem"
-            android:textColor="@color/highlight_name"/>
+            android:textColor="@color/highlight_name"
+            android:fontFamily="@font/roboto" />
         <TextView
             android:id="@+id/member_item_proposed3"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceListItem"
-            android:textColor="@color/highlight_name"/>
+            android:textColor="@color/highlight_name"
+            android:fontFamily="@font/roboto" />
 
     </LinearLayout>
 </LinearLayout>

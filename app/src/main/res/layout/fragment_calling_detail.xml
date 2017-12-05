@@ -19,6 +19,7 @@
     android:ems="30"
     android:textStyle="bold"
     android:textColor="#000000"
+    android:fontFamily="@font/roboto"
     android:layout_alignParentTop="true"
     android:layout_alignParentLeft="true"
     android:layout_alignParentStart="true"
@@ -29,6 +30,7 @@
     android:layout_height="wrap_content"
     android:layout_marginTop="5dp"
     android:textStyle="bold"
+    android:fontFamily="@font/roboto"
     android:textColor="@color/ldstools_black"
     android:layout_alignBottom="@id/label_calling_detail_position"
     android:text="@string/currently_called"
@@ -41,6 +43,7 @@
     android:layout_marginTop="0dp"
     android:layout_marginLeft="10dp"
     android:textColor="@color/ldstools_black"
+    android:fontFamily="@font/roboto"
     android:layout_alignBottom="@id/label_calling_detail_currently_called"
     android:ems="30"
     android:id="@+id/calling_detail_currently_called" />
@@ -52,6 +55,7 @@
     android:layout_alignBottom="@id/calling_detail_currently_called"
     android:text="@string/list_display_options_proposed"
     android:textStyle="bold"
+    android:fontFamily="@font/roboto"
     android:ems="30"
     android:id="@+id/label_calling_detail_proposed" />
 <FrameLayout
@@ -74,6 +78,7 @@
                 android:drawablePadding="10dp"
                 android:textColor="@color/ldstools_black"
                 android:ems="30"
+                android:fontFamily="@font/roboto"
                 android:gravity="left"
                 android:paddingBottom="10dp"
                 android:paddingLeft="25dp"
@@ -97,6 +102,7 @@
     android:textStyle="bold"
     android:textColor="@color/ldstools_black"
     android:ems="30"
+    android:fontFamily="@font/roboto"
     android:id="@+id/label_calling_detail_status" />
 <Spinner
     android:layout_width="match_parent"
@@ -109,6 +115,7 @@
     android:layout_height="150dp"
     android:layout_marginTop="10dp"
     android:hint="@string/notes"
+    android:fontFamily="@font/roboto"
     android:inputType="text|textMultiLine"
     android:background="#f4fcf9"
     android:gravity="top"/>
@@ -118,6 +125,7 @@
     android:layout_height="40dp"
     android:layout_marginBottom="10dp"
     android:layout_marginTop="20dp"
+    android:fontFamily="@font/roboto"
     android:layout_alignParentBottom="true"
     android:id="@+id/button_finalize_calling" />
 </LinearLayout>

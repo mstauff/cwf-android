@@ -25,6 +25,7 @@
                 android:paddingTop="4dp"
                 android:paddingLeft="8dp"
                 android:ems="30"
+                android:fontFamily="@font/roboto"
                 android:textColor="#201f1f" />
 
             <TextView
@@ -32,6 +33,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingTop="4dp"
+                android:fontFamily="@font/roboto"
                 android:paddingLeft="30dp" />
 
             <TextView
@@ -41,6 +43,7 @@
                 android:textColor="@color/ldstools_green600"
                 android:paddingTop="4dp"
                 android:paddingLeft="30dp"
+                android:fontFamily="@font/roboto"
                 android:text="@string/app_name" />
         </LinearLayout>
         <RelativeLayout

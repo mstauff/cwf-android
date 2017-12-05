@@ -37,6 +37,7 @@
                 android:background="@color/white"
                 android:textColor="@color/ldstools_black"
                 android:textSize="16dp"
+                android:fontFamily="@font/roboto"
                 android:text="@string/lds_credentials"/>
 
             <TextView
@@ -48,6 +49,7 @@
                 android:background="@color/white"
                 android:textColor="@color/ldstools_black"
                 android:textSize="16dp"
+                android:fontFamily="@font/roboto"
                 android:text="@string/manage_data"/>
 
             <TextView
@@ -59,6 +61,7 @@
                 android:background="@color/white"
                 android:textColor="@color/ldstools_black"
                 android:textSize="16dp"
+                android:fontFamily="@font/roboto"
                 android:text="@string/edit_calling_status"/>
 
         </LinearLayout>
