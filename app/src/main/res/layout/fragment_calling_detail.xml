@@ -120,13 +120,14 @@
     android:background="#f4fcf9"
     android:gravity="top"/>
 <Button
-    android:text="@string/finalize_calling"
-    android:layout_width="wrap_content"
+    android:text="@string/update_lds_org"
+    android:layout_width="match_parent"
     android:layout_height="40dp"
-    android:layout_marginBottom="10dp"
-    android:layout_marginTop="20dp"
+    android:layout_margin="10dp"
     android:fontFamily="@font/roboto"
-    android:layout_alignParentBottom="true"
-    android:id="@+id/button_finalize_calling" />
+    android:id="@+id/button_finalize_calling"
+    android:background="@color/app_theme_color"
+    android:textSize="@dimen/text_size_medium"
+    android:textColor="@color/white"/>
 </LinearLayout>
 </ScrollView>

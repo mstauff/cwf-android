@@ -18,6 +18,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONException;
@@ -93,7 +94,7 @@ public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment
 
     private void wireupButtons(final View v) {
         final LeaderClerkResourceListener tempListener = mListener;
-        Button releaseButton = (Button)v.findViewById(R.id.button_release_current_in_lcr);
+        TextView releaseButton = (TextView)v.findViewById(R.id.button_release_current_in_lcr);
         releaseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -119,7 +120,7 @@ public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment
             releaseButton.setVisibility(View.GONE);
         }
 
-        Button updateButton = (Button)v.findViewById(R.id.button_update_calling_in_lcr);
+        TextView updateButton = (TextView)v.findViewById(R.id.button_update_calling_in_lcr);
         updateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -144,7 +145,7 @@ public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment
             }
         });
 
-        Button deleteButton = (Button)v.findViewById(R.id.button_delete_calling_in_lcr);
+        TextView deleteButton = (TextView)v.findViewById(R.id.button_delete_calling_in_lcr);
         if(canDelete) {
             deleteButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -155,6 +156,14 @@ public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment
         } else {
             deleteButton.setVisibility(View.GONE);
         }
+
+        TextView cancelOption = (TextView)v.findViewById(R.id.button_cancel_update_lds_org);
+        cancelOption.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dismiss();
+            }
+        });
     }
 
     public void showAlert(final Operation operation) {

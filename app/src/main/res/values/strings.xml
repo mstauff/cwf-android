@@ -18,12 +18,14 @@
     <string name="list_display_options_proposed">Proposed</string>
     <string name="list_display_options_approved">Approved</string>
     <string name="list_display_options_extended">Extended</string>
+    <string name="update_lds_org">Update lds.org</string>
     <string name="lcr_menu_header">Leader Clerk Resources</string>
-    <string name="release_current_in_lcr">Release Currently Called</string>
-    <string name="update_calling_in_lcr">Update Calling</string>
+    <string name="release_current_in_lcr">Release current in lds.org</string>
+    <string name="update_calling_in_lcr">Finalize change in lds.org</string>
     <string name="delete_calling_in_lcr">Remove Calling in LCR</string>
     <string name="delete_calling_in_workflow">Remove Workflow Item</string>
     <string name="delete_calling">Delete Calling</string>
+    <string name="cancel">Cancel</string>
     <string name="setting_header">Settings</string>
     <string name="user_name">User Name</string>
     <string name="password">Password</string>
@@ -38,7 +40,6 @@
     <string name="no_phone_number">No Phone Number</string>
     <string name="no_email_address">No Email Address</string>
     <string name="no_address">No Address</string>
-    <string name="finalize_calling">Finalize Calling</string>
     <string name="currently_called">Currently Called</string>
     <string name="select_status">Select Status</string>
     <string name="member_lookup">Member Lookup</string>
