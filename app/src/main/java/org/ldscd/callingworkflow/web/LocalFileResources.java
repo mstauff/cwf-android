@@ -40,7 +40,7 @@ public class LocalFileResources implements IWebResources {
     private static final String TAG = "LocalFileResourcesLog";
     private Context context;
     private RequestQueue requestQueue;
-    private static final String CONFIG_URL = "http://dev-ldscd.rhcloud.com/cwf/config?env=test";
+    private static final String CONFIG_URL = "http://dev-config-server-ldscd.7e14.starter-us-west-2.openshiftapps.com/cwf/config?env=test";
     private ConfigInfo configInfo = null;
 
     public LocalFileResources(Context context, RequestQueue requestQueue) {
