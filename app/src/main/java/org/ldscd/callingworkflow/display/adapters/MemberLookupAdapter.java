@@ -14,6 +14,8 @@ import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.display.MemberLookupFragment;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Member;
+import org.ldscd.callingworkflow.model.PositionMetaData;
+import org.ldscd.callingworkflow.web.DataManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,13 +29,15 @@ public class MemberLookupAdapter extends ArrayAdapter<Member> implements Filtera
     private List<Member> originalMembersList;
     private final MemberLookupFragment fragment;
     private MemberFilter mFilter = new MemberFilter();
+    private DataManager dataManager;
 
     /* Constructor */
-    public MemberLookupAdapter(Context context, MemberLookupFragment fragment, int viewResourceId,
+    public MemberLookupAdapter(Context context, MemberLookupFragment fragment, DataManager dataManager, int viewResourceId,
                                List<Member> members) {
         super(context, viewResourceId);
         mContext = context;
         this.fragment = fragment;
+        this.dataManager = dataManager;
         this.filterMembersList = members;
         this.originalMembersList = members;
         inflater = LayoutInflater.from(mContext);
@@ -84,7 +88,12 @@ public class MemberLookupAdapter extends ArrayAdapter<Member> implements Filtera
                 StringBuilder sb = new StringBuilder();
                 int i = 0;
                 for (Calling calling : member.getCurrentCallings()) {
-                    sb.append(calling.getPosition().getName());
+                    PositionMetaData metaData = dataManager.getPositionMetadata(calling.getPosition().getPositionTypeId());
+                    String positionName = metaData != null ? metaData.getMediumName() : null;
+                    if(positionName == null) {
+                        positionName = calling.getPosition().getName();
+                    }
+                    sb.append(positionName);
                     if(i++ != member.getCurrentCallings().size() - 1){
                         sb.append(' ');
                         sb.append('-');

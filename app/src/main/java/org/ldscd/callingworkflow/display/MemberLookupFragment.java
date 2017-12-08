@@ -225,7 +225,7 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
         }
 
         List<Member> filterMembers = filterOption.filterMembers(members);
-        adapter = new MemberLookupAdapter(getContext(), cFrag, view.getId(), filterMembers);
+        adapter = new MemberLookupAdapter(getContext(), cFrag, dataManager, view.getId(), filterMembers);
     }
 
     private void setAdapter() {
