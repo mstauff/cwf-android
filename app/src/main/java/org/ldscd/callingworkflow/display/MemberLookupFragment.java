@@ -12,6 +12,7 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.TableRow;
 import android.widget.TextView;
 
 import com.android.volley.Response;
@@ -133,7 +134,7 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
     }
 
     private void init() {
-        ImageButton removeSelection = (ImageButton) view.findViewById(R.id.member_lookup_clear_selection_button);
+        TableRow removeSelection = (TableRow) view.findViewById(R.id.member_lookup_clear_selection_button_container);
         final TextView currentSelectionLabel = (TextView) view.findViewById(R.id.member_lookup_current_selection_label);
         Bundle bundle = this.getArguments();
         if (bundle != null && !bundle.isEmpty()) {
@@ -142,11 +143,10 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
                 currentSelection = dataManager.getMember(individualId);
                 if(currentSelection != null) {
                     currentSelectionLabel.setText(currentSelection.getFormattedName());
-                    currentSelectionLabel.setVisibility(View.VISIBLE);
                     removeSelection.setVisibility(View.VISIBLE);
                 }
             } else {
-                currentSelectionLabel.setVisibility(View.GONE);
+                currentSelectionLabel.setText("");
                 removeSelection.setVisibility(View.GONE);
             }
         }
@@ -225,7 +225,7 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
         }
 
         List<Member> filterMembers = filterOption.filterMembers(members);
-        adapter = new MemberLookupAdapter(getContext(), cFrag, view.getId(), filterMembers);
+        adapter = new MemberLookupAdapter(getContext(), cFrag, view.getId(), filterMembers, dataManager);
     }
 
     private void setAdapter() {

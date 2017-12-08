@@ -136,8 +136,19 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
                             calling.setMemberId(calling.getProposedIndId());
                             calling.setCwfId(null);
                             calling.setConflictCause(null);
+                            //TODO: Calling ID needs to be set and
                         }
-                        changeActivities();
+                        dataManager.updateCalling(new Response.Listener<Boolean>() {
+                            @Override
+                            public void onResponse(Boolean response) {
+                                if(response) {
+                                    changeActivities();
+                                } else {
+                                    Toast.makeText(getContext(),"Item Failed to update locally but was saved to lds.org.  Please restart your application.", Toast.LENGTH_LONG).show();
+                                }
+                            }
+                        }, calling);
+
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }

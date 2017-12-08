@@ -20,6 +20,7 @@
         android:textSize="18sp" />
 
     <TextView
+        android:id="@+id/member_information_calling_label"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="30"

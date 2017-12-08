@@ -14,6 +14,8 @@ import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.display.MemberLookupFragment;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Member;
+import org.ldscd.callingworkflow.utils.DataUtil;
+import org.ldscd.callingworkflow.web.DataManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,16 +29,18 @@ public class MemberLookupAdapter extends ArrayAdapter<Member> implements Filtera
     private List<Member> originalMembersList;
     private final MemberLookupFragment fragment;
     private MemberFilter mFilter = new MemberFilter();
+    private DataManager dataManager;
 
     /* Constructor */
     public MemberLookupAdapter(Context context, MemberLookupFragment fragment, int viewResourceId,
-                               List<Member> members) {
+                               List<Member> members, DataManager dataManager) {
         super(context, viewResourceId);
         mContext = context;
         this.fragment = fragment;
         this.filterMembersList = members;
         this.originalMembersList = members;
         inflater = LayoutInflater.from(mContext);
+        this.dataManager = dataManager;
     }
 
     /* Inner class referencing the xml layout */
@@ -84,29 +88,35 @@ public class MemberLookupAdapter extends ArrayAdapter<Member> implements Filtera
                 StringBuilder sb = new StringBuilder();
                 int i = 0;
                 for (Calling calling : member.getCurrentCallings()) {
-                    sb.append(calling.getPosition().getName());
+                    String callingName = dataManager.getPositionMetadata(calling.getPosition().getPositionTypeId()).getMediumName();
+                    callingName = callingName != null ? callingName : calling.getPosition().getName();
+                    sb.append(callingName + "[" + DataUtil.getMonthsSinceActiveDate(calling.getActiveDate()) + "M]");
                     if(i++ != member.getCurrentCallings().size() - 1){
                         sb.append(' ');
                         sb.append('-');
                         sb.append(' ');
                     }
                 }
+                holder.calling.setVisibility(View.VISIBLE);
                 holder.calling.setText(sb.toString());
             } else {
+                holder.calling.setVisibility(View.GONE);
             }
             if(member.getProposedCallings() != null && member.getProposedCallings().size() > 0) {
                 StringBuilder sb = new StringBuilder();
                 int i = 0;
                 for (Calling calling : member.getProposedCallings()) {
-                    sb.append(calling.getPosition().getName());
+                    String callingName = dataManager.getPositionMetadata(calling.getPosition().getPositionTypeId()).getMediumName();
+                    callingName = callingName != null ? callingName : calling.getPosition().getName();
+                    sb.append(callingName + "[" + DataUtil.getMonthsSinceActiveDate(calling.getActiveDate()) + "M]");
                     if(i++ != member.getCurrentCallings().size() - 1){
                         sb.append(' ');
                         sb.append('-');
                         sb.append(' ');
                     }
                 }
-                String value = sb.toString();
-                holder.proposedCalling.setText(value);
+                holder.proposedCalling.setVisibility(View.VISIBLE);
+                holder.proposedCalling.setText(sb.toString());
             } else {
                 holder.proposedCalling.setVisibility(View.GONE);
             }

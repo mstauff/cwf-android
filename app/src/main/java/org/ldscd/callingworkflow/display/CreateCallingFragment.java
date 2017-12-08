@@ -129,11 +129,13 @@ public class CreateCallingFragment extends Fragment implements MemberLookupFragm
     private void openMemberLookup() {
         MemberLookupFragment memberLookupFragment = new MemberLookupFragment();
         memberLookupFragment.setMemberLookupListener(this);
+        Bundle args = new Bundle();
         if(proposedMember != null && proposedMember.getIndividualId() > 0) {
-            Bundle args = new Bundle();
             args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, proposedMember.getIndividualId());
-            memberLookupFragment.setArguments(args);
         }
+        Position position = (Position)positionDropdown.getSelectedItem();
+        args.putInt(MemberLookupFragment.positionTypeIdName,  position != null ? position.getPositionTypeId() : 0);
+        memberLookupFragment.setArguments(args);
         getFragmentManager().beginTransaction()
                 .replace(R.id.create_calling_fragment_container, memberLookupFragment, MemberLookupFragment.FRAG_NAME)
                 .addToBackStack(null)

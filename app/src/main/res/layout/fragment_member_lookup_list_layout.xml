@@ -24,7 +24,7 @@
                 android:textAlignment="gravity"
                 android:paddingTop="4dp"
                 android:paddingLeft="8dp"
-                android:ems="30"
+                android:textSize="@dimen/text_size_medium"
                 android:fontFamily="@font/roboto"
                 android:textColor="#201f1f" />
 
@@ -33,6 +33,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingTop="4dp"
+                android:textSize="@dimen/text_size_small"
                 android:fontFamily="@font/roboto"
                 android:paddingLeft="30dp" />
 
@@ -43,12 +44,13 @@
                 android:textColor="@color/ldstools_green600"
                 android:paddingTop="4dp"
                 android:paddingLeft="30dp"
+                android:textSize="@dimen/text_size_small"
                 android:fontFamily="@font/roboto"
                 android:text="@string/app_name" />
         </LinearLayout>
         <RelativeLayout
             android:layout_width="wrap_content"
-            android:layout_height="90dp"
+            android:padding="3dp"
             android:layout_weight="0">
             <ImageView
                 android:id="@+id/member_lookup_list_layout_contact_info"

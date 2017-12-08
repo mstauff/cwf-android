@@ -4,6 +4,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Years;
 import org.ldscd.callingworkflow.constants.Gender;
 import org.ldscd.callingworkflow.constants.Priesthood;
+import org.ldscd.callingworkflow.utils.DataUtil;
 import org.ldscd.callingworkflow.utils.JsonUtil;
 
 import java.util.ArrayList;
@@ -104,6 +105,15 @@ public class Member {
             currentCallings.remove(currentCalling);
         }
     }
+    public List<String> getCurrentCallingsWithTime() {
+        List<String> names = new ArrayList<String>();
+        if(currentCallings != null) {
+            for(Calling calling : currentCallings) {
+                names.add(calling.getPosition().getName() + "[" + DataUtil.getMonthsSinceActiveDate(calling.getActiveDate()) + "M]");
+            }
+        }
+        return names;
+    }
 
     public Collection<Calling> getProposedCallings() { return proposedCallings.values(); }
     public void setProposedCallings(List<Calling> proposedCallings) {
@@ -126,6 +136,15 @@ public class Member {
         if(proposedCallings != null && proposedCalling != null) {
             proposedCallings.remove(proposedCalling.getCallingId());
         }
+    }
+    public List<String> getProposedCallingsWithTime() {
+        List<String> names = new ArrayList<String>();
+        if(this.proposedCallings != null) {
+            for(Calling calling : proposedCallings.values()) {
+                names.add(calling.getPosition().getName() + "[" + DataUtil.getMonthsSinceActiveDate(calling.getActiveDate()) + "M]");
+            }
+        }
+        return names;
     }
 
     public int getCurrentAge() {

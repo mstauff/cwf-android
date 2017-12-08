@@ -9,15 +9,20 @@
     tools:context="org.ldscd.callingworkflow.display.MemberLookupFragment">
 
     <TableLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginBottom="10dp">
 
         <TableRow
+            android:id="@+id/member_lookup_clear_selection_button_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:paddingTop="5dp"
-            android:weightSum="2">
-            <ImageButton
+            android:padding="5dp"
+            android:weightSum="3"
+            android:background="@drawable/custom_rectangle">
+            <!--<ImageButton
                 android:id="@+id/member_lookup_clear_selection_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -25,18 +30,35 @@
                 android:background="#ffffff"
                 android:contentDescription="Clear Selected Member button"
                 android:padding="4dp"
-                app:srcCompat="@drawable/garbage" />
+                app:srcCompat="@drawable/garbage" />-->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="5dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:paddingTop="5dp"
+                android:textColor="@color/gray_status"
+                android:fontFamily="@font/roboto"
+                android:textSize="@dimen/text_size_medium"
+                android:id="@+id/member_lookup_clear_selection_button"
+                android:text="X" />
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="@color/light_grey"/>
             <TextView
                 android:id="@+id/member_lookup_current_selection_label"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingBottom="10dp"
-                android:paddingLeft="25dp"
-                android:paddingTop="10dp"
+                android:paddingBottom="5dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:paddingTop="5dp"
                 android:layout_gravity="bottom"
-                android:textSize="20sp"
+                android:textSize="@dimen/text_size_medium"
                 android:fontFamily="@font/roboto"
-                android:textColor="@color/ldstools_green" />
+                android:textColor="@color/ldstools_blue" />
         </TableRow>
 
     </TableLayout>
@@ -48,33 +70,49 @@
         <TableRow
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="5dp"
-            android:weightSum="1">
+            android:weightSum="1"
+            android:background="@color/ldstools_gray_very_light">
 
             <EditText
                 android:id="@+id/member_lookup_search_box"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:drawableLeft="@android:drawable/ic_search_category_default"
+                android:drawableLeft="@drawable/ic_search"
                 android:drawablePadding="10dp"
-                android:ems="30"
+                android:textSize="@dimen/text_size_medium"
                 android:fontFamily="@font/roboto"
                 android:hint="Name"
+                android:textColorHint="@color/gray_status"
                 android:inputType="textPersonName"
-                android:padding="3dp" />
+                android:layout_marginLeft="5dp"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp" />
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="@color/light_grey"/>
 
             <ImageButton
                 android:id="@+id/member_lookup_filter_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="0"
-                android:background="#ffffff"
+                android:background="@color/ldstools_gray_very_light"
                 android:contentDescription="Lookup filter button"
                 android:padding="3dp"
-                app:srcCompat="@drawable/filter_horizontal_blue" />
+                app:srcCompat="@drawable/filter_horizontal_gray" />
         </TableRow>
-
+    </TableLayout>
+    <!--<View
+        android:layout_width="fill_parent"
+        android:layout_height="1dip"
+        android:background="@color/ldstools_gray_very_light" />-->
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
         <TableRow
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
