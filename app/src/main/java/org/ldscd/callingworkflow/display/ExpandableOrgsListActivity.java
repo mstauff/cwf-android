@@ -179,61 +179,12 @@ public class ExpandableOrgsListActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.list_display_options, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        switch (id) {
-            case R.id.display_view_organization:
-            case R.id.display_view_indvidual:
-                item.setChecked(true);
-                break;
-            case R.id.display_filter_proposed:
-            case R.id.display_filter_approved:
-            case R.id.display_filter_extended:
-                item.setChecked(!item.isChecked());
-                break;
-        }
-
-        if(id == android.R.id.home) {
-            finish();
-            return true;
-        } else {
-            //This section keeps the menu from closing when items are selected
-            item.setShowAsAction(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
-            item.setActionView(new View(activity.getApplicationContext()));
-            MenuItemCompat.setOnActionExpandListener(item, new MenuItemCompat.OnActionExpandListener() {
-                @Override
-                public boolean onMenuItemActionExpand(MenuItem item) {
-                    return false;
-                }
-
-                @Override
-                public boolean onMenuItemActionCollapse(MenuItem item) {
-                    return false;
-                }
-            });
-        }
-
-        return false;
-    }
-
-    @Override
     public void onSaveInstanceState(Bundle outState) {
         outState.putLong(ARG_ORG_ID, getIntent().getLongExtra(ARG_ORG_ID, 0));
         super.onSaveInstanceState(outState);
     }
 
+    //TODO: possibly remove this method as it doesn't look like it is getting used.
     public void wireUpIndividualInformationFragments(Long individualId) {
         if (individualId != null) {
             IndividualInformationFragment member_information_fragment = new IndividualInformationFragment();

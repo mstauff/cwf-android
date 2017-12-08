@@ -100,51 +100,6 @@ public class OrgListActivity extends AppCompatActivity
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.list_display_options, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.display_view_organization) {
-            item.setChecked(true);
-        } else if(id == R.id.display_view_indvidual) {
-            item.setChecked(true);
-        } else if(id == R.id.display_filter_proposed) {
-            item.setChecked(!item.isChecked());
-        } else if(id == R.id.display_filter_approved) {
-            item.setChecked(!item.isChecked());
-        } else if(id == R.id.display_filter_extended) {
-            item.setChecked(!item.isChecked());
-        }
-
-        //This section keeps the menu from closing when items are selected
-        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
-        item.setActionView(new View(activity.getApplicationContext()));
-        MenuItemCompat.setOnActionExpandListener(item, new MenuItemCompat.OnActionExpandListener() {
-            @Override
-            public boolean onMenuItemActionExpand(MenuItem item) {
-                return false;
-            }
-
-            @Override
-            public boolean onMenuItemActionCollapse(MenuItem item) {
-                return false;
-            }
-        });
-
-        return false;
-    }
-
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
