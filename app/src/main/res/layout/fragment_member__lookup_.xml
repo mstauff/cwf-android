@@ -22,15 +22,6 @@
             android:padding="5dp"
             android:weightSum="3"
             android:background="@drawable/custom_rectangle">
-            <!--<ImageButton
-                android:id="@+id/member_lookup_clear_selection_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="0"
-                android:background="#ffffff"
-                android:contentDescription="Clear Selected Member button"
-                android:padding="4dp"
-                app:srcCompat="@drawable/garbage" />-->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -106,10 +97,6 @@
                 app:srcCompat="@drawable/filter_horizontal_gray" />
         </TableRow>
     </TableLayout>
-    <!--<View
-        android:layout_width="fill_parent"
-        android:layout_height="1dip"
-        android:background="@color/ldstools_gray_very_light" />-->
     <TableLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">

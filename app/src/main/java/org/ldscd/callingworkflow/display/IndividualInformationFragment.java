@@ -89,7 +89,7 @@ public class IndividualInformationFragment extends BottomSheetDialogFragment {
 
             TextView proposedCalling = (TextView) v.findViewById(R.id.member_information_proposed_calling);
             if(member.getProposedCallings() != null && member.getProposedCallings().size() > 0) {
-                String names = member.getProposedCallingsWithTime().toString();
+                String names = member.getProposedCallingsWithStatus().toString();
                 proposedCalling.setText(names.substring(1, names.length() -1));
             } else {
                 TextView proposedCallingLabel = (TextView) v.findViewById(R.id.member_information_proposed_label);

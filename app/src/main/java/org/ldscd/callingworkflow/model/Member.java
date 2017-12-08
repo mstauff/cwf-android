@@ -137,11 +137,11 @@ public class Member {
             proposedCallings.remove(proposedCalling.getCallingId());
         }
     }
-    public List<String> getProposedCallingsWithTime() {
+    public List<String> getProposedCallingsWithStatus() {
         List<String> names = new ArrayList<String>();
         if(this.proposedCallings != null) {
             for(Calling calling : proposedCallings.values()) {
-                names.add(calling.getPosition().getName() + "[" + DataUtil.getMonthsSinceActiveDate(calling.getActiveDate()) + "M]");
+                names.add(calling.getPosition().getName() + "[" + calling.getProposedStatus() + "]");
             }
         }
         return names;

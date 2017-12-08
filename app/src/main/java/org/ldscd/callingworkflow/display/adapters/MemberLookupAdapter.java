@@ -108,8 +108,8 @@ public class MemberLookupAdapter extends ArrayAdapter<Member> implements Filtera
                 for (Calling calling : member.getProposedCallings()) {
                     String callingName = dataManager.getPositionMetadata(calling.getPosition().getPositionTypeId()).getMediumName();
                     callingName = callingName != null ? callingName : calling.getPosition().getName();
-                    sb.append(callingName + "[" + DataUtil.getMonthsSinceActiveDate(calling.getActiveDate()) + "M]");
-                    if(i++ != member.getCurrentCallings().size() - 1){
+                    sb.append(callingName + "[" + calling.getProposedStatus() + "]");
+                    if(i++ != member.getProposedCallings().size() - 1){
                         sb.append(' ');
                         sb.append('-');
                         sb.append(' ');
