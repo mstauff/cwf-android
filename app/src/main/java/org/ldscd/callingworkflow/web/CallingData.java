@@ -24,8 +24,10 @@ import org.ldscd.callingworkflow.utils.JsonUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class CallingData {
     private static final String TAG = "CallingData";
@@ -50,12 +52,16 @@ public class CallingData {
     private Map<Long, Org> baseOrgByOrgId;
     private List<PositionMetaData> allPositionMetadata;
     private Map<Integer, PositionMetaData> positionMetaDataByPositionTypeId;
+    private Set<Org> orgsToSave;
+    private Set<Org> baseOrgsToRemove;
 
     public CallingData(IWebResources webResources, GoogleDataService googleDataService, MemberData memberData, PermissionManager permissionManager) {
         this.webResources = webResources;
         this.googleDataService = googleDataService;
         this.memberData = memberData;
         this.permissionManager = permissionManager;
+        orgsToSave = new HashSet<>();
+        baseOrgsToRemove = new HashSet<>();
     }
 
     /* Org Data */
@@ -87,6 +93,32 @@ public class CallingData {
                                                         extractOrg(org, org.getId());
                                                     }
                                                     pb.setProgress(pb.getProgress() + 10);
+
+                                                    Set<Org> baseOrgsToSave = new HashSet<>();
+                                                    for(Org org: orgsToSave) {
+                                                        baseOrgsToSave.add(getBaseOrg(org.getId()));
+                                                    }
+                                                    orgsToSave.clear();
+                                                    for(Org org: baseOrgsToSave) {
+                                                        googleDataService.saveOrgFile(new Response.Listener<Boolean>() {
+                                                            @Override
+                                                            public void onResponse(Boolean success) {
+                                                                if(!success) {
+                                                                    Log.e(TAG, "Failed to save merge changes to Google Drive");
+                                                                }
+                                                            }
+                                                        }, org);
+                                                    }
+                                                    for(Org org: baseOrgsToRemove) {
+                                                        googleDataService.deleteFile(new Response.Listener<Boolean>() {
+                                                            @Override
+                                                            public void onResponse(Boolean success) {
+                                                                if(!success) {
+                                                                    Log.e(TAG, "Failed to remove org file from Google Drive");
+                                                                }
+                                                            }
+                                                        }, org);
+                                                    }
                                                     orgsCallback.onResponse(true);
                                                 } else {
                                                     Log.e(TAG, "failed to merge cwf file data");
@@ -182,8 +214,12 @@ public class CallingData {
                         }
                     }
                     if(!matchFound) {
-                        cwfOrg.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
-                        cwfOrgsToAdd.add(cwfOrg);
+                        if(hasProposedData(cwfOrg)) {
+                            cwfOrg.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
+                            cwfOrgsToAdd.add(cwfOrg);
+                        } else {
+                            baseOrgsToRemove.add(cwfOrg);
+                        }
                     }
                 }
                 orgs.addAll(cwfOrgsToAdd);
@@ -216,11 +252,18 @@ public class CallingData {
                 }
 
                 if (!matchFound) {
-                    //org exists in cwf but not lcr, flag and add to list
-                    cwfSubOrg.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
-                    lcrOrg.getChildren().add(cwfSubOrg);
+                    //org exists in cwf but not lcr, if it has proposed data flag and add to list
+                    if(hasProposedData(cwfSubOrg)) {
+                        cwfSubOrg.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
+                        lcrOrg.getChildren().add(cwfSubOrg);
+                    } else { //if it doesn't have proposed data don't add it and add org to the save list to remove missing subOrg from google drive
+                        orgsToSave.add(lcrOrg);
+                    }
                 }
             }
+        }
+        if(lcrOrg.getChildren().size() > cwfOrg.getChildren().size()) {
+            orgsToSave.add(lcrOrg);
         }
         mergeCallings(lcrOrg, cwfOrg);
     }
@@ -228,11 +271,15 @@ public class CallingData {
     //This merges callings from both orgs into the lcrOrg
     private void mergeCallings(Org lcrOrg, Org cwfOrg) {
         List<Calling> lcrCallings = lcrOrg.getCallings();
+        int cwfMatchableCallingCount = 0;
         if(cwfOrg.getCallings() != null) {
             //initialize a map by position type to list the empty callings which we have no way of matching
             //we can deal with them as a group once the list is complete
             Map<Integer, List<Calling>> cwfVacantCallingsByType = new HashMap<>();
             for (Calling cwfCalling : cwfOrg.getCallings()) {
+                if(!cwfVacantCallingsByType.containsKey(cwfCalling.getPosition().getPositionTypeId())) {
+                    cwfVacantCallingsByType.put(cwfCalling.getPosition().getPositionTypeId(), new ArrayList<Calling>());
+                }
 
                 //if it's cwfOnly then we only try to merge by cwfId in case it has been added on previously
                 if(cwfCalling.isCwfOnly()) {
@@ -250,24 +297,19 @@ public class CallingData {
                 }
                 //Check if calling is one of the empty unmatchable callings, callings where multiples aren't allowed they can be matched on type without the list so we don't include them
                 else if((cwfCalling.getId() == null || cwfCalling.getId() < 1) && cwfCalling.getPosition().getAllowMultiple()) {
-                    if(!cwfVacantCallingsByType.containsKey(cwfCalling.getPosition().getPositionTypeId())) {
-                        cwfVacantCallingsByType.put(cwfCalling.getPosition().getPositionTypeId(), new ArrayList<Calling>());
-                    }
                     cwfVacantCallingsByType.get(cwfCalling.getPosition().getPositionTypeId()).add(cwfCalling);
                 }
                 //special cases have been handled, now try to merge and set conflict flags if a match wasn't found
                 else {
+                    cwfMatchableCallingCount++;
                     boolean matchFound = false;
                     //Check for a match by Id, if so import cwf data
                     for (Calling lcrCalling : lcrCallings) {
 
                         if (cwfCalling.isEqualsTo(lcrCalling)) {
-                            // todo - this needs to be persisted to google drive
                             //if the proposed member has become the current we can discard the old proposed info
                             if (!(cwfCalling.getProposedIndId() > 0 && cwfCalling.getProposedIndId().equals(lcrCalling.getMemberId()))) {
                                 lcrCalling.importCWFData(cwfCalling);
-                            } else {
-                                lcrCalling.setCwfId(cwfCalling.getCwfId());
                             }
                             matchFound = true;
                             break;
@@ -275,59 +317,118 @@ public class CallingData {
                     }
 
                     if (!matchFound) {
-                        //see if there's a matching current id for the proposed id
+                        //see if there's proposed data and if there's a matching current id for the proposed id
+                        boolean hasPotentialInfo = hasProposedData(cwfCalling);
                         boolean potentialMatchesActual = false;
-                        for (Calling lcrCalling : lcrCallings) {
-                            if (lcrCalling.getPosition().equals(cwfCalling.getPosition())) {
-                                if (lcrCalling.getMemberId().equals(cwfCalling.getProposedIndId())) {
-                                    potentialMatchesActual = true;
-                                    break;
+                        if(hasPotentialInfo) {
+                            for (Calling lcrCalling : lcrCallings) {
+                                if (lcrCalling.getPosition().equals(cwfCalling.getPosition())) {
+                                    if (lcrCalling.getMemberId().equals(cwfCalling.getProposedIndId())) {
+                                        potentialMatchesActual = true;
+                                        break;
+                                    }
                                 }
                             }
                         }
 
-                        //set the flag if there's a match, else if lcr based id is present then it previously existed so mark it as deleted
-                        //if neither of those is true then look at the empty calling, if there is one we'll merge it with this one, if not mark it deleted
+                        //set the flag if there's a matching potentialId, else if there's potential data we'll save it with the deleted flag
+                        //if neither of those is true then discard and set the org to be saved without it
                         if (potentialMatchesActual) {
                             cwfCalling.setConflictCause(ConflictCause.EQUIVALENT_POTENTIAL_AND_ACTUAL);
-                        } else {
+                            lcrCallings.add(cwfCalling);
+                        } else if(hasPotentialInfo) {
                             cwfCalling.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
+                            lcrCallings.add(cwfCalling);
+                        } else {
+                            orgsToSave.add(lcrOrg);
                         }
-                        lcrCallings.add(cwfCalling);
                     }
                 }
             }
 
             //all empty calling lists for cwf should now be complete, we'll build lcr lists to match up with them
-            if(cwfVacantCallingsByType.size() > 0) {
-                Map<Integer, List<Calling>> lcrVacantCallingsByType = new HashMap<>();
-                for(Calling lcrCalling: lcrCallings) {
-                    if(!lcrCalling.isCwfOnly() && (lcrCalling.getId() == null || lcrCalling.getId() < 1) && lcrCalling.getPosition().getAllowMultiple()) {
-                        if(!lcrVacantCallingsByType.containsKey(lcrCalling.getPosition().getPositionTypeId())) {
-                            lcrVacantCallingsByType.put(lcrCalling.getPosition().getPositionTypeId(), new ArrayList<Calling>());
+            Map<Integer, List<Calling>> lcrVacantCallingsByType = new HashMap<>();
+            for(Calling lcrCalling: lcrCallings) {
+                if(!lcrCalling.isCwfOnly() && (lcrCalling.getId() == null || lcrCalling.getId() < 1) && lcrCalling.getPosition().getAllowMultiple()) {
+                    if(!lcrVacantCallingsByType.containsKey(lcrCalling.getPosition().getPositionTypeId())) {
+                        lcrVacantCallingsByType.put(lcrCalling.getPosition().getPositionTypeId(), new ArrayList<Calling>());
+                    }
+                    lcrVacantCallingsByType.get(lcrCalling.getPosition().getPositionTypeId()).add(lcrCalling);
+                }
+            }
+            //Since there's no real difference between the empty callings, we'll just merge them together in order and any extras we'll flag and add to the end
+            for(Integer vacantPositionTypeId: cwfVacantCallingsByType.keySet()) {
+                List<Calling> cwfVacantCallings = cwfVacantCallingsByType.get(vacantPositionTypeId);
+                List<Calling> lcrVacantCallings = lcrVacantCallingsByType.containsKey(vacantPositionTypeId) ? lcrVacantCallingsByType.get(vacantPositionTypeId) : new ArrayList<Calling>();
+
+                //if there are new empty callings from lcr set we'll save them to google
+                if(lcrVacantCallings.size() > cwfVacantCallings.size()) {
+                    orgsToSave.add(lcrOrg);
+                }
+
+                //Trim extra entries off if possible
+                if(cwfVacantCallings.size() > lcrVacantCallings.size()) {
+                    int numExtraCallings = cwfVacantCallings.size() - lcrVacantCallings.size();
+                    for(int i = cwfVacantCallings.size()-1; i >= 0; i--) {
+                        if(numExtraCallings > 0 && !hasProposedData(cwfVacantCallings.get(i))) {
+                            cwfVacantCallings.remove(i);
+                            orgsToSave.add(lcrOrg);
+                            numExtraCallings--;
                         }
-                        lcrVacantCallingsByType.get(lcrCalling.getPosition().getPositionTypeId()).add(lcrCalling);
                     }
                 }
-                //Since there's no real difference between the empty callings, we'll just merge them together in order and any extras we'll flag and add to the end
-                for(Integer vacantPositionTypeId: cwfVacantCallingsByType.keySet()) {
-                    List<Calling> cwfVacantCallings = cwfVacantCallingsByType.get(vacantPositionTypeId);
-                    List<Calling> lcrVacantCallings = lcrVacantCallingsByType.containsKey(vacantPositionTypeId) ? lcrVacantCallingsByType.get(vacantPositionTypeId) : new ArrayList<Calling>();
-                    for(int i=0; i < cwfVacantCallings.size(); i++) {
 
-                        if(i < lcrVacantCallings.size()) {
-                            lcrVacantCallings.get(i).importCWFData(cwfVacantCallings.get(i));
-                        } else {
-                            Calling calling = cwfVacantCallings.get(i);
-                            calling.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
-                            lcrCallings.add(calling);
-                        }
+                for(int i=0; i < cwfVacantCallings.size(); i++) {
+
+                    if(i < lcrVacantCallings.size()) {
+                        lcrVacantCallings.get(i).importCWFData(cwfVacantCallings.get(i));
+                    } else {
+                        Calling calling = cwfVacantCallings.get(i);
+                        calling.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
+                        lcrCallings.add(calling);
                     }
                 }
             }
         }
+
+        //check if there are more calling from lcr that need saved to google
+        int lcrMatchableCallingCount = 0;
+        for(Calling lcrCalling: lcrCallings) {
+            if (!lcrCalling.getPosition().getAllowMultiple() || (lcrCalling.getId() != null && lcrCalling.getId() > 0)) {
+                lcrMatchableCallingCount++;
+            }
+        }
+        if(lcrMatchableCallingCount > cwfMatchableCallingCount) {
+            orgsToSave.add(lcrOrg);
+        }
+
         //merge complete, this should now include callings from both sources
         memberData.setMemberCallings(lcrCallings);
+    }
+
+    private boolean hasProposedData(Org org) {
+        boolean result = false;
+        for(Calling calling: org.getCallings()) {
+            if(hasProposedData(calling)) {
+                result = true;
+                break;
+            }
+        }
+        if(!result) {
+            for(Org subOrg: org.getChildren()) {
+                if(hasProposedData(subOrg)) {
+                    result = true;
+                    break;
+                }
+            }
+        }
+        return result;
+    }
+
+    private boolean hasProposedData(Calling calling) {
+        return ((calling.getProposedIndId() != null && calling.getProposedIndId() > 0) ||
+                (calling.getProposedStatus() != null && !calling.getProposedStatus().equals(CallingStatus.NONE)) ||
+                (calling.getNotes() != null && calling.getNotes() != ""));
     }
 
     /* Calling Data */
