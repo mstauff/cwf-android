@@ -13,8 +13,6 @@ import org.ldscd.callingworkflow.model.*;
 import org.junit.Test;
 import org.ldscd.callingworkflow.services.GoogleDataService;
 import org.ldscd.callingworkflow.web.CallingData;
-import org.ldscd.callingworkflow.web.DataManager;
-import org.ldscd.callingworkflow.web.DataManagerImpl.DataManagerImpl;
 import org.ldscd.callingworkflow.web.IWebResources;
 import org.ldscd.callingworkflow.web.MemberData;
 import org.mockito.Mock;
@@ -26,11 +24,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DataManagerTests {
@@ -45,6 +41,8 @@ public class DataManagerTests {
     ProgressBar mockProgressBar;
     @Mock
     Activity mockActivity;
+    @Mock
+    LdsUser mockUser;
 
     CallingData callingData;
     Org sampleLCROrgMultiplesAllowed;
@@ -87,6 +85,20 @@ public class DataManagerTests {
         assertEquals(sourceCalling.getProposedStatus(), resultCalling.getProposedStatus());
         assertEquals(sourceCalling.getExistingStatus(), resultCalling.getExistingStatus());
         assertEquals(sourceCalling.getNotes(), resultCalling.getNotes());
+    }
+
+    private void removeCurrentCallingInfo(Calling calling) {
+        calling.setId(0);
+        calling.setMemberId(0);
+        calling.setExistingStatus(null);
+        calling.setActiveDate(null);
+        calling.setActiveDateTime(null);
+    }
+
+    private void removeProposedCallingInfo(Calling calling) {
+        calling.setProposedIndId(0);
+        calling.setProposedStatus(null);
+        calling.setNotes(null);
     }
 
     @Test
@@ -308,14 +320,6 @@ public class DataManagerTests {
         }
     }
 
-    private void removeCurrentCallingInfo(Calling calling) {
-        calling.setId(0);
-        calling.setMemberId(0);
-        calling.setExistingStatus(null);
-        calling.setActiveDate(null);
-        calling.setActiveDateTime(null);
-    }
-
     @Test
     public void mergeEmptyCallings() {
         Org lcrOrg = sampleLCROrgMultiplesAllowed;
@@ -495,5 +499,245 @@ public class DataManagerTests {
             assertEquals(cwfOrg.getCallings().size(), matchesFound);
 
         }
+    }
+
+    @Test
+    public void mergeGoogleUpdatesNothingChanged() {
+        List<Org> lcrOrgs = new ArrayList<>(2);
+        lcrOrgs.add(sampleLCROrgMultiplesAllowed);
+        lcrOrgs.add(sampleLCROrgNoMultiplesAllowed);
+        List<Org> cwfOrgs = new ArrayList<>(2);
+        cwfOrgs.add(sampleCWFOrgMultiplesAllowed);
+        cwfOrgs.add(sampleCWFOrgNoMultiplesAllowed);
+
+        List<Org> expectedUpdates = new ArrayList<>();
+        List<Org> expectedDeletes = new ArrayList<>();
+
+        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates, expectedDeletes);
+    }
+
+    @Test
+    public void mergeGoogleUpdatesNewCallingInLCR() {
+        sampleCWFOrgMultiplesAllowed.getCallings().remove(1);
+        sampleCWFOrgNoMultiplesAllowed.getCallings().remove(1);
+
+        List<Org> lcrOrgs = new ArrayList<>(2);
+        lcrOrgs.add(sampleLCROrgMultiplesAllowed);
+        lcrOrgs.add(sampleLCROrgNoMultiplesAllowed);
+        List<Org> cwfOrgs = new ArrayList<>(2);
+        cwfOrgs.add(sampleCWFOrgMultiplesAllowed);
+        cwfOrgs.add(sampleCWFOrgNoMultiplesAllowed);
+
+        List<Org> expectedUpdates = new ArrayList<>();
+        expectedUpdates.add(sampleLCROrgMultiplesAllowed);
+        expectedUpdates.add(sampleLCROrgNoMultiplesAllowed);
+        List<Org> expectedDeletes = new ArrayList<>();
+
+        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates, expectedDeletes);
+    }
+
+    @Test
+    public void mergeGoogleUpdatesCallingRemovedFromLCRWithProposedInfo() {
+        sampleLCROrgMultiplesAllowed.getCallings().remove(1);
+        sampleLCROrgNoMultiplesAllowed.getCallings().remove(1);
+
+        List<Org> lcrOrgs = new ArrayList<>(2);
+        lcrOrgs.add(sampleLCROrgMultiplesAllowed);
+        lcrOrgs.add(sampleLCROrgNoMultiplesAllowed);
+        List<Org> cwfOrgs = new ArrayList<>(2);
+        cwfOrgs.add(sampleCWFOrgMultiplesAllowed);
+        cwfOrgs.add(sampleCWFOrgNoMultiplesAllowed);
+
+        List<Org> expectedUpdates = new ArrayList<>();
+        List<Org> expectedDeletes = new ArrayList<>();
+
+        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates, expectedDeletes);
+    }
+
+    @Test
+    public void mergeGoogleUpdatesCallingRemovedFromLCRWithoutProposedInfo() {
+        sampleLCROrgMultiplesAllowed.getCallings().remove(1);
+        removeProposedCallingInfo(sampleCWFOrgMultiplesAllowed.getCallings().get(1));
+        sampleLCROrgNoMultiplesAllowed.getCallings().remove(1);
+        removeProposedCallingInfo(sampleCWFOrgNoMultiplesAllowed.getCallings().get(1));
+
+        List<Org> lcrOrgs = new ArrayList<>(2);
+        lcrOrgs.add(sampleLCROrgMultiplesAllowed);
+        lcrOrgs.add(sampleLCROrgNoMultiplesAllowed);
+        List<Org> cwfOrgs = new ArrayList<>(2);
+        cwfOrgs.add(sampleCWFOrgMultiplesAllowed);
+        cwfOrgs.add(sampleCWFOrgNoMultiplesAllowed);
+
+        List<Org> expectedUpdates = new ArrayList<>();
+        expectedUpdates.add(sampleLCROrgMultiplesAllowed);
+        expectedUpdates.add(sampleLCROrgNoMultiplesAllowed);
+        List<Org> expectedDeletes = new ArrayList<>();
+
+        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates, expectedDeletes);
+    }
+
+    @Test
+    public void mergeGoogleUpdatesNewEmptyCallingInLCR() {
+        sampleCWFOrgMultiplesAllowed.getCallings().remove(1);
+        removeCurrentCallingInfo(sampleLCROrgMultiplesAllowed.getCallings().get(1));
+        sampleCWFOrgNoMultiplesAllowed.getCallings().remove(1);
+        removeCurrentCallingInfo(sampleLCROrgNoMultiplesAllowed.getCallings().get(1));
+
+        List<Org> lcrOrgs = new ArrayList<>(2);
+        lcrOrgs.add(sampleLCROrgMultiplesAllowed);
+        lcrOrgs.add(sampleLCROrgNoMultiplesAllowed);
+        List<Org> cwfOrgs = new ArrayList<>(2);
+        cwfOrgs.add(sampleCWFOrgMultiplesAllowed);
+        cwfOrgs.add(sampleCWFOrgNoMultiplesAllowed);
+
+        List<Org> expectedUpdates = new ArrayList<>();
+        expectedUpdates.add(sampleLCROrgMultiplesAllowed);
+        expectedUpdates.add(sampleLCROrgNoMultiplesAllowed);
+        List<Org> expectedDeletes = new ArrayList<>();
+
+        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates, expectedDeletes);
+    }
+
+    @Test
+    public void mergeGoogleUpdatesEmptyCallingRemovedFromLCRWithProposedInfo() {
+        sampleLCROrgMultiplesAllowed.getCallings().remove(1);
+        removeCurrentCallingInfo(sampleCWFOrgMultiplesAllowed.getCallings().get(1));
+        sampleLCROrgNoMultiplesAllowed.getCallings().remove(1);
+        removeCurrentCallingInfo(sampleCWFOrgNoMultiplesAllowed.getCallings().get(1));
+
+        List<Org> lcrOrgs = new ArrayList<>(2);
+        lcrOrgs.add(sampleLCROrgMultiplesAllowed);
+        lcrOrgs.add(sampleLCROrgNoMultiplesAllowed);
+        List<Org> cwfOrgs = new ArrayList<>(2);
+        cwfOrgs.add(sampleCWFOrgMultiplesAllowed);
+        cwfOrgs.add(sampleCWFOrgNoMultiplesAllowed);
+
+        List<Org> expectedUpdates = new ArrayList<>();
+        List<Org> expectedDeletes = new ArrayList<>();
+
+        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates, expectedDeletes);
+    }
+
+    @Test
+    public void mergeGoogleUpdatesEmptyCallingRemovedFromLCRWithoutProposedInfo() {
+        sampleLCROrgMultiplesAllowed.getCallings().remove(1);
+        removeCurrentCallingInfo(sampleCWFOrgMultiplesAllowed.getCallings().get(1));
+        removeProposedCallingInfo(sampleCWFOrgMultiplesAllowed.getCallings().get(1));
+        sampleLCROrgNoMultiplesAllowed.getCallings().remove(1);
+        removeCurrentCallingInfo(sampleCWFOrgNoMultiplesAllowed.getCallings().get(1));
+        removeProposedCallingInfo(sampleCWFOrgNoMultiplesAllowed.getCallings().get(1));
+
+        List<Org> lcrOrgs = new ArrayList<>(2);
+        lcrOrgs.add(sampleLCROrgMultiplesAllowed);
+        lcrOrgs.add(sampleLCROrgNoMultiplesAllowed);
+        List<Org> cwfOrgs = new ArrayList<>(2);
+        cwfOrgs.add(sampleCWFOrgMultiplesAllowed);
+        cwfOrgs.add(sampleCWFOrgNoMultiplesAllowed);
+
+        List<Org> expectedUpdates = new ArrayList<>();
+        expectedUpdates.add(sampleLCROrgMultiplesAllowed);
+        expectedUpdates.add(sampleLCROrgNoMultiplesAllowed);
+        List<Org> expectedDeletes = new ArrayList<>();
+
+        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates, expectedDeletes);
+    }
+
+    @Test
+    public void mergeGoogleUpdatesNewOrgInLCR() {
+        List<Org> lcrOrgs = new ArrayList<>(2);
+        lcrOrgs.add(sampleLCROrgMultiplesAllowed);
+        lcrOrgs.add(sampleLCROrgNoMultiplesAllowed);
+        List<Org> cwfOrgs = new ArrayList<>(1);
+        cwfOrgs.add(sampleCWFOrgMultiplesAllowed);
+
+        //This case is being saved from googleDataService so we shouldn't expect it here
+        List<Org> expectedUpdates = new ArrayList<>();
+        List<Org> expectedDeletes = new ArrayList<>();
+
+        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates, expectedDeletes);
+    }
+
+    @Test
+    public void mergeGoogleUpdatesOrgRemovedFromLCRWithProposedInfo() {
+        List<Org> lcrOrgs = new ArrayList<>(1);
+        lcrOrgs.add(sampleLCROrgMultiplesAllowed);
+        List<Org> cwfOrgs = new ArrayList<>(2);
+        cwfOrgs.add(sampleCWFOrgMultiplesAllowed);
+        cwfOrgs.add(sampleCWFOrgNoMultiplesAllowed);
+
+        List<Org> expectedUpdates = new ArrayList<>();
+        List<Org> expectedDeletes = new ArrayList<>();
+
+        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates, expectedDeletes);
+    }
+
+    @Test
+    public void mergeGoogleUpdatesOrgRemovedFromLCRWithoutProposedInfo() {
+        for(Calling calling: sampleCWFOrgNoMultiplesAllowed.getCallings()) {
+            removeProposedCallingInfo(calling);
+        }
+
+        List<Org> lcrOrgs = new ArrayList<>(1);
+        lcrOrgs.add(sampleLCROrgMultiplesAllowed);
+        List<Org> cwfOrgs = new ArrayList<>(2);
+        cwfOrgs.add(sampleCWFOrgMultiplesAllowed);
+        cwfOrgs.add(sampleCWFOrgNoMultiplesAllowed);
+
+        List<Org> expectedUpdates = new ArrayList<>();
+        List<Org> expectedDeletes = new ArrayList<>();
+        expectedDeletes.add(sampleCWFOrgNoMultiplesAllowed);
+
+        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates, expectedDeletes);
+    }
+
+    public void testMergeUpdatingGoogleDrive(final List<Org> lcrOrgs, final List<Org> cwfOrgs, final List<Org> expectedSaves, final List<Org> expectedDeletes) {
+        //To properly test this we'll need to run the whole loadOrgs process. Do do this we'll need to set the mock objects to give values to the callbacks
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                ((Response.Listener<Boolean>)invocation.getArguments()[0]).onResponse(true);
+                return null;
+            }
+        }).when(mockGoogleDataService).init(any(Response.Listener.class), any(Activity.class));
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                ((Response.Listener<List<Org>>)invocation.getArguments()[0]).onResponse(lcrOrgs);
+                return null;
+            }
+        }).when(mockWebResources).getOrgs(any(Response.Listener.class));
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                ((Response.Listener<Boolean>)invocation.getArguments()[0]).onResponse(true);
+                return null;
+            }
+        }).when(mockGoogleDataService).syncDriveIds(any(Response.Listener.class), any(List.class));
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                ((Response.Listener<List<Org>>)invocation.getArguments()[0]).onResponse(cwfOrgs);
+                return null;
+            }
+        }).when(mockGoogleDataService).getOrgs(any(Response.Listener.class), any(Response.ErrorListener.class));
+
+        //run whole merge process including saving changes back to google drive
+        callingData.loadOrgs(new Response.Listener<Boolean>() {
+            @Override
+            public void onResponse(Boolean success) {
+                assertTrue(success);
+                //check to make sure mockGoogleDataService received all expected save calls and no others
+                for(Org expectedOrgSave: expectedSaves) {
+                    verify(mockGoogleDataService).saveOrgFile(any(Response.Listener.class), eq(expectedOrgSave));
+                }
+                verify(mockGoogleDataService, times(expectedSaves.size())).saveOrgFile(any(Response.Listener.class), any(Org.class));
+
+                //check to make sure mockGoogleDataService received all expected delete calls and no others
+                for(Org expectedOrgDelete: expectedDeletes) {
+                    verify(mockGoogleDataService).deleteFile(any(Response.Listener.class), eq(expectedOrgDelete));
+                }
+                verify(mockGoogleDataService, times(expectedDeletes.size())).deleteFile(any(Response.Listener.class), any(Org.class));
+            }
+        }, mockProgressBar, mockActivity, mockUser);
     }
 }

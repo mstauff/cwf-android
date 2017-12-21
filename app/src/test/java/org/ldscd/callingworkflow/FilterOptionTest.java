@@ -64,11 +64,11 @@ public class FilterOptionTest {
         Member female = new Member(100, null, null, null, null, null, null, null, Gender.FEMALE, null, null, null);
         Member badData = new Member(100, null, null, null, null, null, null, null, Gender.UNKNOWN, null, null, null);
 
-        ArrayList<Member> memberList = new ArrayList<Member>(Arrays.asList(male, female, badData));
+        List<Member> memberList = new ArrayList<Member>(Arrays.asList(male, female, badData));
         FilterOption filterOptions = new FilterOption(true);
 
         /* All should Return */
-        ArrayList<Member> filteredList = filterOptions.filterMembers(memberList);
+        List<Member> filteredList = filterOptions.filterMembers(memberList);
         assertEquals(filteredList, memberList);
 
         /* Only male should return */
@@ -91,11 +91,11 @@ public class FilterOptionTest {
         Member threeCallings = createMemberWithCallings(300L, 3);
         Member fourCallings = createMemberWithCallings(400L, 4);
         
-        ArrayList<Member> memberList = new ArrayList<Member>(Arrays.asList(noCallings, oneCalling, twoCallings, threeCallings, fourCallings));
+        List<Member> memberList = new ArrayList<Member>(Arrays.asList(noCallings, oneCalling, twoCallings, threeCallings, fourCallings));
         FilterOption filterOptions = new FilterOption(true);
 
         /* All should Return */
-        ArrayList<Member> filteredList = filterOptions.filterMembers(memberList);
+        List<Member> filteredList = filterOptions.filterMembers(memberList);
         assertEquals(filteredList, memberList);
 
         /* One Calling */
@@ -131,7 +131,7 @@ public class FilterOptionTest {
         FilterOption filterOptions = new FilterOption(true);
 
         /* All should Return */
-        ArrayList<Member> filteredList = filterOptions.filterMembers(memberList);
+        List<Member> filteredList = filterOptions.filterMembers(memberList);
         assertEquals(filteredList, memberList);
 
         /* Filter with nothing matching */
@@ -154,11 +154,11 @@ public class FilterOptionTest {
         Member deaconMember = createMember(15L, Priesthood.DEACON);
         Member noPriesthoodMember = createMember(60L, 40);
 
-        ArrayList<Member> memberList = new ArrayList<Member>(Arrays.asList(highPriestMember, elderMember, priestMember, teacherMember, deaconMember, noPriesthoodMember));
+        List<Member> memberList = new ArrayList<Member>(Arrays.asList(highPriestMember, elderMember, priestMember, teacherMember, deaconMember, noPriesthoodMember));
         FilterOption filterOptions = new FilterOption(true);
 
         /* All should Return */
-        ArrayList<Member> filteredList = filterOptions.filterMembers(memberList);
+        List<Member> filteredList = filterOptions.filterMembers(memberList);
         assertEquals(filteredList, memberList);
 
         /* High Priest */
@@ -216,11 +216,11 @@ public class FilterOptionTest {
         Member member60Female = createMember(60L, 60, Gender.FEMALE);
         Member memberNoAge = createMember(60L, 0);
 
-        ArrayList<Member> memberList = new ArrayList<Member>(Arrays.asList(member10Male, member15Female, member30Male, member30Female, member60Male, member60Female, memberNoAge));
+        List<Member> memberList = new ArrayList<Member>(Arrays.asList(member10Male, member15Female, member30Male, member30Female, member60Male, member60Female, memberNoAge));
         FilterOption filterOptions = new FilterOption(true);
 
         /* All should Return */
-        ArrayList<Member> filteredList = filterOptions.filterMembers(memberList);
+        List<Member> filteredList = filterOptions.filterMembers(memberList);
         assertEquals(filteredList, memberList);
 
         /* Test for 15 year old female */
