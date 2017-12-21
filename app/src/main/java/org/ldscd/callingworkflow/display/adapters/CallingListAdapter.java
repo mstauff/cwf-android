@@ -70,10 +70,10 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
         CallingStatus status = holder.callingItem.getProposedStatus();
         String proposedStatus = status == null || status.equals(CallingStatus.NONE) ? "" : status.toString();
 
-        if(!proposedName.equals("") && !proposedStatus.equals("")) {
+        if(!"".equals(proposedName) && !"".equals(proposedStatus)) {
             holder.proposedMemberView.setVisibility(View.VISIBLE);
             holder.proposedMemberView.setText(proposedName + " - " + proposedStatus);
-        } else if(proposedName.equals("") && proposedStatus.equals("")) {
+        } else if("".equals(proposedName) && "".equals(proposedStatus)) {
             holder.proposedMemberView.setVisibility(View.GONE);
         } else {
             holder.proposedMemberView.setVisibility(View.VISIBLE);
