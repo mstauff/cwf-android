@@ -1,11 +1,13 @@
 package org.ldscd.callingworkflow.web;
 
 
+import android.content.Context;
 import android.util.Log;
 import android.widget.ProgressBar;
 
 import com.android.volley.Response;
 
+import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Member;
 
@@ -15,12 +17,14 @@ import java.util.List;
 import java.util.Map;
 
 public class MemberData {
+    private Context context;
     private IWebResources webResources;
 
     private List<Member> members;
     private Map<Long, Member> membersByIndividualId;
 
-    public MemberData(IWebResources webResources) {
+    public MemberData(Context context, IWebResources webResources) {
+        this.context = context;
         this.webResources = webResources;
     }
 
@@ -44,7 +48,7 @@ public class MemberData {
     public String getMemberName(long individualId) {
         if(individualId > 0) {
             Member member = membersByIndividualId.get(individualId);
-            return member != null ? member.getFormattedName() : null;
+            return member != null ? member.getFormattedName() : context.getString(R.string.unknown_member);
         } else {
             return  "";
         }

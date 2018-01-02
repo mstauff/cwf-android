@@ -49,8 +49,8 @@ public class NetModule {
 
     @Provides
     @Singleton
-    MemberData providesMemberData(IWebResources webResources) {
-        return new MemberData(webResources);
+    MemberData providesMemberData(Context applicationContext, IWebResources webResources) {
+        return new MemberData(applicationContext, webResources);
     }
 
     @Provides

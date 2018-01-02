@@ -14,6 +14,7 @@ import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.display.MemberLookupFragment;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Member;
+import org.ldscd.callingworkflow.model.PositionMetaData;
 import org.ldscd.callingworkflow.utils.DataUtil;
 import org.ldscd.callingworkflow.web.DataManager;
 
@@ -88,8 +89,8 @@ public class MemberLookupAdapter extends ArrayAdapter<Member> implements Filtera
                 StringBuilder sb = new StringBuilder();
                 int i = 0;
                 for (Calling calling : member.getCurrentCallings()) {
-                    String callingName = dataManager.getPositionMetadata(calling.getPosition().getPositionTypeId()).getMediumName();
-                    callingName = callingName != null ? callingName : calling.getPosition().getName();
+                    PositionMetaData metaData = dataManager.getPositionMetadata(calling.getPosition().getPositionTypeId());
+                    String callingName = metaData != null && metaData.getMediumName() != null ? metaData.getMediumName() : calling.getPosition().getName();
                     sb.append(callingName + "[" + DataUtil.getMonthsSinceActiveDate(calling.getActiveDate()) + "M]");
                     if(i++ != member.getCurrentCallings().size() - 1){
                         sb.append(' ');
@@ -106,8 +107,8 @@ public class MemberLookupAdapter extends ArrayAdapter<Member> implements Filtera
                 StringBuilder sb = new StringBuilder();
                 int i = 0;
                 for (Calling calling : member.getProposedCallings()) {
-                    String callingName = dataManager.getPositionMetadata(calling.getPosition().getPositionTypeId()).getMediumName();
-                    callingName = callingName != null ? callingName : calling.getPosition().getName();
+                    PositionMetaData metaData = dataManager.getPositionMetadata(calling.getPosition().getPositionTypeId());
+                    String callingName = metaData != null && metaData.getMediumName() != null ? metaData.getMediumName() : calling.getPosition().getName();
                     sb.append(callingName + "[" + calling.getProposedStatus() + "]");
                     if(i++ != member.getProposedCallings().size() - 1){
                         sb.append(' ');
