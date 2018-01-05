@@ -37,6 +37,7 @@ public class CreateCallingFragment extends Fragment implements MemberLookupFragm
     private Org parentOrg;
     private Member proposedMember;
     private SubFragmentOpenListener subFragmentListener;
+    boolean resetProposedStatus = false;
 
     Spinner positionDropdown;
     Spinner statusDropdown;
@@ -76,6 +77,10 @@ public class CreateCallingFragment extends Fragment implements MemberLookupFragm
     public void onResume() {
         super.onResume();
         subFragmentListener.onBaseFragmentStarted();
+        if(resetProposedStatus) {
+            statusDropdown.setSelection(1); //the first option below 'none'
+            resetProposedStatus = false;
+        }
     }
 
     @Override
@@ -144,6 +149,10 @@ public class CreateCallingFragment extends Fragment implements MemberLookupFragm
 
     @Override
     public void onMemberLookupFragmentInteraction(Member member) {
-        proposedMember = member;
+        if(proposedMember != member) {
+            proposedMember = member;
+            //We can't make changes directly to the spinner here or they'll be overridden to it's previous state when the fragment resumes
+            resetProposedStatus = true;
+        }
     }
 }

@@ -131,16 +131,20 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
             convertView = LayoutInflater.from(parentView.getContext())
                     .inflate(R.layout.list_org_item, parentView, false);
             ImageButton addButton = (ImageButton) convertView.findViewById(R.id.add_calling_button);
-            addButton.setFocusable(false);
-            addButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent intent = new Intent(ctx.getApplicationContext(), CreateCallingActivity.class);
-                    intent.putExtra(CreateCallingActivity.PARENT_ORG_ID, groupOrg.getId());
-                    ctx.startActivity(intent);
-
-                }
-            });
+            if(groupOrg.potentialNewPositions().size() > 0) {
+                addButton.setVisibility(View.VISIBLE);
+                addButton.setFocusable(false);
+                addButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Intent intent = new Intent(ctx.getApplicationContext(), CreateCallingActivity.class);
+                        intent.putExtra(CreateCallingActivity.PARENT_ORG_ID, groupOrg.getId());
+                        ctx.startActivity(intent);
+                    }
+                });
+            } else {
+                addButton.setVisibility(View.GONE);
+            }
         }
         TextView orgName = (TextView) convertView.findViewById(R.id.org_list_name);
         orgName.setText(groupOrg.getDefaultOrgName());

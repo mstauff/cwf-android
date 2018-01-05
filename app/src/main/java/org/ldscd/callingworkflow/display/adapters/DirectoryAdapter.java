@@ -88,7 +88,7 @@ public class DirectoryAdapter extends RecyclerView.Adapter<DirectoryAdapter.View
                 if(title == null) {
                     title = calling.getPosition().getName();
                 }
-                String status = calling.getProposedStatus().name();
+                String status = calling.getProposedStatus().toString();
                 String callingDisplayText = holder.proposedCallingViews[i].getResources().getString(R.string.proposed_calling_with_status, title, status);
 
                 holder.proposedCallingViews[i].setText(callingDisplayText);

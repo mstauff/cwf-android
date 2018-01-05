@@ -58,6 +58,7 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     private View view;
     private OnCallingDetailFragmentListener mListener;
     private Operation operation;
+    private boolean resetProposedStatus = false;
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -82,6 +83,11 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
 
     @Override
     public void onMemberLookupFragmentInteraction(Member member) {
+        //set status spinner to be reset to proposed if proposedMember changed, UI must be done after the fragment has been restarted
+        if(this.proposedMember != member) {
+            resetProposedStatus = true;
+        }
+
         /* If the currently selected member is different from the originally selected member
            remove the proposed calling from the previously selected member.
          */
@@ -203,6 +209,15 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ((CWFApplication)getActivity().getApplication()).getNetComponent().inject(this);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(resetProposedStatus) {
+            statusDropdown.setSelection(1); //set to first option below 'none'
+            resetProposedStatus = false;
+        }
     }
 
     @Override
