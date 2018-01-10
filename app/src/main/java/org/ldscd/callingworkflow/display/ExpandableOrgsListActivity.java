@@ -179,6 +179,15 @@ public class ExpandableOrgsListActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if(item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     public void onSaveInstanceState(Bundle outState) {
         outState.putLong(ARG_ORG_ID, getIntent().getLongExtra(ARG_ORG_ID, 0));
         super.onSaveInstanceState(outState);
