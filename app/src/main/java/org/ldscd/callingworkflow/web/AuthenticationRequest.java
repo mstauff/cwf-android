@@ -20,6 +20,10 @@ public class AuthenticationRequest extends Request<String> {
         this.params = new HashMap<>(2);
         this.params.put("username", userName);
         this.params.put("password", password);
+        this.params.put("IDToken0", "");
+        this.params.put("IDToken1", userName);
+        this.params.put("IDToken2", password);
+        this.params.put("IDButton", "Submit");
         this.listener = listener;
     }
 

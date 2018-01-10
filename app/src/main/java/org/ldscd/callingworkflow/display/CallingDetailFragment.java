@@ -1,8 +1,8 @@
 package org.ldscd.callingworkflow.display;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -21,10 +21,9 @@ import android.widget.Toast;
 
 
 import com.android.volley.Response;
+import com.android.volley.VolleyError;
 
-import org.joda.time.DateTime;
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.constants.CallingStatus;
 import org.ldscd.callingworkflow.constants.Operation;
@@ -57,7 +56,6 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     private Calling calling;
     private View view;
     private OnCallingDetailFragmentListener mListener;
-    private Operation operation;
     private boolean resetProposedStatus = false;
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -102,91 +100,35 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
 
     @Override
     public void onLeaderClerkResourceFragmentInteraction(Operation operation) throws JSONException {
-        this.operation = operation;
+        ProgressDialog pd = new ProgressDialog(getContext());
+        pd.setMessage("Please Wait...");
+        pd.setCancelable(false);
+        pd.show();
         if(operation == Operation.RELEASE) {
-            dataManager.releaseLDSCalling(calling, UpdateLCRResponse);
+            dataManager.releaseLDSCalling(calling, LCRResponse, errorListener);
         } else if(operation == Operation.UPDATE) {
-            dataManager.updateLDSCalling(calling, UpdateLCRResponse);
+            dataManager.updateLDSCalling(calling, LCRResponse, errorListener);
         } else if(operation == Operation.DELETE) {
-            dataManager.deleteCalling(DeleteLCRResponse, calling);
-        }else if(operation == Operation.DELETE_LCR) {
-            dataManager.deleteLDSCalling(calling, UpdateLCRResponse);
-        }
-
-    }
-    protected Response.Listener<JSONObject> UpdateLCRResponse = new Response.Listener<JSONObject>() {
-        @Override
-        public void onResponse(JSONObject jsonObject) {
-            if (jsonObject != null) {
-                if(jsonObject.has("error")) {
-                    Toast.makeText(getContext(), getResources().getString(R.string.error_update_Message), Toast.LENGTH_SHORT).show();
-                } else {
-                    try {
-                        if(jsonObject.has("positionId")) {
-                            calling.setId(jsonObject.getLong("positionId"));
-                        }
-                        /* Release will only affect actual not potential */
-                        if(operation.equals(Operation.RELEASE)) {
-                            /* Update Google drive by removing the current memberId, active date, and callingId */
-                            calling.setActiveDate(null);
-                            calling.setActiveDateTime(null);
-                            calling.setMemberId(0);
-                            calling.setCwfId(null);
-                        } else {
-                            calling.setNotes("");
-                            calling.setExistingStatus(null);
-                            calling.setProposedIndId(0);
-                            calling.setProposedStatus(CallingStatus.NONE);
-                            calling.setActiveDate(DateTime.now());
-                            calling.setActiveDateTime(DateTime.now());
-                            calling.setMemberId(calling.getProposedIndId());
-                            calling.setCwfId(null);
-                            calling.setConflictCause(null);
-                            //TODO: Calling ID needs to be set and
-                        }
-                        dataManager.updateCalling(new Response.Listener<Boolean>() {
-                            @Override
-                            public void onResponse(Boolean response) {
-                                if(response) {
-                                    changeActivities();
-                                } else {
-                                    Toast.makeText(getContext(),"Item Failed to update locally but was saved to lds.org.  Please restart your application.", Toast.LENGTH_LONG).show();
-                                }
-                            }
-                        }, calling);
-
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
+            if (calling.isCwfOnly()) {
+                dataManager.deleteCalling(calling, LCRResponse, errorListener);
+            } else {
+                dataManager.deleteLDSCalling(calling, LCRResponse, errorListener);
             }
+        }
+    }
+
+    protected Response.Listener<Boolean> LCRResponse = new Response.Listener<Boolean>() {
+        @Override
+        public void onResponse(Boolean response) {
+            getActivity().finish();
+            Toast.makeText(getContext(), getResources().getString(R.string.items_saved), Toast.LENGTH_SHORT).show();
         }
     };
 
-    private void changeActivities() {
-        Intent intent = new Intent(getActivity(), OrgListActivity.class);
-        startActivity(intent);
-    }
-
-    protected Response.Listener<Boolean> DeleteLCRResponse = new Response.Listener<Boolean>() {
+    protected Response.ErrorListener errorListener = new Response.ErrorListener() {
         @Override
-        public void onResponse(Boolean response) {
-            if(!response) {
-                Toast.makeText(getContext(), getResources().getString(R.string.error_update_Message), Toast.LENGTH_SHORT).show();
-            } else {
-                /* Callings that do not allow multiples we do not show delete option */
-                calling.setNotes("");
-                calling.setExistingStatus(null);
-                calling.setProposedIndId(0);
-                calling.setProposedStatus(CallingStatus.NONE);
-                calling.setActiveDate(null);
-                calling.setActiveDateTime(null);
-                calling.setMemberId(0);
-                calling.setCwfId(null);
-                calling.setConflictCause(null);
-
-                changeActivities();
-            }
+        public void onErrorResponse(VolleyError error) {
+            Toast.makeText(getContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
         }
     };
 
@@ -240,7 +182,7 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     }
 
     private void wireUpMemberSearch() {
-        if(calling.getProposedIndId()!= 0) {
+        if(calling.getProposedIndId() != null && calling.getProposedIndId()!= 0) {
             this.proposedMember = dataManager.getMember(calling.getProposedIndId());
             String formattedName = this.proposedMember == null ? "" : this.proposedMember.getFormattedName();
             if(formattedName != null) {
@@ -269,7 +211,7 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
         MemberLookupFragment memberLookupFragment = new MemberLookupFragment();
 
         Bundle args = new Bundle();
-        if(calling.getProposedIndId() > 0) {
+        if(calling.getProposedIndId() != null && calling.getProposedIndId() > 0) {
             args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, calling.getProposedIndId());
         }
         args.putInt(MemberLookupFragment.positionTypeIdName, calling.getPosition().getPositionTypeId());
@@ -307,7 +249,7 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
             TextView callingName = (TextView)view.findViewById(R.id.label_calling_detail_position);
             callingName.setText(calling.getPosition().getName());
             final TextView currentlyCalled = (TextView)view.findViewById(R.id.calling_detail_currently_called);
-            String name = dataManager.getMemberName(calling.getMemberId());
+            String name = dataManager.getMemberName(calling.getMemberId() != null ? calling.getMemberId() : 0);
             currentlyCalled.setText(name);
             if(calling.getMemberId() != null && calling.getMemberId() > 0) {
                 currentlyCalled.setOnClickListener(new View.OnClickListener() {
@@ -426,7 +368,7 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
             }
             hasChanges = true;
         }
-        if(!calling.getProposedIndId().equals(individualId)) {
+        if(calling.getProposedIndId() != null && !calling.getProposedIndId().equals(individualId)) {
             hasChanges = true;
         }
         mListener.onFragmentInteraction(calling, hasChanges);

@@ -76,7 +76,7 @@
     <string name="warning_update_message">This will record %1$s as %2$s in LCR. This will make the change official and public. </string>
     <string name="warning_update_release_message">This will record %1$s and release %2$s as %3$s in LCR. This will make the change official and public.  This should only be done after the individuals have been sustained and released in Sacrament Meeting. Do you want to record the release on lds.org?</string>
     <string name="warning_release_message">This will release %1$s as %2$s on lds.org (LCR). This will make the release public (it will appear in lds.org sites, LDS Tools, etc.). Generally this should only be done after the individual has been released in Sacrament Meeting. Do you want to record the release on lds.org?</string>
-    <string name="warning_delete_message">This will remove %1$s from ward lists and directories. Do you want to continue?</string>
+    <string name="warning_delete_message">This will remove the workflow item from the callings list. Do you want to continue?</string>
     <string name="error_update_Message">You have selected a member that does not meet the requirements for the calling selected.  You may not be able to save these changes in LCR</string>
 
 

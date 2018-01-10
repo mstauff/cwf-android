@@ -98,21 +98,21 @@ public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment
         releaseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AlertDialog.Builder adb = getAlertDialog();
-                adb.setMessage(getResources().getString(R.string.warning_release_message, currentlyCalledMemberName, callingName));
-                adb.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            try {
-                                tempListener.onLeaderClerkResourceFragmentInteraction(Operation.RELEASE);
-                                dialog.dismiss();
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
+            AlertDialog.Builder adb = getAlertDialog();
+            adb.setMessage(getResources().getString(R.string.warning_release_message, currentlyCalledMemberName, callingName));
+            adb.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        try {
+                            tempListener.onLeaderClerkResourceFragmentInteraction(Operation.RELEASE);
+                            dialog.dismiss();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
                         }
                     }
-                );
-                adb.show();
-                dismiss();
+                }
+            );
+            adb.show();
+            dismiss();
             }
         });
 
@@ -144,13 +144,33 @@ public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment
                 dismiss();
             }
         });
+        if(proposedMemberName == null || proposedMemberName.length() == 0) {
+            updateButton.setVisibility(View.GONE);
+        }
 
         TextView deleteButton = (TextView)v.findViewById(R.id.button_delete_calling_in_lcr);
         if(canDelete) {
             deleteButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(final View view) {
-                showPopup(view);
+                    AlertDialog.Builder adb = getAlertDialog();
+                    adb.setMessage(canDeleteLCR
+                        ? getResources().getString(R.string.warning_release_message, currentlyCalledMemberName, callingName)
+                        : getResources().getString(R.string.warning_delete_message));
+
+                    final LeaderClerkResourceListener tempListener = mListener;
+                    adb.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                try {
+                                    tempListener.onLeaderClerkResourceFragmentInteraction(Operation.DELETE);
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                                dialog.dismiss();
+                            }
+                        }
+                    );
+                    adb.show();
                 }
             });
         } else {
@@ -166,52 +186,7 @@ public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment
         });
     }
 
-    public void showAlert(final Operation operation) {
-        AlertDialog.Builder adb = getAlertDialog();
-        if(canDeleteLCR) {
-            adb.setMessage(getResources().getString(R.string.warning_release_message, currentlyCalledMemberName, callingName));
-        } else {
-            adb.setMessage(getResources().getString(R.string.warning_delete_message, proposedMemberName));
-        }
-        final LeaderClerkResourceListener tempListener = mListener;
-        adb.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int which) {
-                    try {
-                        tempListener.onLeaderClerkResourceFragmentInteraction(operation);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                    dialog.dismiss();
-                }
-            }
-        );
-        adb.show();
-    }
-
-    public void showPopup(View v) {
-        PopupMenu popup = new PopupMenu(this.getContext(), v);
-        MenuInflater inflater = popup.getMenuInflater();
-        inflater.inflate(R.menu.delete_calling, popup.getMenu());
-        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                switch (item.getItemId()) {
-                    case R.id.calling_detail_lcr_delete:
-                        showAlert(Operation.DELETE_LCR);
-                        dismiss();
-                        return true;
-                    case R.id.calling_detail_google_drive_delete:
-                        showAlert(Operation.DELETE);
-                        dismiss();
-                        return true;
-                    default:
-                        return false;
-                }
-            }
-        });
-        popup.show();
-    }
-
+    /* Builds the core structure of an alert dialog. */
     private AlertDialog.Builder getAlertDialog() {
         AlertDialog.Builder adb = new AlertDialog.Builder(getContext());
         adb.setIcon(android.R.drawable.ic_dialog_alert);
@@ -237,6 +212,7 @@ public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment
         super.onDetach();
     }
 
+    /* Builds the core structure of a bottom sheet dialog. */
     private BottomSheetBehavior.BottomSheetCallback mBottomSheetBehaviorCallback = new BottomSheetBehavior.BottomSheetCallback() {
         @Override
         public void onStateChanged(@NonNull View bottomSheet, int newState) {

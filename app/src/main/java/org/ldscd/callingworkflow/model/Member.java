@@ -109,7 +109,7 @@ public class Member {
         List<String> names = new ArrayList<String>();
         if(currentCallings != null) {
             for(Calling calling : currentCallings) {
-                names.add(calling.getPosition().getName() + "[" + DataUtil.getMonthsSinceActiveDate(calling.getActiveDate()) + "M]");
+                names.add(calling.getPosition().getName() + "(" + DataUtil.getMonthsSinceActiveDate(calling.getActiveDate()) + "M)");
             }
         }
         return names;
@@ -141,7 +141,7 @@ public class Member {
         List<String> names = new ArrayList<String>();
         if(this.proposedCallings != null) {
             for(Calling calling : proposedCallings.values()) {
-                names.add(calling.getPosition().getName() + "[" + calling.getProposedStatus() + "]");
+                names.add(calling.getPosition().getName() + "(" + calling.getProposedStatus() + ")");
             }
         }
         return names;

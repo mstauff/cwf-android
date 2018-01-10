@@ -66,7 +66,7 @@ public class Calling implements Serializable {
     }
 
     public Long getId() { return this.positionId; }
-    public void setId(long positionId) {
+    public void setId(Long positionId) {
         this.positionId = positionId;
     }
 
@@ -83,14 +83,14 @@ public class Calling implements Serializable {
     public Long getMemberId() {
         return memberId;
     }
-    public void setMemberId(long memberId) {
+    public void setMemberId(Long memberId) {
         this.memberId = memberId;
     }
 
     public Long getProposedIndId() {
         return proposedIndId;
     }
-    public void setProposedIndId(long proposedIndId) {
+    public void setProposedIndId(Long proposedIndId) {
         this.proposedIndId = proposedIndId;
     }
 

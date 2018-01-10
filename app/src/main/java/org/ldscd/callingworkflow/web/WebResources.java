@@ -48,7 +48,7 @@ import java.util.Map;
 
 public class WebResources implements IWebResources {
     private static final String TAG = "WebResourcesLog";
-    private static final String CONFIG_URL = "http://dev-config-server-ldscd.7e14.starter-us-west-2.openshiftapps.com/cwf/config?env=test";
+    private static final String CONFIG_URL = "http://dev-config-server-ldscd.7e14.starter-us-west-2.openshiftapps.com/cwf/config?env=stage";
     private static final String LDS_ENDPOINTS = "ldsEndpointUrls";
     private static final String USER_DATA = "USER_DATA";
     private static final String SIGN_IN = "SIGN_IN";
@@ -165,7 +165,7 @@ public class WebResources implements IWebResources {
             authCallback.onResponse(authCookie);
         } else {
             /* Authentication Request to the LDS church. */
-            AuthenticationRequest authRequest = new AuthenticationRequest(userName, password, configInfo.getEndpointUrl("SIGN_IN"),
+            AuthenticationRequest authRequest = new AuthenticationRequest(userName, password, "https://signin-int.lds.org/login.html", //configInfo.getEndpointUrl("SIGN_IN"),
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
@@ -463,11 +463,11 @@ public class WebResources implements IWebResources {
         json.put("subOrgId", calling.getParentOrg());
         json.put("positionTypeId", calling.getPosition().getPositionTypeId());
         json.put("position", calling.getPosition().getName());
-        json.put("memberId", calling.getProposedIndId().toString());
+        json.put("memberId", calling.getProposedIndId());
 
         if(calling.getId() != null && calling.getId() > 0) {
             LocalDate date = LocalDate.now();
-            DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMd");
+            DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
             json.put("releaseDate", date.toString(fmt));
             JSONArray positionIds = new JSONArray();
             positionIds.put(calling.getId());
@@ -528,11 +528,89 @@ public class WebResources implements IWebResources {
         json.put("unitNumber", unitNumber);
         json.put("subOrgTypeId", orgTypeId);
         json.put("subOrgId", calling.getParentOrg());
-        json.put("positionTypeId", calling.getPosition().getPositionTypeId());
         json.put("position", calling.getPosition().getName());
+        json.put("positionId", calling.getId());
+        json.put("positionTypeId", calling.getPosition().getPositionTypeId());
         LocalDate date = LocalDate.now();
-        DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMd");
+        DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
         json.put("releaseDate", date.toString(fmt));
+
+        Map<String, String> headers = new HashMap<String, String>();
+        headers.put("Cookie", authCookie);
+        headers.put("Accept", "application/json");
+        GsonRequest<String> gsonRequest = new GsonRequest<String>(
+                Request.Method.POST,
+                configInfo.getUpdateCallingUrl(),
+                String.class,
+                headers,
+                json,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        try {
+                            callback.onResponse(new JSONObject(response));
+                        } catch (JSONException e) {
+                            Log.e("Json Parse LDS update", e.getMessage());
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        JSONObject jsonObject = null;
+                        try {
+                            jsonObject =  new JSONObject("{ 'errors' : '" + error.getMessage() + "'}");
+                        } catch (JSONException jsonError) {
+                            jsonError.printStackTrace();
+                        }
+                        callback.onResponse(jsonObject);
+                    }
+                }
+        );
+        gsonRequest.setRetryPolicy(
+                new DefaultRetryPolicy(
+                        0,
+                        DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT)
+        );
+        requestQueue.add(gsonRequest);
+    }
+
+    public void deleteCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback) throws JSONException {
+        /*
+         "unitNumber": 56030,
+         "subOrgTypeId": 1252,
+         "subOrgId": 2081422,
+         "positionId": 38816967,
+         "position": "does not matter",
+         "releaseDate": "20170801",
+         "hidden" : true
+
+         If the calling is empty you have to include positionTypeId (rather than positionId), you don't include a releaseDate:
+
+         "unitNumber": 56030,
+         "subOrgTypeId": 1252,
+         "subOrgId": 2081422,
+         "positionTypeId": 208,
+         "position": "does not matter",
+         "hidden" : true
+         */
+
+        org.json.JSONObject json = new org.json.JSONObject();
+        json.put("unitNumber", unitNumber);
+        json.put("subOrgTypeId", orgTypeId);
+        json.put("subOrgId", calling.getParentOrg());
+        json.put("position", calling.getPosition().getName());
+        if(calling.getId() != null && calling.getId() > 0 && calling.getMemberId() > 0) {
+            json.put("positionId", calling.getId());
+            LocalDate date = LocalDate.now();
+            DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
+            json.put("releaseDate", date.toString(fmt));
+        } else {
+            json.put("positionTypeId", calling.getPosition().getPositionTypeId());
+        }
+
+        json.put("hidden", true);
 
         Map<String, String> headers = new HashMap<String, String>();
         headers.put("Cookie", authCookie);
@@ -573,27 +651,6 @@ public class WebResources implements IWebResources {
                         DefaultRetryPolicy.DEFAULT_BACKOFF_MULT)
         );
         requestQueue.add(gsonRequest);
-    }
-
-    public void deleteCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback) throws JSONException {
-        /*
-         "unitNumber": 56030,
-         "subOrgTypeId": 1252,
-         "subOrgId": 2081422,
-         "positionId": 38816967,
-         "position": "does not matter",
-         "releaseDate": "20170801",
-         "hidden" : true
-
-         If the calling is empty you have to include positionTypeId (rather than positionId), you don't include a releaseDate:
-
-         "unitNumber": 56030,
-         "subOrgTypeId": 1252,
-         "subOrgId": 2081422,
-         "positionTypeId": 208,
-         "position": "does not matter",
-         "hidden" : true
-         */
     }
 
     private static RetryPolicy getRetryPolicy() {

@@ -8,6 +8,7 @@ import android.widget.ProgressBar;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -15,6 +16,7 @@ import org.ldscd.callingworkflow.constants.CallingStatus;
 import org.ldscd.callingworkflow.constants.ConflictCause;
 import org.ldscd.callingworkflow.constants.Gender;
 import org.ldscd.callingworkflow.constants.MemberClass;
+import org.ldscd.callingworkflow.constants.Operation;
 import org.ldscd.callingworkflow.constants.Priesthood;
 import org.ldscd.callingworkflow.model.*;
 import org.ldscd.callingworkflow.model.permissions.PermissionManager;
@@ -28,6 +30,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 public class CallingData {
     private static final String TAG = "CallingData";
@@ -323,7 +326,7 @@ public class CallingData {
                         if(hasPotentialInfo) {
                             for (Calling lcrCalling : lcrCallings) {
                                 if (lcrCalling.getPosition().equals(cwfCalling.getPosition())) {
-                                    if (lcrCalling.getMemberId().equals(cwfCalling.getProposedIndId())) {
+                                    if (lcrCalling.getMemberId() != null && cwfCalling.getProposedIndId() != null && lcrCalling.getMemberId().equals(cwfCalling.getProposedIndId())) {
                                         potentialMatchesActual = true;
                                         break;
                                     }
@@ -457,16 +460,211 @@ public class CallingData {
         }
     }
 
-    public void releaseLDSCalling(Calling calling, int orgTypeId, Response.Listener callback) throws JSONException {
-        webResources.releaseCalling(calling, getOrg(calling.getParentOrg()).getUnitNumber(), orgTypeId, callback);
+    public void releaseLDSCalling(final Calling calling, final Response.Listener<Boolean> callback, final Response.ErrorListener errorListener) throws JSONException {
+        webResources.releaseCalling(calling, getOrg(calling.getParentOrg()).getUnitNumber(),  getOrg(calling.getParentOrg()).getOrgTypeId(),  new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject jsonObject) {
+                if (jsonObject != null) {
+                    try {
+                        if(jsonObject.has("errors") && jsonObject.getJSONObject("errors").length() > 0) {
+                            errorListener.onErrorResponse(hydrateErrorListener(jsonObject, Operation.RELEASE));
+                        } else {
+                            calling.setId(null);
+                            calling.setNotes("");
+                            calling.setExistingStatus(null);
+                            calling.setProposedIndId(null);
+                            calling.setProposedStatus(CallingStatus.NONE);
+                            calling.setActiveDate(null);
+                            calling.setActiveDateTime(null);
+                            calling.setCwfId(UUID.randomUUID().toString());
+                            calling.setMemberId(null);
+                            calling.setConflictCause(null);
+                            googleDataService.saveOrgFile(new Response.Listener<Boolean>() {
+                                @Override
+                                public void onResponse(Boolean response) {
+                                    if(response) {
+                                        callback.onResponse(true);
+                                    } else {
+                                        callback.onResponse(false);
+                                    }
+                                }
+                            }, getBaseOrg(calling.getParentOrg()));
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
     }
 
-    public void updateLDSCalling(Calling calling, int orgTypeId, Response.Listener callback) throws JSONException {
-        webResources.updateCalling(calling, getOrg(calling.getParentOrg()).getUnitNumber(), orgTypeId, callback);
+    public void updateLDSCalling(final Calling calling, final Response.Listener<Boolean> callback, final Response.ErrorListener errorListener) throws JSONException {
+        webResources.updateCalling(calling, getOrg(calling.getParentOrg()).getUnitNumber(), getOrg(calling.getParentOrg()).getOrgTypeId(), new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject jsonObject) {
+                if (jsonObject != null) {
+                    try {
+                        if(jsonObject.has("errors") && jsonObject.getJSONObject("errors").length() > 0) {
+                            errorListener.onErrorResponse(hydrateErrorListener(jsonObject, Operation.UPDATE));
+                        } else {
+                            try {
+                                if(jsonObject.has("positionId")) {
+                                    calling.setId(jsonObject.getLong("positionId"));
+                                }
+                                calling.setNotes("");
+                                calling.setExistingStatus(null);
+                                calling.setProposedIndId(null);
+                                calling.setProposedStatus(CallingStatus.NONE);
+                                calling.setActiveDate(DateTime.now());
+                                calling.setActiveDateTime(DateTime.now());
+                                calling.setCwfId("");
+                                calling.setMemberId(jsonObject.getLong("memberId"));
+                                calling.setConflictCause(null);
+                                if(calling.isCwfOnly()) {
+                                    calling.setCwfOnly(false);
+                                }
+                                googleDataService.saveOrgFile(new Response.Listener<Boolean>() {
+                                    @Override
+                                    public void onResponse(Boolean response) {
+                                        if(response) {
+                                            callingsById.put(calling.getCallingId(), calling);
+                                            callback.onResponse(true);
+                                        } else {
+                                            callback.onResponse(false);
+                                        }
+                                    }
+                                }, getBaseOrg(calling.getParentOrg()));
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
     }
 
-    public void deleteLDSCalling(Calling calling, int orgTypeId, Response.Listener callback) throws JSONException {
-        webResources.deleteCalling(calling, getOrg(calling.getParentOrg()).getUnitNumber(), orgTypeId, callback);
+    /* Removes the calling from LCR then from google drive */
+    public void deleteLDSCalling(final Calling calling, final Response.Listener callback, final Response.ErrorListener errorListener) throws JSONException {
+        final Org originalOrg = getOrg(calling.getParentOrg());
+        webResources.deleteCalling(calling, originalOrg.getUnitNumber(), originalOrg.getOrgTypeId(), new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject jsonObject) {
+                try {
+                    if(jsonObject != null && jsonObject.has("errors") && jsonObject.getJSONObject("errors").length() > 0) {
+                        errorListener.onErrorResponse(hydrateErrorListener(jsonObject, Operation.DELETE));
+                    } else {
+                        /* Get Latest org changes from google drive. */
+                        googleDataService.getOrgData(new Response.Listener<Org>() {
+                            @Override
+                            public void onResponse(final Org latestGoogleDriveOrg) {
+                                /* Create a calling before the changes are made for backup purposes. */
+                                final Calling backupCalling = new Calling(calling);
+                                /* Removes the calling from within the new org. */
+                                Org parentOrg = findSubOrg(latestGoogleDriveOrg, calling.getParentOrg());
+                                parentOrg.removeCalling(calling);
+                                /* Save the changes back to google drive. */
+                                googleDataService.saveOrgFile(new Response.Listener<Boolean>() {
+                                    @Override
+                                    public void onResponse(Boolean success) {
+                                        if(success) {
+                                            /* Remove the callings that belong to the Org from the members with a proposed calling. */
+                                            memberData.removeMemberCallings(latestGoogleDriveOrg.getCallings());
+                                            /* Extract recent subOrgs and callings to cached items. */
+                                            extractOrg(latestGoogleDriveOrg, latestGoogleDriveOrg.getId());
+                                            /* Re-add Member Assignments */
+                                            memberData.setMemberCallings(latestGoogleDriveOrg.getCallings());
+                                            if(backupCalling.getProposedIndId() != null && backupCalling.getProposedIndId() > 0) {
+                                                memberData.getMember(backupCalling.getProposedIndId()).removeProposedCalling(calling);
+                                            }
+                                        }
+                                        callback.onResponse(true);
+                                    }
+                                }, latestGoogleDriveOrg);
+                            }
+                        }, new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                Log.e(TAG, error.getMessage());
+                                callback.onResponse(false);
+                            }
+                        }, getBaseOrg(originalOrg.getId()));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    private VolleyError hydrateErrorListener(JSONObject json, Operation action) {
+        VolleyError error = null;
+        try {
+            switch(action) {
+                case CREATE:
+                    break;
+                case READ:
+                    break;
+                case UPDATE:
+                    error = new VolleyError(json.getJSONObject("errors").getString("memberId").replace("[", "").replace("]", ""));
+                    break;
+                case DELETE:
+                    break;
+                case RELEASE:
+                    break;
+                case DELETE_LCR:
+                    break;
+            }
+        } catch (JSONException e) {
+            error = new VolleyError("An internal error occurred");
+        }
+        return error;
+    }
+
+    public void updateCalling(Org baseOrg, Calling updatedCalling, Operation operation) {
+        if(operation.equals(Operation.UPDATE)) {
+            Calling original = baseOrg.getCallingById(updatedCalling.getCallingId());
+            original.setNotes(updatedCalling.getNotes());
+            original.setProposedIndId(updatedCalling.getProposedIndId());
+            if(!updatedCalling.getProposedStatus().equals(CallingStatus.UNKNOWN)) {
+                original.setProposedStatus(updatedCalling.getProposedStatus());
+            }
+        } else if(operation.equals(Operation.CREATE)) {
+            Org org = findSubOrg(baseOrg, updatedCalling.getParentOrg());
+            org.getCallings().add(updatedCalling);
+        }
+    }
+
+    public boolean canDeleteCalling(Calling calling, Org org) {
+        boolean canDelete = false;
+        if(calling != null) {
+            if(!calling.getPosition().getAllowMultiple()) {
+                return false;
+            } else {
+                if(org.getCallingByPositionTypeId(calling.getPosition().getPositionTypeId()).size() > 1) {
+                    canDelete = true;
+                }
+            }
+        }
+        return canDelete;
+    }
+
+    public Org findSubOrg(Org org, long subOrgId) {
+        Org result = null;
+        if(org.getId() == subOrgId) {
+            result = org;
+        } else {
+            for(Org subOrg: org.getChildren()) {
+                result = findSubOrg(subOrg, subOrgId);
+                if(result != null) {
+                    break;
+                }
+            }
+        }
+        return result;
     }
 
     /* Position Meta Data */

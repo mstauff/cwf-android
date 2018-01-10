@@ -95,14 +95,14 @@ public class DataManagerImpl implements DataManager {
     public PositionMetaData getPositionMetadata(int positionTypeId) {
         return callingData.getPositionMetadata(positionTypeId);
     }
-    public void releaseLDSCalling(Calling calling, Response.Listener callback) throws JSONException {
-
+    public void releaseLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.ErrorListener errorListener) throws JSONException {
+        callingData.releaseLDSCalling(calling, callback, errorListener);
     }
-    public void updateLDSCalling(Calling calling, Response.Listener callback) throws JSONException {
-        callingData.updateLDSCalling(calling, getOrg(calling.getParentOrg()).getOrgTypeId(), callback);
+    public void updateLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.ErrorListener errorListener) throws JSONException {
+        callingData.updateLDSCalling(calling, callback, errorListener);
     }
-    public void deleteLDSCalling(Calling calling, Response.Listener callback) throws JSONException {
-        callingData.deleteLDSCalling(calling, getOrg(calling.getParentOrg()).getOrgTypeId(), callback);
+    public void deleteLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.ErrorListener errorListener) throws JSONException {
+        callingData.deleteLDSCalling(calling, callback, errorListener);
     }
 
     /* Member data. */
@@ -151,7 +151,7 @@ public class DataManagerImpl implements DataManager {
         }
     }
     @Override
-    public void deleteCalling(final Response.Listener<Boolean> listener, final Calling calling) {
+    public void deleteCalling(final Calling calling, final Response.Listener<Boolean> listener, Response.ErrorListener errorListener) {
         final Org org = callingData.getBaseOrg(calling.getParentOrg());
         if(permissionManager.isAuthorized(currentUser.getUnitRoles(),
                 Permission.POTENTIAL_CALLING_DELETE,
@@ -165,7 +165,7 @@ public class DataManagerImpl implements DataManager {
                         /* Remove the callings that belong to the Org from the members with a proposed calling. */
                         memberData.removeMemberCallings(org.getCallings());
                         /* Get's the subOrg within the main org(ie. instructors subOrg in the EQ Org) */
-                        Org newParentOrg = findSubOrg(newOrg, calling.getParentOrg());
+                        Org newParentOrg = callingData.findSubOrg(newOrg, calling.getParentOrg());
                         /* Removes the calling from within the new org */
                         newParentOrg.removeCalling(calling);
                         /* Get's the old parent org */
@@ -181,7 +181,7 @@ public class DataManagerImpl implements DataManager {
                             @Override
                             public void onResponse(Boolean success) {
                                 if(!success) {
-                                    updateCalling(newOrg, originalCalling, Operation.CREATE);
+                                    callingData.updateCalling(newOrg, originalCalling, Operation.CREATE);
                                     callingData.mergeOrgs(org, newOrg);
                                     callingData.extractOrg(org, org.getId());
                                 } else if(originalCalling.getProposedIndId() > 0) {
@@ -201,29 +201,7 @@ public class DataManagerImpl implements DataManager {
             }
         }
     }
-    /* final Org org = callingData.getBaseOrg(calling.getParentOrg());
-        if(permissionManager.isAuthorized(currentUser.getUnitRoles(),
-                Permission.POTENTIAL_CALLING_DELETE,
-                new AuthorizableOrg(org.getUnitNumber(), UnitLevelOrgType.get(org.getOrgTypeId()), org.getOrgTypeId()))) {
-            if(canDeleteCalling(calling, org)) {
-                googleDataService.getOrgData(new Response.Listener<Org>() {
-                    @Override
-                    public void onResponse(Org newOrg) {
-                        callingData.mergeOrgs(org, newOrg);
-                        callingData.extractOrg(newOrg, newOrg.getId());
-                        Org parentOrg = callingData.getOrg(calling.getParentOrg());
-                        boolean deleted = parentOrg.removeCalling(calling);
-                        if(deleted) {
-                            googleDataService.saveOrgFile(listener, newOrg);
-                            if (calling.getProposedIndId() != null && calling.getProposedIndId() > 0) {
-                                getMember(calling.getProposedIndId()).removeProposedCalling(calling);
-                            }
-                        }
-                    }
-                }, null, org);
-            }
-        }
-        */
+
     /* Calling and Google Data */
     private void saveCalling(final Response.Listener<Boolean> listener, final Org org, final Calling calling, final Operation operation) {
         googleDataService.getOrgData(new Response.Listener<Org>() {
@@ -233,7 +211,7 @@ public class DataManagerImpl implements DataManager {
                 //We'll make the changes to the calling in the fresh copy, merge them into our local data and save them back to google drive
                 memberData.removeMemberCallings(org.getCallings()); //this must be done before changes are made, they are repopulated while merging orgs
                 final Calling backupCalling = operation.equals(Operation.CREATE) ? null : new Calling(newOrg.getCallingById(calling.getCallingId()));
-                updateCalling(newOrg, calling, operation);
+                callingData.updateCalling(newOrg, calling, operation);
                 callingData.mergeOrgs(org, newOrg);
                 callingData.extractOrg(org, org.getId());
 
@@ -244,9 +222,9 @@ public class DataManagerImpl implements DataManager {
                         memberData.removeMemberCallings(org.getCallings());
                         if(!success) {
                             if (operation.equals(Operation.UPDATE)) {
-                                updateCalling(newOrg, backupCalling, operation);
+                                callingData.updateCalling(newOrg, backupCalling, operation);
                             } else if (operation.equals(Operation.CREATE)) {
-                                Org parentOrg = findSubOrg(newOrg, calling.getParentOrg());
+                                Org parentOrg = callingData.findSubOrg(newOrg, calling.getParentOrg());
                                 Calling callingToRemove = parentOrg.getCallingById(calling.getCallingId());
                                 parentOrg.getCallings().remove(callingToRemove);
                                 Org localParentOrg = callingData.getOrg(calling.getParentOrg());
@@ -269,34 +247,6 @@ public class DataManagerImpl implements DataManager {
         }, org);
     }
 
-    private void updateCalling(Org baseOrg, Calling updatedCalling, Operation operation) {
-        if(operation.equals(Operation.UPDATE)) {
-            Calling original = baseOrg.getCallingById(updatedCalling.getCallingId());
-            original.setNotes(updatedCalling.getNotes());
-            original.setProposedIndId(updatedCalling.getProposedIndId());
-            if(!updatedCalling.getProposedStatus().equals(CallingStatus.UNKNOWN)) {
-                original.setProposedStatus(updatedCalling.getProposedStatus());
-            }
-        } else if(operation.equals(Operation.CREATE)) {
-            Org org = findSubOrg(baseOrg, updatedCalling.getParentOrg());
-            org.getCallings().add(updatedCalling);
-        }
-    }
-    private Org findSubOrg(Org org, long subOrgId) {
-        Org result = null;
-        if(org.getId() == subOrgId) {
-            result = org;
-        } else {
-            for(Org subOrg: org.getChildren()) {
-                result = findSubOrg(subOrg, subOrgId);
-                if(result != null) {
-                    break;
-                }
-            }
-        }
-        return result;
-    }
-
     @Override
     public List<Calling> getUnfinalizedCallings() {
         return callingData.getUnfinalizedCallings();
@@ -304,17 +254,7 @@ public class DataManagerImpl implements DataManager {
 
     @Override
     public boolean canDeleteCalling(Calling calling, Org org) {
-        boolean canDelete = false;
-        if(calling != null) {
-            if(!calling.getPosition().getAllowMultiple()) {
-                return false;
-            } else {
-                if(org.getCallingByPositionTypeId(calling.getPosition().getPositionTypeId()).size() > 1) {
-                    canDelete = true;
-                }
-            }
-        }
-        return canDelete;
+        return callingData.canDeleteCalling(calling, org);
     }
 
     /* Unit Settings */

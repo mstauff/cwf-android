@@ -28,9 +28,9 @@ public interface DataManager {
     void refreshOrg(Response.Listener<Org> listener, Long orgId);
     List<PositionMetaData> getAllPositionMetadata();
     PositionMetaData getPositionMetadata(int positionTypeId);
-    void releaseLDSCalling(Calling calling, Response.Listener callback) throws JSONException;
-    void updateLDSCalling(Calling calling, Response.Listener callback) throws JSONException;
-    void deleteLDSCalling(Calling calling, Response.Listener callback) throws JSONException;
+    void releaseLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.ErrorListener errorListener) throws JSONException;
+    void updateLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.ErrorListener errorListener) throws JSONException;
+    void deleteLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.ErrorListener errorListener) throws JSONException;
     boolean canDeleteCalling(Calling calling, Org org);
     /* Member data. */
     String getMemberName(Long id);
@@ -40,7 +40,7 @@ public interface DataManager {
     /* Google data. */
     void addCalling(Response.Listener<Boolean> listener, Calling calling);
     void updateCalling(Response.Listener<Boolean> listener, Calling calling);
-    void deleteCalling(Response.Listener<Boolean> listener, Calling calling);
+    void deleteCalling(Calling calling, Response.Listener<Boolean> listener, Response.ErrorListener errorListener);
     List<Calling> getUnfinalizedCallings();
     /* Unit Settings */
     void getUnitSettings(Response.Listener<UnitSettings> listener);
