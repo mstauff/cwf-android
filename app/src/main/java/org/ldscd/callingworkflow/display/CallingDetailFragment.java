@@ -184,7 +184,7 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     private void wireUpMemberSearch() {
         if(calling.getProposedIndId() != null && calling.getProposedIndId()!= 0) {
             this.proposedMember = dataManager.getMember(calling.getProposedIndId());
-            String formattedName = this.proposedMember == null ? "" : this.proposedMember.getFormattedName();
+            String formattedName = dataManager.getMemberName(calling.getProposedIndId());
             if(formattedName != null) {
                 TextView name = (TextView) view.findViewById(R.id.member_lookup_name);
                 name.setText(formattedName);
