@@ -18,8 +18,12 @@ import org.ldscd.callingworkflow.constants.Gender;
 import org.ldscd.callingworkflow.constants.MemberClass;
 import org.ldscd.callingworkflow.constants.Operation;
 import org.ldscd.callingworkflow.constants.Priesthood;
+import org.ldscd.callingworkflow.constants.UnitLevelOrgType;
 import org.ldscd.callingworkflow.model.*;
+import org.ldscd.callingworkflow.model.permissions.Authorizable;
+import org.ldscd.callingworkflow.model.permissions.AuthorizableOrg;
 import org.ldscd.callingworkflow.model.permissions.PermissionManager;
+import org.ldscd.callingworkflow.model.permissions.constants.Permission;
 import org.ldscd.callingworkflow.services.GoogleDataService;
 import org.ldscd.callingworkflow.utils.JsonUtil;
 
@@ -53,10 +57,13 @@ public class CallingData {
     private Map<Long, Org> orgsById;
     private Map<String, Calling> callingsById;
     private Map<Long, Org> baseOrgByOrgId;
+    private Map<Long, Org> LcrBaseOrgByOrgId;
+    private Map<Long, Org> lcrOrgsById;
     private List<PositionMetaData> allPositionMetadata;
     private Map<Integer, PositionMetaData> positionMetaDataByPositionTypeId;
     private Set<Org> orgsToSave;
     private Set<Org> baseOrgsToRemove;
+    private LdsUser currentUser;
 
     public CallingData(IWebResources webResources, GoogleDataService googleDataService, MemberData memberData, PermissionManager permissionManager) {
         this.webResources = webResources;
@@ -75,10 +82,11 @@ public class CallingData {
             public void onResponse(Boolean response) {
                 if(response) {
                     pb.setProgress(pb.getProgress() + 15);
-                    webResources.getOrgs(new Response.Listener<List<Org>>() {
+                    webResources.getOrgs(true, new Response.Listener<List<Org>>() {
                         @Override
                         public void onResponse(List<Org> lcrOrgs) {
                             orgs = lcrOrgs;
+                            setLCRBaseOrgs();
                             orgsById = new HashMap<Long, Org>();
                             callingsById = new HashMap<String, Calling>();
                             baseOrgByOrgId = new HashMap<Long, Org>();
@@ -112,29 +120,30 @@ public class CallingData {
                                                             }
                                                         }, org);
                                                     }
-                                                    for(Org org: baseOrgsToRemove) {
-                                                        /*googleDataService.deleteFile(new Response.Listener<Boolean>() {
+                                                    // TODO: need to remove this code or implement this functionality.
+                                                    /*for(Org org: baseOrgsToRemove) {
+                                                        *//*googleDataService.deleteFile(new Response.Listener<Boolean>() {
                                                             @Override
                                                             public void onResponse(Boolean success) {
                                                                 if(!success) {
                                                                     Log.e(TAG, "Failed to remove org file from Google Drive");
                                                                 }
                                                             }
-                                                        }, org);*/
-                                                    }
+                                                        }, org);*//*
+                                                    }*/
                                                     orgsCallback.onResponse(true);
                                                 } else {
                                                     Log.e(TAG, "failed to merge cwf file data");
                                                     orgsCallback.onResponse(false);
                                                 }
                                             }
-                                        });
+                                        }, currentUser);
                                     } else {
                                         Log.e(TAG, "failed to sync drive Ids");
                                         orgsCallback.onResponse(false);
                                     }
                                 }
-                            }, orgs);
+                            }, getAuthorizableOrgs(orgs, currentUser));
                         }
                     });
                 } else {
@@ -144,32 +153,79 @@ public class CallingData {
         }, activity);
     }
 
-    /*public void loadOrg(final Response.Listener<Boolean> listener, final Org org) {
-        googleDataService.getOrgData(new Response.Listener<Org>() {
+    public void refreshLCROrgs(final Response.Listener<Boolean> listener, final LdsUser currentUser) {
+        webResources.getOrgs(true, new Response.Listener<List<Org>>() {
             @Override
-            public void onResponse(Org googleOrg) {
-                if(googleOrg != null) {
-                    extractOrg(googleOrg, googleOrg.getId());
+            public void onResponse(List<Org> lcrOrgs) {
+                if(lcrOrgs != null) {
+                    /* Reset all cached items. */
+                    orgs = lcrOrgs;
+                    orgsById = new HashMap<Long, Org>();
+                    callingsById = new HashMap<String, Calling>();
+                    baseOrgByOrgId = new HashMap<Long, Org>();
+                    /* Resync's with google drive */
+                    googleDataService.syncDriveIds(new Response.Listener<Boolean>() {
+                        @Override
+                        public void onResponse(Boolean driveSyncSucceeded) {
+                            if (driveSyncSucceeded) {
+                                /* Get the files from google drive and merge data */
+                                importAndMergeGoogleData(new Response.Listener<Boolean>() {
+                                    @Override
+                                    public void onResponse(Boolean response) {
+                                        if(response) {
+                                            /* Add items to cached elements */
+                                            for (Org org : orgs) {
+                                                extractOrg(org, org.getId());
+                                            }
+                                            Set<Org> baseOrgsToSave = new HashSet<>();
+                                            for (Org org : orgsToSave) {
+                                                baseOrgsToSave.add(getBaseOrg(org.getId()));
+                                            }
+                                            orgsToSave.clear();
+                                            for (Org org : baseOrgsToSave) {
+                                                googleDataService.saveOrgFile(new Response.Listener<Boolean>() {
+                                                    @Override
+                                                    public void onResponse(Boolean success) {
+                                                        if (!success) {
+                                                            Log.e(TAG, "Failed to save merge changes to Google Drive");
+                                                        }
+                                                    }
+                                                }, org);
+                                            }
+                                            listener.onResponse(true);
+                                        } else {
+                                            listener.onResponse(false);
+                                        }
+                                    }
+                                }, currentUser);
+                            } else {
+                                listener.onResponse(false);
+                            }
+                        }
+                    }, getAuthorizableOrgs(lcrOrgs, currentUser));
                 }
-                listener.onResponse(true);
             }
-        }, null, org);
-    }*/
+        });
+    }
 
-    public void refreshOrgFromGoogleDrive(final Response.Listener<Org> listener, Long orgId) {
+    public void refreshOrgFromGoogleDrive(final Response.Listener<Org> listener, Long orgId, final LdsUser currentUser) {
         final Org org = getOrg(orgId);
-        if(org != null) {
+        /* Check org viewing permissions first */
+        isAuthorizableOrg(org, currentUser, org.getId());
+        if(org != null && org.getCanView()) {
             googleDataService.getOrgData(new Response.Listener<Org>() {
                 @Override
                 public void onResponse(Org googleOrg) {
                     //changes to current and potential assignments will leave incorrect data in the member objects, we must remove them now
                     //while references still exist in the current org and correct data is added back in after the merge completes
                     memberData.removeMemberCallings(org.getCallings());
-                    mergeOrgs(org, googleOrg);
+                    mergeOrgs(org, googleOrg, currentUser);
                     extractOrg(org, org.getId());
                     listener.onResponse(org);
                 }
             }, null, org);
+        } else {
+            listener.onResponse(org);
         }
     }
 
@@ -202,20 +258,24 @@ public class CallingData {
 
     /* Import and Merge Data */
 
-    private void importAndMergeGoogleData(final Response.Listener<Boolean> mergeFinishedCallback) {
+    private void importAndMergeGoogleData(final Response.Listener<Boolean> mergeFinishedCallback, final LdsUser currentUser) {
         googleDataService.getOrgs(new Response.Listener<List<Org>>() {
             @Override
             public void onResponse(List<Org> cwfOrgs) {
                 List<Org> cwfOrgsToAdd = new ArrayList<Org>();
+                /* Cycle through all google drive orgs */
                 for (Org cwfOrg : cwfOrgs) {
                     boolean matchFound = false;
+                    /* Cycle through all lcr orgs only until or if a match is found */
                     for (Org org : orgs) {
                         if (cwfOrg.getId() == org.getId()) {
-                            mergeOrgs(org, cwfOrg);
+                            memberData.removeMemberCallings(cwfOrg.allOrgCallings());
+                            mergeOrgs(org, cwfOrg, currentUser);
                             matchFound = true;
                             break;
                         }
                     }
+                    /* If the org is gone then the user will need to address this cwf org */
                     if(!matchFound) {
                         if(hasProposedData(cwfOrg)) {
                             cwfOrg.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
@@ -238,14 +298,14 @@ public class CallingData {
     }
 
     //This merges the orgs and callings from the cwfOrg into the lcrOrg so when completed the lcrOrg will have both
-    public void mergeOrgs(Org lcrOrg, Org cwfOrg) {
+    public void mergeOrgs(Org lcrOrg, Org cwfOrg, LdsUser currentUser) {
         if(cwfOrg != null && cwfOrg.getChildren() != null) {
             for (Org cwfSubOrg : cwfOrg.getChildren()) {
                 boolean matchFound = false;
                 for (Org lcrSubOrg : lcrOrg.getChildren()) {
                     if (cwfSubOrg.equals(lcrSubOrg)) {
                         //org exists in both lists, merge children recursively
-                        mergeOrgs(lcrSubOrg, cwfSubOrg);
+                        mergeOrgs(lcrSubOrg, cwfSubOrg, currentUser);
                         if (lcrSubOrg.hasUnsavedChanges()) {
                             lcrOrg.setHasUnsavedChanges(true);
                         }
@@ -268,7 +328,11 @@ public class CallingData {
         if(lcrOrg.getChildren().size() > cwfOrg.getChildren().size()) {
             orgsToSave.add(lcrOrg);
         }
-        mergeCallings(lcrOrg, cwfOrg);
+        /* Check viewable rights.  If current user can view the merge calling data. */
+        isAuthorizableOrg(cwfOrg, currentUser,  cwfOrg.getId());
+        if(cwfOrg.getCanView()) {
+            mergeCallings(lcrOrg, cwfOrg);
+        }
     }
 
     //This merges callings from both orgs into the lcrOrg
@@ -434,6 +498,43 @@ public class CallingData {
                 (calling.getNotes() != null && calling.getNotes() != ""));
     }
 
+    /* Permission on orgs */
+    private void isAuthorizableOrg(Org org, LdsUser currentUser, long baseOrgId) {
+        boolean hasPermission = false;
+        org.setCanView(false);
+        UnitLevelOrgType unitLevelOrgType = null;
+        Org baseOrg = lcrOrgsById.get(baseOrgId);
+        if(baseOrg != null) {
+            unitLevelOrgType =  UnitLevelOrgType.get(baseOrg.getOrgTypeId());
+        }
+        if(permissionManager.isAuthorized(currentUser.getUnitRoles(),
+                Permission.ORG_INFO_READ,
+                new AuthorizableOrg(
+                        currentUser.getUnitNumber(),
+                        unitLevelOrgType,
+                        org.getOrgTypeId()))) {
+            hasPermission = true;
+        }
+        org.setCanView(hasPermission);
+
+        for(Org child : org.getChildren()) {
+            isAuthorizableOrg(child, currentUser, baseOrgId);
+        }
+    }
+
+    private List<Org> getAuthorizableOrgs(List<Org> lcrOrgs, LdsUser currentUser) {
+        List<Org> orgs = new ArrayList<>();
+        if(lcrOrgs != null && lcrOrgs.size() > 0) {
+            for(Org org : lcrOrgs) {
+                isAuthorizableOrg(org, currentUser, org.getId());
+                if(org.getCanView()) {
+                    orgs.add(org);
+                }
+            }
+        }
+        return orgs;
+    }
+
     /* Calling Data */
 
     public List<Calling> getUnfinalizedCallings() {
@@ -493,6 +594,8 @@ public class CallingData {
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
+                } else {
+                    callback.onResponse(false);
                 }
             }
         });
@@ -665,6 +768,30 @@ public class CallingData {
             }
         }
         return result;
+    }
+
+    /* Use only for initial load */
+    private void setLCRBaseOrgs() {
+        LcrBaseOrgByOrgId = new HashMap<>(orgs.size());
+        for(Org org : orgs) {
+            LcrBaseOrgByOrgId.put(org.getId(), org);
+            setLcrOrgsById(org);
+        }
+    }
+
+    private void setLcrOrgsById(Org org) {
+        if(lcrOrgsById == null) {
+            lcrOrgsById = new HashMap<>();
+        }
+        lcrOrgsById.put(org.getId(), org);
+        for(Org child : org.getChildren()) {
+            setLcrOrgsById(child);
+        }
+    }
+
+    /* Only to be used on initial load */
+    private Org getLcrBaseOrg(long id) {
+        return LcrBaseOrgByOrgId.get(id);
     }
 
     /* Position Meta Data */

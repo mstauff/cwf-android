@@ -546,74 +546,83 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
     public void syncDriveIds(final Response.Listener<Boolean> listener, final List<Org> orgList) {
         Drive.DriveApi.requestSync(mGoogleApiClient).setResultCallback(new ResultCallback<Status>() {
             @Override
-            public void onResult(Status status) {
+            public void onResult(@NonNull Status status) {
                 if (!status.isSuccess()) {
                     Log.e(TAG, "Unable to sync.");
-                }
-                DriveFolder folder = Drive.DriveApi.getAppFolder(mGoogleApiClient);
-                folder.listChildren(mGoogleApiClient).setResultCallback(new ResultCallback<DriveApi.MetadataBufferResult>() {
-                    @Override
-                    public void onResult(DriveApi.MetadataBufferResult metadataBufferResult) {
-                        if (!metadataBufferResult.getStatus().isSuccess()) {
-                            return;
-                        }
-                        int results = metadataBufferResult.getMetadataBuffer().getCount();
-                        if (results > 0) {
-                            // If the file exists then use it.
-                            boolean hasUnitSettings = false;
-                            for (Metadata metadata : metadataBufferResult.getMetadataBuffer()) {
-                                if(metadata.getFileExtension().equals("json")) {
+                    listener.onResponse(false);
+                } else {
+                    metaFileMap = new HashMap<>();
+                    DriveFolder folder = Drive.DriveApi.getAppFolder(mGoogleApiClient);
+                    folder.listChildren(mGoogleApiClient).setResultCallback(new ResultCallback<DriveApi.MetadataBufferResult>() {
+                        @Override
+                        public void onResult(DriveApi.MetadataBufferResult metadataBufferResult) {
+                            if (!metadataBufferResult.getStatus().isSuccess()) {
+                                return;
+                            }
+                            Map<String, Org> lcrOrgNames = new HashMap<>();
+                            for(Org org : orgList) {
+                                lcrOrgNames.put(DataUtil.getOrgFileName(org), org);
+                            }
+                            int results = metadataBufferResult.getMetadataBuffer().getCount();
+                            if (results > 0) {
+                                // If the file exists then use it.
+                                boolean hasUnitSettings = false;
+                                for (Metadata metadata : metadataBufferResult.getMetadataBuffer()) {
+                                    if (metadata.getFileExtension().equals("json")) {
                                     /* Check to see if there are duplicate files.  If so, remove
                                         the file that is newest and keep the oldest file.
                                     */
-                                    Metadata existingMeta = metaFileMap.get(metadata.getTitle());
-                                    if (existingMeta != null) {
-                                        if (existingMeta.getCreatedDate().after(metadata.getCreatedDate())) {
-                                            metaFileMap.put(metadata.getTitle(), metadata);
-                                            DriveId fileId = existingMeta.getDriveId();
-                                            DriveFile orgFile = fileId.asDriveFile();
-                                            orgFile.delete(mGoogleApiClient);
-                                        } else {
-                                            DriveId fileId = metadata.getDriveId();
-                                            DriveFile orgFile = fileId.asDriveFile();
-                                            orgFile.delete(mGoogleApiClient);
+                                        if(lcrOrgNames.containsKey(metadata.getTitle())) {
+                                            Metadata existingMeta = metaFileMap.get(metadata.getTitle());
+                                            if (existingMeta != null) {
+                                                if (existingMeta.getCreatedDate().after(metadata.getCreatedDate())) {
+                                                    metaFileMap.put(metadata.getTitle(), metadata);
+                                                    DriveId fileId = existingMeta.getDriveId();
+                                                    DriveFile orgFile = fileId.asDriveFile();
+                                                    orgFile.delete(mGoogleApiClient);
+                                                } else {
+                                                    DriveId fileId = metadata.getDriveId();
+                                                    DriveFile orgFile = fileId.asDriveFile();
+                                                    orgFile.delete(mGoogleApiClient);
+                                                }
+                                            } else {
+                                                metaFileMap.put(metadata.getTitle(), metadata);
+                                            }
                                         }
-                                    } else {
-                                        metaFileMap.put(metadata.getTitle(), metadata);
                                     }
                                 }
-                            }
                             /* Possible orgs that need to be created */
-                            if(orgList != null) {
-                                List<Org> itemsToCreate = new ArrayList<Org>();
-                                for (Org org : orgList) {
-                                    if (org.getOrgTypeId() > 0 && !metaFileMap.containsKey(DataUtil.getOrgFileName(org))) {
-                                        itemsToCreate.add(org);
+                                if (orgList != null) {
+                                    List<Org> itemsToCreate = new ArrayList<Org>();
+                                    for (Org org : orgList) {
+                                        if (org.getOrgTypeId() > 0 && !metaFileMap.containsKey(DataUtil.getOrgFileName(org))) {
+                                            itemsToCreate.add(org);
+                                        }
+                                    }
+                                    if (!itemsToCreate.isEmpty()) {
+                                        createOrgFile(new Response.Listener<Boolean>() {
+                                            @Override
+                                            public void onResponse(Boolean response) {
+                                                listener.onResponse(response);
+                                            }
+                                        }, itemsToCreate);
                                     }
                                 }
-                                if(!itemsToCreate.isEmpty()) {
-                                    createOrgFile(new Response.Listener<Boolean>() {
-                                        @Override
-                                        public void onResponse(Boolean response) {
-                                            listener.onResponse(response);
-                                        }
-                                    }, itemsToCreate);
-                                }
-                            }
-                        } else {
+                            } else {
                             /* If zero files exist in google drive they will be created. */
                             /* Creates all org files */
-                            createOrgFile(new Response.Listener<Boolean>() {
-                                @Override
-                                public void onResponse(Boolean response) {
-                                    listener.onResponse(response);
-                                }
-                            }, orgList);
+                                createOrgFile(new Response.Listener<Boolean>() {
+                                    @Override
+                                    public void onResponse(Boolean response) {
+                                        listener.onResponse(response);
+                                    }
+                                }, orgList);
+                            }
+                            //TODO : add a meaningful response
+                            listener.onResponse(true);
                         }
-                        //TODO : add a meaningful response
-                        listener.onResponse(true);
-                    }
-                });
+                    });
+                }
             }
         });
     }

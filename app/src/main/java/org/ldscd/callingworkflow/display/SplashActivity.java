@@ -30,10 +30,15 @@ public class SplashActivity extends AppCompatActivity {
         setContentView(R.layout.activity_splash);
          pb = (ProgressBar) findViewById(R.id.progress_bar_splash);
         pb.setProgress(10);
-        dataManager.getUserInfo(new Response.Listener<LdsUser>() {
+        dataManager.getUserInfo(null, null, false, new Response.Listener<LdsUser>() {
             @Override
-            public void onResponse(LdsUser response) {
-                dataManager.loadMembers(memberListener, pb);
+            public void onResponse(LdsUser ldsUser) {
+                if(ldsUser != null && ldsUser.getIndividualId() > 0) {
+                    dataManager.loadMembers(memberListener, pb);
+                } else {
+                    Intent intent = new Intent(SplashActivity.this, LDSAccountActivity.class);
+                    startActivity(intent);
+                }
             }
         });
     }

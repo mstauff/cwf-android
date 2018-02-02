@@ -32,6 +32,7 @@ public class PermissionManager {
         permissionResolvers.put(Role.UNIT_ADMIN, unitPermissionResolver);
         permissionResolvers.put(Role.STAKE_ASSISTANT, unitPermissionResolver);
         permissionResolvers.put(Role.ORG_ADMIN, orgPermResolver);
+        permissionResolvers.put(Role.PRIESTHOOD_ORG_ADMIN, orgPermResolver);
     }
 
     /* Methods */
@@ -124,20 +125,5 @@ public class PermissionManager {
         }
 
         return isAuthorized;
-    }
-
-    public List<Org> getAuthorizableOrgs(List<Org> lcrOrgs, LdsUser currentUser) {
-        List<Org> orgs = new ArrayList<>();
-        if(lcrOrgs != null && lcrOrgs.size() > 0) {
-            for(Org org : lcrOrgs) {
-                if(isAuthorized(currentUser.getUnitRoles(),
-                                Permission.ORG_INFO_READ,
-                                new AuthorizableOrg(currentUser.getUnitNumber(),
-                                                    UnitLevelOrgType.get(org.getOrgTypeId())))) {
-                    orgs.add(org);
-                }
-            }
-        }
-        return orgs;
     }
 }

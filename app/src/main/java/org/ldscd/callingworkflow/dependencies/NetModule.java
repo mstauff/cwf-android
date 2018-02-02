@@ -17,6 +17,7 @@ import org.ldscd.callingworkflow.web.IWebResources;
 
 import org.ldscd.callingworkflow.web.CallingData;
 import org.ldscd.callingworkflow.web.MemberData;
+import org.ldscd.callingworkflow.web.WebResources;
 
 import javax.inject.Singleton;
 

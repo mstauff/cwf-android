@@ -29,6 +29,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import static org.ldscd.callingworkflow.display.CallingDetailFragment.CAN_VIEW_PRIESTHOOD;
 import static org.ldscd.callingworkflow.display.CallingDetailFragment.INDIVIDUAL_ID;
 
 /**
@@ -52,6 +53,7 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
     private ListView listView;
     private Member currentSelection;
     private boolean firstTime;
+    private boolean canViewPriesthoodFilter;
 
     /* Popup items. */
     private FilterOption filterOption;
@@ -72,6 +74,8 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
         view = inflater.inflate(R.layout.fragment_member__lookup_, container, false);
         Bundle bundle = this.getArguments();
         if (bundle != null && !bundle.isEmpty()) {
+            /* Get permission to view priesthood filter */
+            canViewPriesthoodFilter = bundle.getBoolean(CAN_VIEW_PRIESTHOOD, false);
             /* Get the positionTypeId */
             positionTypeId = bundle.getInt(positionTypeIdName, 0);
             firstTime = true;
@@ -96,6 +100,9 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
     public void createMemberLookupFilterFragment(FilterOption filterOption) {
         MemberLookupFilterFragment memberLookupFilterFragment = MemberLookupFilterFragment.newInstance(filterOption);
         memberLookupFilterFragment.setMemberLookupFilterListener(this);
+        Bundle bundle = new Bundle();
+        bundle.putBoolean(CAN_VIEW_PRIESTHOOD, canViewPriesthoodFilter);
+        memberLookupFilterFragment.setArguments(bundle);
         memberLookupFilterFragment.show(getFragmentManager(), MemberLookupFragment.FRAG_NAME);
     }
 

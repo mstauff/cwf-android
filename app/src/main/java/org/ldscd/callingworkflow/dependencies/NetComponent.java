@@ -10,6 +10,7 @@ import org.ldscd.callingworkflow.display.CreateCallingActivity;
 import org.ldscd.callingworkflow.display.CreateCallingFragment;
 import org.ldscd.callingworkflow.display.DirectoryActivity;
 import org.ldscd.callingworkflow.display.IndividualInformationFragment;
+import org.ldscd.callingworkflow.display.LDSAccountActivity;
 import org.ldscd.callingworkflow.display.MemberLookupFragment;
 import org.ldscd.callingworkflow.display.ExpandableOrgsListActivity;
 import org.ldscd.callingworkflow.display.OrgListActivity;
@@ -37,4 +38,5 @@ public interface NetComponent {
     void inject(CallingFiltersFragment activity);
     void inject(CreateCallingFragment fragment);
     void inject(StatusEditActivity activity);
+    void inject(LDSAccountActivity activity);
 }

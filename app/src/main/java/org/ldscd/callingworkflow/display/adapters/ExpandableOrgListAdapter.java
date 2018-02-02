@@ -131,7 +131,11 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
             convertView = LayoutInflater.from(parentView.getContext())
                     .inflate(R.layout.list_org_item, parentView, false);
             ImageButton addButton = (ImageButton) convertView.findViewById(R.id.add_calling_button);
-            if(groupOrg.potentialNewPositions().size() > 0) {
+            /* If the calling section has the ability to add a calling and
+                the user has permissions to add a calling to this org then show the
+                addButton in the list.
+             */
+            if(groupOrg.potentialNewPositions().size() > 0 && groupOrg.getCanView()) {
                 addButton.setVisibility(View.VISIBLE);
                 addButton.setFocusable(false);
                 addButton.setOnClickListener(new View.OnClickListener() {

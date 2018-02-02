@@ -28,7 +28,9 @@ import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.constants.CallingStatus;
 import org.ldscd.callingworkflow.constants.Operation;
 import org.ldscd.callingworkflow.model.Calling;
+import org.ldscd.callingworkflow.model.LdsUser;
 import org.ldscd.callingworkflow.model.Member;
+import org.ldscd.callingworkflow.model.permissions.constants.Permission;
 import org.ldscd.callingworkflow.web.DataManager;
 
 import java.util.List;
@@ -50,6 +52,8 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     public static final String CALLING_ID = "calling_id";
     public static final String INDIVIDUAL_ID = "individualId";
     public static final String CALLING = "calling";
+    public static final String CAN_VIEW = "canView";
+    public static final String CAN_VIEW_PRIESTHOOD = "canViewPriesthoodFilter";
 
     private Member proposedMember;
     private Long individualId;
@@ -57,6 +61,7 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     private View view;
     private OnCallingDetailFragmentListener mListener;
     private boolean resetProposedStatus = false;
+    private boolean canViewPriesthoodFilters = false;
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -151,6 +156,15 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ((CWFApplication)getActivity().getApplication()).getNetComponent().inject(this);
+
+        dataManager.getUserInfo(null, null, false, new Response.Listener<LdsUser>() {
+            @Override
+            public void onResponse(LdsUser user) {
+                if(user != null) {
+                    canViewPriesthoodFilters = dataManager.getPermissionManager().hasPermission(user.getUnitRoles(), Permission.PRIESTHOOD_OFFICE_READ);
+                }
+            }
+        });
     }
 
     @Override
@@ -172,11 +186,14 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
             /* Initialize UI */
             calling = (Calling)bundle.getSerializable(CALLING);
             individualId = bundle.getLong(INDIVIDUAL_ID);
+            boolean canView = bundle.getBoolean(CAN_VIEW);
             hydrateCalling();
-            wireUpFinalizeButton();
-            wireUpStatusDropdown();
-            wireUpMemberSearch();
-            wireUpNotes();
+            if(canView) {
+                wireUpFinalizeButton();
+                wireUpStatusDropdown();
+                wireUpMemberSearch();
+                wireUpNotes();
+            }
         }
         return view;
     }
@@ -259,10 +276,6 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
                     }
                 });
             }
-            TextView notes = (TextView) view.findViewById(R.id.notes_calling_detail);
-            if(calling.getNotes() != null && calling.getNotes().length() > 0)  {
-                notes.setText(calling.getNotes());
-            }
         }
     }
 
@@ -297,6 +310,9 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     private void wireUpNotes() {
         TextView notes = (TextView) view.findViewById(R.id.notes_calling_detail);
         notes.addTextChangedListener(textWatcherNotesListener);
+        if(calling.getNotes() != null && calling.getNotes().length() > 0)  {
+            notes.setText(calling.getNotes());
+        }
     }
 
     private final TextWatcher textWatcherNotesListener = new TextWatcher() {
@@ -398,11 +414,12 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
             MemberLookupFragment memberLookupFragment = new MemberLookupFragment();
+            Bundle args = new Bundle();
+            args.putBoolean(CAN_VIEW_PRIESTHOOD, canViewPriesthoodFilters);
             if(proposedMember != null && proposedMember.getIndividualId() > 0) {
-                Bundle args = new Bundle();
                 args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, proposedMember.getIndividualId());
-                memberLookupFragment.setArguments(args);
             }
+            memberLookupFragment.setArguments(args);
             FragmentManager fragmentManager = this.getFragmentManager();
 
             fragmentManager.beginTransaction()

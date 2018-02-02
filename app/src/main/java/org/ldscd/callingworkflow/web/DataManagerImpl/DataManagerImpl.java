@@ -1,6 +1,7 @@
 package org.ldscd.callingworkflow.web.DataManagerImpl;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.util.Log;
 import android.widget.ProgressBar;
 
@@ -48,15 +49,24 @@ public class DataManagerImpl implements DataManager {
         this.permissionManager = permissionManager;
     }
     /* Methods */
+    public PermissionManager getPermissionManager() {
+        return this.permissionManager;
+    }
     /* User data */
     @Override
-    public void getUserInfo(final Response.Listener<LdsUser> userListener) {
-        if(currentUser == null) {
-            webResources.getUserInfo(new Response.Listener<LdsUser>() {
+    public void getUserInfo(String userName, String password, boolean hasChanges, final Response.Listener<LdsUser> userListener) {
+
+        if(currentUser == null || hasChanges) {
+            if(hasChanges) {
+                webResources.setCredentials(userName, password);
+            }
+            webResources.getUserInfo(hasChanges, new Response.Listener<LdsUser>() {
                 @Override
                 public void onResponse(LdsUser ldsUser) {
                     currentUser = ldsUser;
-                    if(currentUser.getUnitRoles() == null || currentUser.getUnitRoles().size() == 0) {
+                    if(currentUser != null &&
+                            (currentUser.getUnitRoles() == null ||
+                                    (currentUser.getUnitRoles() == null || currentUser.getUnitRoles().size() == 0))) {
                         currentUser.setUnitRoles(permissionManager.createUnitRoles(currentUser.getPositions(),
                                 currentUser.getUnitNumber()));
                     }
@@ -66,6 +76,10 @@ public class DataManagerImpl implements DataManager {
         } else {
             userListener.onResponse(currentUser);
         }
+    }
+    @Override
+    public void getSharedPreferences(Response.Listener<SharedPreferences> listener) {
+        webResources.getSharedPreferences(listener);
     }
 
     /* calling data. */
@@ -82,12 +96,17 @@ public class DataManagerImpl implements DataManager {
     public List<Org> getOrgs() {
         return callingData.getOrgs();
     }
+
+    @Override
+    public void refreshLCROrgs(Response.Listener<Boolean> listener) {
+        callingData.refreshLCROrgs(listener, currentUser);
+    }
     public void loadOrgs(Response.Listener<Boolean> listener, ProgressBar progressBar, Activity activity) {
         callingData.loadOrgs(listener, progressBar, activity, currentUser);
         callingData.loadPositionMetadata();
     }
     public void refreshOrg(Response.Listener<Org> listener, Long orgId) {
-        callingData.refreshOrgFromGoogleDrive(listener, orgId);
+        callingData.refreshOrgFromGoogleDrive(listener, orgId, currentUser);
     }
     public List<PositionMetaData> getAllPositionMetadata() {
         return callingData.getAllPositionMetadata();
@@ -173,7 +192,7 @@ public class DataManagerImpl implements DataManager {
                         /* Removes the calling from the old parent org */
                         oldParentOrg.removeCalling(calling);
                         /* Merge the changes in the old and new orgs */
-                        callingData.mergeOrgs(org, newOrg);
+                        callingData.mergeOrgs(org, newOrg, currentUser);
                         /* Extract recent subOrgs and callings to cached items */
                         callingData.extractOrg(org, org.getId());
                         /* Save the changes back to google drive */
@@ -182,7 +201,7 @@ public class DataManagerImpl implements DataManager {
                             public void onResponse(Boolean success) {
                                 if(!success) {
                                     callingData.updateCalling(newOrg, originalCalling, Operation.CREATE);
-                                    callingData.mergeOrgs(org, newOrg);
+                                    callingData.mergeOrgs(org, newOrg, currentUser);
                                     callingData.extractOrg(org, org.getId());
                                 } else if(originalCalling.getProposedIndId() > 0) {
                                     getMember(originalCalling.getProposedIndId()).removeProposedCalling(calling);
@@ -212,7 +231,7 @@ public class DataManagerImpl implements DataManager {
                 memberData.removeMemberCallings(org.getCallings()); //this must be done before changes are made, they are repopulated while merging orgs
                 final Calling backupCalling = operation.equals(Operation.CREATE) ? null : new Calling(newOrg.getCallingById(calling.getCallingId()));
                 callingData.updateCalling(newOrg, calling, operation);
-                callingData.mergeOrgs(org, newOrg);
+                callingData.mergeOrgs(org, newOrg, currentUser);
                 callingData.extractOrg(org, org.getId());
 
                 //Save to google drive and revert local changes if the save fails
@@ -231,7 +250,7 @@ public class DataManagerImpl implements DataManager {
                                 callingToRemove = localParentOrg.getCallingById(calling.getCallingId());
                                 localParentOrg.getCallings().remove(callingToRemove);
                             }
-                            callingData.mergeOrgs(org, newOrg);
+                            callingData.mergeOrgs(org, newOrg, currentUser);
                             callingData.extractOrg(org, org.getId());
                         }
                         listener.onResponse(success);

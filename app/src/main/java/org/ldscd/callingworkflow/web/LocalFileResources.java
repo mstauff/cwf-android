@@ -1,6 +1,7 @@
 package org.ldscd.callingworkflow.web;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.android.volley.Request;
@@ -16,7 +17,6 @@ import org.joda.time.format.DateTimeFormatter;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ldscd.callingworkflow.constants.UnitLevelOrgType;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.ConfigInfo;
 import org.ldscd.callingworkflow.model.LdsUser;
@@ -53,6 +53,11 @@ public class LocalFileResources implements IWebResources {
     }
 
     @Override
+    public void getSharedPreferences(Response.Listener<SharedPreferences> listener) {
+        listener.onResponse(null);
+    }
+
+    @Override
     public void getConfigInfo(final Response.Listener<ConfigInfo> configCallback) {
         if(configInfo != null) {
             configCallback.onResponse(configInfo);
@@ -83,7 +88,7 @@ public class LocalFileResources implements IWebResources {
         }
     }
 
-    public void getUserInfo(Response.Listener<LdsUser> userCallback) {
+    public void getUserInfo(boolean getClean, Response.Listener<LdsUser> userCallback) {
         try {
             if(configInfo == null) {
                 getConfigInfo(new Response.Listener<ConfigInfo>() {
@@ -116,7 +121,7 @@ public class LocalFileResources implements IWebResources {
         }
     }
 
-    public void getOrgs(Response.Listener<List<Org>> orgsCallback) {
+    public void getOrgs(boolean getCleanCopy, Response.Listener<List<Org>> orgsCallback) {
         OrgCallingBuilder orgCallingBuilder = new OrgCallingBuilder();
         List<Org> orgs = new ArrayList<>();
         try {

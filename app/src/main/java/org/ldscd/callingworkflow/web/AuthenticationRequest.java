@@ -20,10 +20,6 @@ public class AuthenticationRequest extends Request<String> {
         this.params = new HashMap<>(2);
         this.params.put("username", userName);
         this.params.put("password", password);
-        this.params.put("IDToken0", "");
-        this.params.put("IDToken1", userName);
-        this.params.put("IDToken2", password);
-        this.params.put("IDButton", "Submit");
         this.listener = listener;
     }
 
@@ -54,5 +50,14 @@ public class AuthenticationRequest extends Request<String> {
         } else {
             return Response.error(new VolleyError("Error while Authenticating"));
         }
+    }
+
+    @Override
+    protected VolleyError parseNetworkError(VolleyError volleyError) {
+        if(volleyError.networkResponse != null && volleyError.networkResponse.data != null && volleyError.networkResponse.statusCode==412) {
+            volleyError = new VolleyError(new String(volleyError.networkResponse.data));
+        }
+
+        return volleyError;
     }
 }

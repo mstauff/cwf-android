@@ -32,13 +32,13 @@
         android:layout_height="match_parent">
 
         <LinearLayout
-            android:id="@+id/email_login_form"
+            android:id="@+id/lds_credentials_login_form"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
             <AutoCompleteTextView
-                android:id="@+id/email"
+                android:id="@+id/userName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/roboto"
@@ -61,14 +61,32 @@
                 android:singleLine="true"/>
 
             <Button
-                android:id="@+id/email_sign_in_button"
+                android:id="@+id/lds_credentials_sign_in_button"
                 style="?android:textAppearanceSmall"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:fontFamily="@font/roboto"
-                android:text="@string/action_sign_in"
-                android:textStyle="bold"/>
+                android:textSize="@dimen/text_size_medium"
+                android:text="@string/action_sign_in" />
+
+            <View
+                android:layout_marginTop="20dp"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/ldstools_gray_very_light"/>
+
+            <Button
+                android:text="@string/resync_data"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginTop="30dp"
+                android:fontFamily="@font/roboto"
+                android:id="@+id/button_data_sync"
+                android:background="@color/app_theme_color"
+                android:textSize="@dimen/text_size_medium"
+                android:textColor="@color/white"
+                style="?android:textAppearanceSmall" />
 
         </LinearLayout>
     </ScrollView>

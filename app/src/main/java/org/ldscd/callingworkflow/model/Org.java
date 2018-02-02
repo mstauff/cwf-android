@@ -24,6 +24,7 @@ public class Org {
     private transient HashSet<Position> positions;
     private transient ConflictCause conflictCause;
     private transient boolean hasUnsavedChanges = false;
+    private transient boolean canView = false;
 
     /* Constructors */
     public Org() {}
@@ -77,6 +78,13 @@ public class Org {
 
     public boolean hasUnsavedChanges() { return hasUnsavedChanges; }
     public void setHasUnsavedChanges(boolean hasUnsavedChanges) { this.hasUnsavedChanges = hasUnsavedChanges; }
+
+    public boolean getCanView() {
+        return canView;
+    }
+    public void setCanView(boolean canView) {
+        this.canView = canView;
+    }
 
     public HashSet<Position> getPositions() {
         return this.positions;

@@ -10,17 +10,45 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import com.android.volley.Response;
+
 import org.ldscd.callingworkflow.R;
+import org.ldscd.callingworkflow.model.LdsUser;
+import org.ldscd.callingworkflow.model.permissions.PermissionManager;
+import org.ldscd.callingworkflow.model.permissions.constants.Permission;
+import org.ldscd.callingworkflow.web.DataManager;
+
+import javax.inject.Inject;
 
 /**
  * Represents a list of links for application setup and customization(s).
  */
 public class SettingsActivity extends AppCompatActivity {
 
+    @Inject
+    DataManager dataManager;
+    private LdsUser currentUser;
+    private PermissionManager permissionManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        /* Initialize Volley injection class */
+        ((CWFApplication)getApplication()).getNetComponent().inject(this);
         setContentView(R.layout.activity_settings);
+        /* Acquire the current user for security purposes */
+        if(currentUser == null) {
+            dataManager.getUserInfo(null, null, false, new Response.Listener<LdsUser>() {
+                @Override
+                public void onResponse(LdsUser user) {
+                    currentUser = user;
+                }
+            });
+        }
+        /* Acquire Permission Manager for security checks */
+        if(permissionManager == null) {
+            permissionManager = dataManager.getPermissionManager();
+        }
         wireUpToolbar();
         wireupLinks();
     }
@@ -70,12 +98,17 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
         TextView editCallingStatusLink = (TextView) findViewById(R.id.settings_edit_calling_status_link);
-        editCallingStatusLink.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), StatusEditActivity.class);
-                getApplicationContext().startActivity(intent);
-            }
-        });
+        /* If the current user is not a Unit Admin they cannot edit the statuses */
+        if(permissionManager.hasPermission(currentUser.getUnitRoles(), Permission.UNIT_GOOGLE_ACCOUNT_CREATE)) {
+            editCallingStatusLink.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(getApplicationContext(), StatusEditActivity.class);
+                    getApplicationContext().startActivity(intent);
+                }
+            });
+        } else {
+            editCallingStatusLink.setVisibility(View.GONE);
+        }
     }
 }

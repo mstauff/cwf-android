@@ -128,4 +128,5 @@
     <string name="conflict_info_delete_text">Remove</string>
     <string name="conflict_info_dismiss_text">Keep</string>
     <string name="unknown_member">Unknown Member</string>
+    <string name="resync_data">Refresh LDS Data</string>
 </resources>

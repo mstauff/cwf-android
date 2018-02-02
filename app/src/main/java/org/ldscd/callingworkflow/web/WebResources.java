@@ -26,6 +26,7 @@ import org.ldscd.callingworkflow.model.LdsUser;
 import org.ldscd.callingworkflow.model.Member;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.model.Position;
+import org.ldscd.callingworkflow.utils.SecurityUtil;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -59,10 +60,6 @@ public class WebResources implements IWebResources {
     private static final String CALLING_LIST = "CALLING_LIST";
     private static final String prefUsername = "username";
     private static final String prefPassword = "password";
-    private static final String UTF8 = "UTF-8";
-    private static final String ALGORITHM = "AES";
-    private static final String DIGEST = "SHA-1";
-    private static final String ENCRYPT_TYPE = "AES/CBC/PKCS5Padding";
 
     private RequestQueue requestQueue;
     private SharedPreferences preferences;
@@ -74,25 +71,16 @@ public class WebResources implements IWebResources {
     private List<Member> wardMemberList = null;
     private String unitNumber = null;
 
-    private String userName = null;
-    private String password = null;
-    private static SecretKeySpec secretKey;
-    private static byte[] key;
-    private static byte[] iv;
-    private static String secret;
     private final CookieManager cookieManager;
     private HttpCookie httpCookie;
     private URI uri;
     private Context context;
+    private String userName = null;
+    private String password = null;
 
     public WebResources(Context context, RequestQueue requestQueue, SharedPreferences preferences) {
         this.requestQueue = requestQueue;
         this.preferences = preferences;
-        secret = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
-        iv = new byte[16];
-        Arrays.fill(iv, (byte) 0x00);
-        this.userName = "ngiwb1";
-        this.password = "password1";
         this.httpCookie = null;
         this.cookieManager = new CookieManager();
         this.context = context;
@@ -108,21 +96,20 @@ public class WebResources implements IWebResources {
         String cryptUser = preferences.getString(prefUsername, null);
         String cryptPassword = preferences.getString(prefPassword, null);
         if (cryptUser != null && cryptPassword != null) {
-            userName = decrypt(cryptUser);
-            password = decrypt(cryptPassword);
+            userName = SecurityUtil.decrypt(context, cryptUser);
+            password = SecurityUtil.decrypt(context, cryptPassword);
         }
     }
 
     @Override
     public void setCredentials(String userName, String password) {
-        this.userName = "ngiwb1";
-        this.password = "password1";
-        getAuthCookie(new Response.Listener<String>() {
-            @Override
-            public void onResponse(String cookie) {
+        this.userName = userName;
+        this.password = password;
+    }
 
-            }
-        });
+    @Override
+    public void getSharedPreferences(Response.Listener<SharedPreferences> listener) {
+        listener.onResponse(preferences);
     }
 
     @Override
@@ -157,52 +144,9 @@ public class WebResources implements IWebResources {
         }
     }
 
-    private void getAuthCookie(final Response.Listener<String> authCallback) {
-        /* Capture the cookie info stored in preferences as well check to verify it's not expired. */
-        if(preferences.contains("Cookie") && httpCookie != null && !httpCookie.hasExpired()) {
-            authCookie = preferences.getString("Cookie", null);
-            //TODO: Not sure if the httpCookie needs to be refreshed when kept active or it does it automagically
-            authCallback.onResponse(authCookie);
-        } else {
-            /* Authentication Request to the LDS church. */
-            AuthenticationRequest authRequest = new AuthenticationRequest(userName, password, "https://signin-int.lds.org/login.html", //configInfo.getEndpointUrl("SIGN_IN"),
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        /* This cookie url has specific params for the TEST environment */
-                        authCookie = "clerk-resources-beta-terms=true; clerk-resources-beta-eula=4.2; " + response;
-                        Log.i(TAG, "auth call successful");
-                        httpCookie = new HttpCookie("cwf", authCookie);
-                        /* Sets the maximum age of the cookie in seconds. */
-                        httpCookie.setMaxAge(1500);
-                        cookieManager.getCookieStore().add(uri, httpCookie);
-                        /* Sets the cookie, username and password in long term storage.
-                         * This is only accessible through this application.  */
-                        SharedPreferences.Editor editor = preferences.edit();
-                        editor.putString(prefUsername, encrypt(userName));
-                        editor.putString(prefPassword, encrypt(password));
-                        editor.putString("Cookie", authCookie);
-                        editor.apply();
-
-                        authCallback.onResponse(authCookie);
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.e(TAG, "auth error");
-                        error.printStackTrace();
-                    }
-                }
-            );
-            authRequest.setRetryPolicy(getRetryPolicy());
-            requestQueue.add(authRequest);
-        }
-    }
-
     @Override
-    public void getUserInfo(final Response.Listener<LdsUser> userCallback) {
-        if(userInfo != null) {
+    public void getUserInfo(boolean getClean, final Response.Listener<LdsUser> userCallback) {
+        if(userInfo != null && !getClean) {
             userCallback.onResponse(userInfo);
         } else {
             /* Get config info because it has the URL strings */
@@ -213,22 +157,74 @@ public class WebResources implements IWebResources {
                     if (userName == null || password == null) {
                       loadCredentials();
                     }
-                    /* get the cookie because it has the information for the rest headers */
-                    getAuthCookie(new Response.Listener<String>() {
-                        @Override
-                        public void onResponse(final String authCookie) {
-                            /* Make the rest call to get the current users information. */
-                            getUser(new Response.Listener<Boolean>() {
-                                @Override
-                                public void onResponse(Boolean response) {
-                                    //TODO: possibly do something more intelligently with the response object.
-                                    userCallback.onResponse(userInfo);
+                    /* re-check credentials.  If invalid return null LdsUser. */
+                    if(userName == null || userName.length() == 0 || password == null || password.length() == 0) {
+                        userCallback.onResponse(null);
+                    } else {
+                        /* get the cookie because it has the information for the rest headers */
+                        getAuthCookie(new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(final String authCookie) {
+                                if(authCookie != null) {
+                                    /* Make the rest call to get the current users information. */
+                                    getUser(new Response.Listener<Boolean>() {
+                                        @Override
+                                        public void onResponse(Boolean response) {
+                                            userCallback.onResponse(userInfo);
+                                        }
+                                    }, authCookie);
+                                } else {
+                                    userCallback.onResponse(null);
                                 }
-                            }, authCookie);
-                        }
-                    });
+                            }
+                        });
+                    }
                 }
             });
+        }
+    }
+
+    private void getAuthCookie(final Response.Listener<String> authCallback) {
+        /* Capture the cookie info stored in preferences as well check to verify it's not expired. */
+        if(preferences.contains("Cookie") && httpCookie != null && !httpCookie.hasExpired()) {
+            authCookie = preferences.getString("Cookie", null);
+            //TODO: Not sure if the httpCookie needs to be refreshed when kept active or it does it automagically
+            authCallback.onResponse(authCookie);
+        } else {
+            /* Authentication Request to the LDS church. */
+            AuthenticationRequest authRequest = new AuthenticationRequest(userName, password, "https://signin-uat.lds.org/login.html", //configInfo.getEndpointUrl("SIGN_IN"),
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                        /* This cookie url has specific params for the TEST environment */
+                            authCookie = "clerk-resources-beta-terms=true; clerk-resources-beta-eula=4.2; " + response;
+                            Log.i(TAG, "auth call successful");
+                            httpCookie = new HttpCookie("cwf", authCookie);
+
+                            /* Sets the maximum age of the cookie in seconds. */
+                            httpCookie.setMaxAge(1500);
+                            cookieManager.getCookieStore().add(uri, httpCookie);
+                            /* Sets the cookie, username and password in long term storage.
+                             * This is only accessible through this application.  */
+                            SharedPreferences.Editor editor = preferences.edit();
+                            editor.putString(prefUsername, SecurityUtil.encrypt(context, userName));
+                            editor.putString(prefPassword, SecurityUtil.encrypt(context, password));
+                            editor.putString("Cookie", authCookie);
+                            editor.apply();
+
+                            authCallback.onResponse(authCookie);
+                        }
+                    },
+                    new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.e(TAG, "auth error");
+                            error.printStackTrace();
+                        }
+                    }
+            );
+            authRequest.setRetryPolicy(getRetryPolicy());
+            requestQueue.add(authRequest);
         }
     }
 
@@ -291,11 +287,11 @@ public class WebResources implements IWebResources {
     }
 
     @Override
-    public void getOrgs(final Response.Listener<List<Org>> orgsCallback) {
-        if(orgsInfo != null) {
+    public void getOrgs(boolean getCleanCopy, final Response.Listener<List<Org>> orgsCallback) {
+        if(orgsInfo != null && !getCleanCopy) {
             orgsCallback.onResponse(orgsInfo);
         } else {
-            getUserInfo(new Response.Listener<LdsUser>() {
+            getUserInfo(false, new Response.Listener<LdsUser>() {
                 @Override
                 public void onResponse(LdsUser ldsUser) {
                     Map<String, String> headers = new HashMap<>();
@@ -334,7 +330,7 @@ public class WebResources implements IWebResources {
         if(wardMemberList != null) {
             wardCallback.onResponse(wardMemberList);
         } else {
-            getUserInfo(new Response.Listener<LdsUser>() {
+            getUserInfo(false, new Response.Listener<LdsUser>() {
                 @Override
                 public void onResponse(LdsUser ldsUser) {
 
@@ -370,47 +366,6 @@ public class WebResources implements IWebResources {
         }
     }
 
-    public static void setKey(String myKey)
-    {
-        MessageDigest sha = null;
-        try {
-            key = myKey.getBytes(UTF8);
-            sha = MessageDigest.getInstance(DIGEST);
-            key = sha.digest(key);
-            key = Arrays.copyOf(key, 16);
-            secretKey = new SecretKeySpec(key, ALGORITHM);
-        }
-        catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static String encrypt(String value) {
-        try {
-            setKey(secret);
-            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
-            Cipher cipher = Cipher.getInstance(ENCRYPT_TYPE);
-            cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec);
-            return Base64.encodeToString(cipher.doFinal(value.getBytes(UTF8)), Base64.DEFAULT);
-        } catch (Exception e) {
-            Log.e(TAG, "Could not encrypt the value");
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static String decrypt(String value) {
-        try {
-            setKey(secret);
-            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
-            Cipher cipher = Cipher.getInstance(ENCRYPT_TYPE);
-            cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec);
-            return new String(cipher.doFinal(Base64.decode(value, Base64.DEFAULT)));
-        } catch (Exception e) {
-            Log.e(TAG, "Could not decrypt the value: " + e.getMessage());
-            return null;
-        }
-    }
-
     public void getPositionMetaData(Response.Listener<String> callback) {
         callback.onResponse(getJSONFromAssets("position-metadata.json"));
     }
@@ -429,18 +384,6 @@ public class WebResources implements IWebResources {
             return null;
         }
         return json;
-    }
-
-    private LdsUser extractUser(JSONObject json) throws JSONException {
-        List<Position> positions = new ArrayList<>();
-        JSONArray assignments = json.getJSONArray("memberAssignments");
-        OrgCallingBuilder builder = new OrgCallingBuilder();
-        for(int i = 0; i < assignments.length(); i++) {
-            positions.add(builder.extractPosition((JSONObject) assignments.get(i)));
-        }
-        unitNumber = json.getJSONArray("memberAssignments").getJSONObject(0).getString("unitNo");
-        long individualId = json.getJSONObject("individualId").getLong("individualId");
-        return new LdsUser(individualId, positions);
     }
 
     public void updateCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback) throws JSONException {

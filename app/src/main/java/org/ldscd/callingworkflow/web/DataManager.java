@@ -1,6 +1,7 @@
 package org.ldscd.callingworkflow.web;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.widget.ProgressBar;
 
 import com.android.volley.Response;
@@ -13,17 +14,22 @@ import org.ldscd.callingworkflow.model.Member;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.model.PositionMetaData;
 import org.ldscd.callingworkflow.model.UnitSettings;
+import org.ldscd.callingworkflow.model.permissions.PermissionManager;
 
 import java.util.List;
 
 public interface DataManager {
-    /* User Info */
-    void getUserInfo(Response.Listener<LdsUser> listener);
+    /* Methods */
+    PermissionManager getPermissionManager();
+    /* User data */
+    void getUserInfo(String userName, String password, boolean hasChanges, Response.Listener<LdsUser> userListener);
+    void getSharedPreferences(Response.Listener<SharedPreferences> listener);
     /* Calling data. */
     void getCallingStatus(Response.Listener<List<CallingStatus>> listener);
     Calling getCalling(String id);
     Org getOrg(long id);
     List<Org> getOrgs();
+    void refreshLCROrgs(Response.Listener<Boolean> listener);
     void loadOrgs(Response.Listener<Boolean> listener, ProgressBar progressBar, Activity activity);
     void refreshOrg(Response.Listener<Org> listener, Long orgId);
     List<PositionMetaData> getAllPositionMetadata();

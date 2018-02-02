@@ -17,6 +17,7 @@ import org.ldscd.callingworkflow.model.FilterOption;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
+import static org.ldscd.callingworkflow.display.CallingDetailFragment.CAN_VIEW_PRIESTHOOD;
 
 public class MemberLookupFilterFragment extends DialogFragment {
     /* Fields. */
@@ -205,6 +206,7 @@ public class MemberLookupFilterFragment extends DialogFragment {
         });
         ageSearchToggleView(filterOption.isTwelveSeventeen(), filterOption.isEighteenPlus(), twelveEighteenButton, eighteenPlusButton);
 
+        /* Priesthood section */
         /* High Priest */
         final TextView highPriestButton = (TextView)view.findViewById(R.id.member_lookup_filter_high_priest);
         setToggleButtonColor(highPriestButton, filterOption.isHighPriest());
@@ -387,7 +389,9 @@ public class MemberLookupFilterFragment extends DialogFragment {
             filterOption.setMiaMaid(false);
             filterOption.setBeehive(false);
             maleLayout = (TableLayout)view.findViewById(R.id.member_lookup_filter_priesthood_container);
-            maleLayout.setVisibility(VISIBLE);
+            if( getArguments().getBoolean(CAN_VIEW_PRIESTHOOD)) {
+                maleLayout.setVisibility(VISIBLE);
+            }
             femaleLayout = (TableLayout)view.findViewById(R.id.member_lookup_filter_relief_society_container);
             femaleLayout.setVisibility(GONE);
         } else if(female) {
