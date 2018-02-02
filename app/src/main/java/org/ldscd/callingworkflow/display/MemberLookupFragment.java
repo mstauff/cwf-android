@@ -51,7 +51,6 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
     private View view;
     private MemberLookupAdapter adapter;
     private ListView listView;
-    private Member currentSelection;
     private boolean firstTime;
     private boolean canViewPriesthoodFilter;
 
@@ -147,11 +146,8 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
         if (bundle != null && !bundle.isEmpty()) {
             Long individualId = bundle.getLong(INDIVIDUAL_ID, 0);
             if(individualId > 0) {
-                currentSelection = dataManager.getMember(individualId);
-                if(currentSelection != null) {
-                    currentSelectionLabel.setText(currentSelection.getFormattedName());
-                    removeSelection.setVisibility(View.VISIBLE);
-                }
+                currentSelectionLabel.setText(dataManager.getMemberName(individualId));
+                removeSelection.setVisibility(View.VISIBLE);
             } else {
                 currentSelectionLabel.setText("");
                 removeSelection.setVisibility(View.GONE);

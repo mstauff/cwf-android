@@ -127,31 +127,34 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
     }
 
     private View getOrgView(final Org groupOrg, boolean isExpanded, View convertView, ViewGroup parentView, boolean childView) {
+        //initialize
         if(convertView == null || convertView.getId() != R.id.list_org_item) {
             convertView = LayoutInflater.from(parentView.getContext())
                     .inflate(R.layout.list_org_item, parentView, false);
-            ImageButton addButton = (ImageButton) convertView.findViewById(R.id.add_calling_button);
-            /* If the calling section has the ability to add a calling and
+        }
+
+        TextView orgName = (TextView) convertView.findViewById(R.id.org_list_name);
+        orgName.setText(groupOrg.getDefaultOrgName());
+
+        ImageButton addButton = (ImageButton) convertView.findViewById(R.id.add_calling_button);
+        /* If the calling section has the ability to add a calling and
                 the user has permissions to add a calling to this org then show the
                 addButton in the list.
              */
-            if(groupOrg.potentialNewPositions().size() > 0 && groupOrg.getCanView()) {
-                addButton.setVisibility(View.VISIBLE);
-                addButton.setFocusable(false);
-                addButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        Intent intent = new Intent(ctx.getApplicationContext(), CreateCallingActivity.class);
-                        intent.putExtra(CreateCallingActivity.PARENT_ORG_ID, groupOrg.getId());
-                        ctx.startActivity(intent);
-                    }
-                });
-            } else {
-                addButton.setVisibility(View.GONE);
-            }
+        if(groupOrg.potentialNewPositions().size() > 0 && groupOrg.getCanView()) {
+            addButton.setVisibility(View.VISIBLE);
+            addButton.setFocusable(false);
+            addButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(ctx.getApplicationContext(), CreateCallingActivity.class);
+                    intent.putExtra(CreateCallingActivity.PARENT_ORG_ID, groupOrg.getId());
+                    ctx.startActivity(intent);
+                }
+            });
+        } else {
+            addButton.setVisibility(View.GONE);
         }
-        TextView orgName = (TextView) convertView.findViewById(R.id.org_list_name);
-        orgName.setText(groupOrg.getDefaultOrgName());
 
         if(childView) {
             convertView.setPadding(CHILD_INDENT, 0, 0, 0);
