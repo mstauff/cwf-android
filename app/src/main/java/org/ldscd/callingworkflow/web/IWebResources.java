@@ -20,11 +20,13 @@ import java.util.List;
 public interface IWebResources {
     void setCredentials(String userName, String password);
 
+    void getSharedPreferences(Response.Listener<SharedPreferences> listener);
+
     void getConfigInfo(Response.Listener<ConfigInfo> configCallback);
 
-    void getUserInfo(Response.Listener<LdsUser> userCallback);
+    void getUserInfo(boolean getClean, Response.Listener<LdsUser> userCallback);
 
-    void getOrgs(Response.Listener<List<Org>> orgsCallback);
+    void getOrgs(boolean getCleanCopy, Response.Listener<List<Org>> orgsCallback);
 
     void getWardList(Response.Listener<List<Member>> wardCallback);
 
