@@ -891,7 +891,7 @@
   {
     "positionTypeId": 206,
     "shortName": "2nd Counselor",
-    "mediumName": "YW 2nd Counselor",
+    "mediumName": "SS 2nd Counselor",
     "requirements": {
       "gender" : "MALE",
       "priesthood": ["HIGH_PRIEST", "ELDER", "PRIEST", "TEACHER", "DEACON"]
@@ -900,7 +900,7 @@
   {
     "positionTypeId": 207,
     "shortName": "Secretary",
-    "mediumName": "YW Secretary",
+    "mediumName": "SS Secretary",
     "requirements": {
       "gender" : "MALE",
       "priesthood": ["HIGH_PRIEST", "ELDER", "PRIEST", "TEACHER", "DEACON"]
