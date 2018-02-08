@@ -153,6 +153,13 @@ public class CallingData {
         }, activity);
     }
 
+    public void clearLocalOrgData() {
+        memberData.removeAllMemberCallings();
+        orgs = new ArrayList<>();
+        orgsById = new HashMap<>();
+        callingsById = new HashMap<>();
+        baseOrgByOrgId = new HashMap<>();
+    }
     public void refreshLCROrgs(final Response.Listener<Boolean> listener, final LdsUser currentUser) {
         webResources.getOrgs(true, new Response.Listener<List<Org>>() {
             @Override

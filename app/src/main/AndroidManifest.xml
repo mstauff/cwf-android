@@ -90,6 +90,11 @@
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
         <activity
+            android:name=".display.GoogleDriveOptionsActivity"
+            android:label="@string/title_google_settings"
+            android:parentActivityName=".display.SettingsActivity"
+            android:screenOrientation="portrait"/>
+        <activity
             android:name=".display.SettingsActivity"
             android:label="@string/title_activity_settings"
             android:screenOrientation="portrait"

@@ -118,7 +118,8 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
 
     @Override
     public void restartConnection(Response.Listener<Boolean> listener, Activity activity) {
-        init(listener, activity);
+        this.listener = listener;
+        mGoogleApiClient.reconnect();
     }
 
     /**
@@ -160,13 +161,21 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
 
     @Override
     public void init(Response.Listener<Boolean> listener, Activity activity) {
-        initializeGoogleApiClient(activity);
         this.listener = listener;
-        this.activity = activity;
-        if(metaFileMap == null) {
-            metaFileMap = new HashMap<>();
+        if(this.activity == null) {
+            initializeGoogleApiClient(activity);
+            this.activity = activity;
+            if (metaFileMap == null) {
+                metaFileMap = new HashMap<>();
+            }
+            this.unitSettings = null;
+        } else {
+            if(mGoogleApiClient.isConnected()) {
+                listener.onResponse(true);
+            } else {
+                mGoogleApiClient.connect();
+            }
         }
-        this.unitSettings = null;
     }
 
     @Override

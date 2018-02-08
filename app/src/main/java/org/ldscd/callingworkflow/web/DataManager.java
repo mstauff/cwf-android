@@ -31,6 +31,8 @@ public interface DataManager {
     List<Org> getOrgs();
     void refreshLCROrgs(Response.Listener<Boolean> listener);
     void loadOrgs(Response.Listener<Boolean> listener, ProgressBar progressBar, Activity activity);
+    void loadPositionMetadata();
+    void clearLocalOrgData();
     void refreshOrg(Response.Listener<Org> listener, Long orgId);
     List<PositionMetaData> getAllPositionMetadata();
     PositionMetaData getPositionMetadata(int positionTypeId);

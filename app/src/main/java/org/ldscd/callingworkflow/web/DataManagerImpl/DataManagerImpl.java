@@ -103,7 +103,12 @@ public class DataManagerImpl implements DataManager {
     }
     public void loadOrgs(Response.Listener<Boolean> listener, ProgressBar progressBar, Activity activity) {
         callingData.loadOrgs(listener, progressBar, activity, currentUser);
+    }
+    public void loadPositionMetadata() {
         callingData.loadPositionMetadata();
+    }
+    public void clearLocalOrgData() {
+        callingData.clearLocalOrgData();
     }
     public void refreshOrg(Response.Listener<Org> listener, Long orgId) {
         callingData.refreshOrgFromGoogleDrive(listener, orgId, currentUser);

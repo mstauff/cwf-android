@@ -105,4 +105,10 @@ public class MemberData {
             }
         }
     }
+    public void removeAllMemberCallings() {
+        for(Member member: members) {
+            member.getCurrentCallings().clear();
+            member.getProposedCallings().clear();
+        }
+    }
 }

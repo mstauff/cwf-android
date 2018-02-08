@@ -89,6 +89,14 @@ public class SettingsActivity extends AppCompatActivity {
                 getApplicationContext().startActivity(intent);
             }
         });
+        TextView googleDriveLink = (TextView) findViewById(R.id.settings_google_drive_link);
+        googleDriveLink.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), GoogleDriveOptionsActivity.class);
+                getApplicationContext().startActivity(intent);
+            }
+        });
         TextView syncDataLink = (TextView) findViewById(R.id.settings_sync_data_link);
         syncDataLink.setOnClickListener(new View.OnClickListener() {
             @Override

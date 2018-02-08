@@ -47,6 +47,8 @@ public class OrgListActivity extends AppCompatActivity
      */
     private boolean twoPane;
     AppCompatActivity activity = this;
+    RecyclerView recyclerView;
+    FragmentManager fragmentManager;
 
     @Inject
     DataManager dataManager;
@@ -56,6 +58,7 @@ public class OrgListActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         ((CWFApplication)getApplication()).getNetComponent().inject(this);
         setContentView(R.layout.activity_org_list);
+        fragmentManager = twoPane ? getSupportFragmentManager() : null;
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle(getString(R.string.navigation_drawer_orgs));
@@ -71,9 +74,8 @@ public class OrgListActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
         navigationView.setCheckedItem(R.id.nav_orgs);
 
-        View recyclerView = findViewById(R.id.org_list);
-        assert recyclerView != null;
-        setupRecyclerView((RecyclerView) recyclerView);
+        recyclerView = (RecyclerView) findViewById(R.id.org_list);
+        setupRecyclerView();
 
         if (findViewById(R.id.calling_detail_container) != null) {
             // The detail container view will be present only in the
@@ -84,10 +86,15 @@ public class OrgListActivity extends AppCompatActivity
         }
     }
 
-    private void setupRecyclerView(@NonNull final RecyclerView recyclerView) {
+    private void setupRecyclerView() {
         List<Org> orgs = dataManager.getOrgs();
-        FragmentManager fragmentManager = twoPane ? getSupportFragmentManager() : null;
         recyclerView.setAdapter(new OrgListAdapter(orgs, twoPane, fragmentManager));
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        setupRecyclerView();
     }
 
     @Override

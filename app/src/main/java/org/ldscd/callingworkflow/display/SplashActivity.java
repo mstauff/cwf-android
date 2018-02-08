@@ -41,6 +41,7 @@ public class SplashActivity extends AppCompatActivity {
                 }
             }
         });
+        dataManager.loadPositionMetadata();
     }
 
     @Override
