@@ -19,8 +19,12 @@ import org.ldscd.callingworkflow.constants.MemberClass;
 import org.ldscd.callingworkflow.constants.Operation;
 import org.ldscd.callingworkflow.constants.Priesthood;
 import org.ldscd.callingworkflow.constants.UnitLevelOrgType;
-import org.ldscd.callingworkflow.model.*;
-import org.ldscd.callingworkflow.model.permissions.Authorizable;
+import org.ldscd.callingworkflow.model.Calling;
+import org.ldscd.callingworkflow.model.LdsUser;
+import org.ldscd.callingworkflow.model.Org;
+import org.ldscd.callingworkflow.model.PositionMetaData;
+import org.ldscd.callingworkflow.model.PositionRequirements;
+import org.ldscd.callingworkflow.model.UnitSettings;
 import org.ldscd.callingworkflow.model.permissions.AuthorizableOrg;
 import org.ldscd.callingworkflow.model.permissions.PermissionManager;
 import org.ldscd.callingworkflow.model.permissions.constants.Permission;
@@ -826,7 +830,7 @@ public class CallingData {
                                     : JsonUtil.toEnumListFromJSONArray(Priesthood.class, null);
 
                             List<MemberClass> memberCallingList = jsonRequirements.has(MEMBER_CLASS)
-                                    ? JsonUtil.toEnumListFromJSONArray(MemberClass.class, jsonRequirements.getJSONArray(MEMBER_CLASS))
+                                    ? JsonUtil.toEnumListFromJSONArray(MemberClass.class, new JSONArray(jsonRequirements.optString(MEMBER_CLASS)))
                                     : JsonUtil.toEnumListFromJSONArray(MemberClass.class, null);
 
                             requirement = new PositionRequirements(

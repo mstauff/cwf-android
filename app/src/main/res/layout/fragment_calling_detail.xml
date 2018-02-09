@@ -62,7 +62,8 @@
 
 <TableLayout
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:id="@+id/member_lookup_button_layout_table">
     <TableRow
         android:layout_width="match_parent"
         android:layout_height="wrap_content">

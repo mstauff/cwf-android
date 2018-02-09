@@ -7,7 +7,7 @@ import java.util.Map;
 public enum UnitLevelOrgType {
     STAKE_PRESIDENCY(-1, -1, "STAKE_PRESIDENCY"),
     HIGH_COUNCIL (-1, -1, "HIGH_COUNCIL"),
-    BISHOPRIC(1179, -1, "BISHOPRIC"),
+    BISHOPRIC(1179, 1179, "BISHOPRIC"),
     BRANCH_PRESIDENCY(-1, -1, "BRANCH_PRES"),
     HIGH_PRIESTS(69, 1299, "HP"),
     ELDERS(70, 1295, "EQ"),

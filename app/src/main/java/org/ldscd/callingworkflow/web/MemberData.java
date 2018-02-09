@@ -2,7 +2,6 @@ package org.ldscd.callingworkflow.web;
 
 
 import android.content.Context;
-import android.util.Log;
 import android.widget.ProgressBar;
 
 import com.android.volley.Response;
@@ -11,7 +10,6 @@ import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Member;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

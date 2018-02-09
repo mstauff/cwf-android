@@ -3,6 +3,7 @@ package org.ldscd.callingworkflow.model;
 import org.joda.time.DateTime;
 import org.joda.time.Months;
 import org.ldscd.callingworkflow.constants.Gender;
+import org.ldscd.callingworkflow.constants.MemberClass;
 import org.ldscd.callingworkflow.constants.Priesthood;
 
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ public class FilterOption {
     private boolean eighteenPlus;
     private boolean male;
     private boolean female;
+    private boolean canViewPriesthood;
 
     private static final int TWELVE     = 12;
     private static final int THIRTEEN   = 13;
@@ -43,7 +45,7 @@ public class FilterOption {
     public FilterOption(boolean[] numberCallings, int timeInCalling, boolean highPriest, boolean elders,
                         boolean priests, boolean teachers, boolean deacons, boolean reliefSociety,
                         boolean laurel, boolean miaMaid, boolean beehive, boolean twelveSeventeen,
-                        boolean eighteenPlus, boolean male, boolean female) {
+                        boolean eighteenPlus, boolean male, boolean female, boolean canViewPriesthood) {
         this.numberCallings = numberCallings;
         this.timeInCalling = timeInCalling;
         this.highPriest = highPriest;
@@ -59,6 +61,7 @@ public class FilterOption {
         this.eighteenPlus = eighteenPlus;
         this.male = male;
         this.female = female;
+        this.canViewPriesthood = canViewPriesthood;
     }
 
     /* Properties */
@@ -185,6 +188,10 @@ public class FilterOption {
         this.female = female;
     }
 
+    public boolean isCanViewPriesthood() {return canViewPriesthood; }
+
+    public void setCanViewPriesthood(boolean canViewPriesthood) { this.canViewPriesthood = canViewPriesthood; }
+
     /* Methods */
     public void setFilterOptions(PositionMetaData positionMetaData, boolean firstTime) {
         if(positionMetaData != null && firstTime) {
@@ -211,6 +218,18 @@ public class FilterOption {
                         this.setMale(true);
                         this.setFemale(false);
                     }
+                }
+                if(requirements.getMemberClasses().contains(MemberClass.RELIEF_SOCIETY)) {
+                    this.setReliefSociety(true);
+                }
+                if(requirements.getMemberClasses().contains(MemberClass.LAUREL)) {
+                    this.setLaurel(true);
+                }
+                if(requirements.getMemberClasses().contains(MemberClass.MIA_MAID)) {
+                    this.setMiaMaid(true);
+                }
+                if(requirements.getMemberClasses().contains(MemberClass.BEEHIVE)) {
+                    this.setBeehive(true);
                 }
                 if(requirements.getPriesthood() != null) {
                     if(requirements.getPriesthood().contains(Priesthood.DEACON)) {

@@ -2,7 +2,6 @@ package org.ldscd.callingworkflow.display;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -16,9 +15,9 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Spinner;
+import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
 
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -37,6 +36,8 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import static org.ldscd.callingworkflow.display.MemberLookupFilterFragment.CAN_VIEW_PRIESTHOOD;
+
 /**
  * A fragment representing a single Calling detail screen.
  * This fragment is either contained in a {@link ExpandableOrgsListActivity}
@@ -53,7 +54,6 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     public static final String INDIVIDUAL_ID = "individualId";
     public static final String CALLING = "calling";
     public static final String CAN_VIEW = "canView";
-    public static final String CAN_VIEW_PRIESTHOOD = "canViewPriesthoodFilter";
 
     private Member proposedMember;
     private Long individualId;
@@ -61,6 +61,7 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     private View view;
     private OnCallingDetailFragmentListener mListener;
     private boolean resetProposedStatus = false;
+    private boolean canView = true;
     private boolean canViewPriesthoodFilters = false;
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -100,7 +101,7 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
         /* Re-assign the proposed member to the newly selected member. */
         this.proposedMember = member;
         this.calling.setProposedIndId(member == null ? 0 : member.getIndividualId());
-        wireUpMemberSearch();
+        wireUpMemberSearch(canView);
     }
 
     @Override
@@ -138,7 +139,7 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     };
 
     public interface OnCallingDetailFragmentListener {
-        public void onFragmentInteraction(Calling calling, boolean hasChanges);
+        void onFragmentInteraction(Calling calling, boolean hasChanges);
     }
 
     @Override
@@ -186,32 +187,38 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
             /* Initialize UI */
             calling = (Calling)bundle.getSerializable(CALLING);
             individualId = bundle.getLong(INDIVIDUAL_ID);
-            boolean canView = bundle.getBoolean(CAN_VIEW);
+            canView = bundle.getBoolean(CAN_VIEW);
             hydrateCalling();
-            if(canView) {
-                wireUpFinalizeButton();
-                wireUpStatusDropdown();
-                wireUpMemberSearch();
-                wireUpNotes();
-            }
+            wireUpFinalizeButton(canView);
+            wireUpStatusDropdown(canView);
+            wireUpMemberSearch(canView);
+            wireUpNotes(canView);
         }
         return view;
     }
 
-    private void wireUpMemberSearch() {
-        if(calling.getProposedIndId() != null && calling.getProposedIndId()!= 0) {
-            this.proposedMember = dataManager.getMember(calling.getProposedIndId());
-            String formattedName = dataManager.getMemberName(calling.getProposedIndId());
-            if(formattedName != null) {
-                TextView name = (TextView) view.findViewById(R.id.member_lookup_name);
-                name.setText(formattedName);
-                if(proposedMember != null && proposedMember.getIndividualId() > 0) {
-                    name.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            wireUpIndividualInformationFragments(proposedMember.getIndividualId());
-                        }
-                    });
+    private void wireUpMemberSearch(boolean canView) {
+        if(!canView) {
+            /* Hide the member lookup button if the user doesn't have rights to see it. */
+            TableLayout tableLayout = (TableLayout) view.findViewById(R.id.member_lookup_button_layout_table);
+            tableLayout.setVisibility(View.GONE);
+            TextView proposedNameLabel = (TextView) view.findViewById(R.id.label_calling_detail_proposed);
+            proposedNameLabel.setVisibility(View.GONE);
+        } else {
+            if (calling.getProposedIndId() != null && calling.getProposedIndId() != 0) {
+                this.proposedMember = dataManager.getMember(calling.getProposedIndId());
+                String formattedName = dataManager.getMemberName(calling.getProposedIndId());
+                if (formattedName != null) {
+                    TextView name = (TextView) view.findViewById(R.id.member_lookup_name);
+                    name.setText(formattedName);
+                    if (proposedMember != null && proposedMember.getIndividualId() > 0) {
+                        name.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                wireUpIndividualInformationFragments(proposedMember.getIndividualId());
+                            }
+                        });
+                    }
                 }
             }
         }
@@ -279,39 +286,50 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
         }
     }
 
-    private void wireUpStatusDropdown() {
-        dataManager.getCallingStatus(new Response.Listener<List<CallingStatus>>() {
-            @Override
-            public void onResponse(List<CallingStatus> statusList) {
-                if(calling.getProposedStatus() == null || !calling.getProposedStatus().equals(CallingStatus.UNKNOWN)) {
-                    statusList.remove(CallingStatus.UNKNOWN);
-                }
-                Spinner statusDropdown = (Spinner)view.findViewById(R.id.calling_detail_status_dropdown);
-                ArrayAdapter adapter = new ArrayAdapter<CallingStatus>(getContext(), android.R.layout.simple_list_item_1, statusList);
-                statusDropdown.setAdapter(adapter);
-                if(calling != null && calling.getProposedStatus() != null) {
-                    statusDropdown.setSelection(adapter.getPosition(calling.getProposedStatus()));
-                }
-                statusDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        submitOrgChanges();
+    private void wireUpStatusDropdown(boolean canView) {
+        final Spinner statusDropdown = (Spinner)view.findViewById(R.id.calling_detail_status_dropdown);
+        if(!canView) {
+            statusDropdown.setVisibility(View.GONE);
+            TextView statusLabel = (TextView) view.findViewById(R.id.label_calling_detail_status);
+            statusLabel.setVisibility(View.GONE);
+        } else {
+            dataManager.getCallingStatus(new Response.Listener<List<CallingStatus>>() {
+                @Override
+                public void onResponse(List<CallingStatus> statusList) {
+                    if (calling.getProposedStatus() == null || !calling.getProposedStatus().equals(CallingStatus.UNKNOWN)) {
+                        statusList.remove(CallingStatus.UNKNOWN);
                     }
 
-                    @Override
-                    public void onNothingSelected(AdapterView<?> parent) {
-
+                    ArrayAdapter adapter = new ArrayAdapter<CallingStatus>(getContext(), android.R.layout.simple_list_item_1, statusList);
+                    statusDropdown.setAdapter(adapter);
+                    if (calling != null && calling.getProposedStatus() != null) {
+                        statusDropdown.setSelection(adapter.getPosition(calling.getProposedStatus()));
                     }
-                });
-            }
-        });
+                    statusDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                        @Override
+                        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                            submitOrgChanges();
+                        }
+
+                        @Override
+                        public void onNothingSelected(AdapterView<?> parent) {
+
+                        }
+                    });
+                }
+            });
+        }
     }
 
-    private void wireUpNotes() {
+    private void wireUpNotes(boolean canView) {
         TextView notes = (TextView) view.findViewById(R.id.notes_calling_detail);
-        notes.addTextChangedListener(textWatcherNotesListener);
-        if(calling.getNotes() != null && calling.getNotes().length() > 0)  {
-            notes.setText(calling.getNotes());
+        if(!canView) {
+            notes.setVisibility(View.GONE);
+        } else {
+            notes.addTextChangedListener(textWatcherNotesListener);
+            if (calling.getNotes() != null && calling.getNotes().length() > 0) {
+                notes.setText(calling.getNotes());
+            }
         }
     }
 
@@ -339,15 +357,19 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
         public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
     };
 
-    private void wireUpFinalizeButton() {
+    private void wireUpFinalizeButton(boolean canView) {
         /* Finalize calling button setup */
         Button button = (Button) view.findViewById(R.id.button_finalize_calling);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                updateLCR();
-            }
-        });
+        if(!canView) {
+            button.setVisibility(View.GONE);
+        } else {
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    updateLCR();
+                }
+            });
+        }
     }
 
     private void updateLCR() {

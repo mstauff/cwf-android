@@ -29,8 +29,8 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import static org.ldscd.callingworkflow.display.CallingDetailFragment.CAN_VIEW_PRIESTHOOD;
 import static org.ldscd.callingworkflow.display.CallingDetailFragment.INDIVIDUAL_ID;
+import static org.ldscd.callingworkflow.display.MemberLookupFilterFragment.CAN_VIEW_PRIESTHOOD;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -91,6 +91,7 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
         filterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                filterOption.setCanViewPriesthood(canViewPriesthoodFilter);
                 createMemberLookupFilterFragment(filterOption);
             }
         });
@@ -99,9 +100,6 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
     public void createMemberLookupFilterFragment(FilterOption filterOption) {
         MemberLookupFilterFragment memberLookupFilterFragment = MemberLookupFilterFragment.newInstance(filterOption);
         memberLookupFilterFragment.setMemberLookupFilterListener(this);
-        Bundle bundle = new Bundle();
-        bundle.putBoolean(CAN_VIEW_PRIESTHOOD, canViewPriesthoodFilter);
-        memberLookupFilterFragment.setArguments(bundle);
         memberLookupFilterFragment.show(getFragmentManager(), MemberLookupFragment.FRAG_NAME);
     }
 

@@ -17,7 +17,6 @@ import org.ldscd.callingworkflow.model.FilterOption;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
-import static org.ldscd.callingworkflow.display.CallingDetailFragment.CAN_VIEW_PRIESTHOOD;
 
 public class MemberLookupFilterFragment extends DialogFragment {
     /* Fields. */
@@ -36,6 +35,7 @@ public class MemberLookupFilterFragment extends DialogFragment {
     public static final String EIGHTEEN_PLUS = "eighteenPlus";
     public static final String MALE = "male";
     public static final String FEMALE = "female";
+    public static final String CAN_VIEW_PRIESTHOOD = "canViewPriesthood";
 
     private FilterOption filterOption;
 
@@ -66,6 +66,7 @@ public class MemberLookupFilterFragment extends DialogFragment {
             args.putBoolean(EIGHTEEN_PLUS, filterOption.isEighteenPlus());
             args.putBoolean(MALE, filterOption.isMale());
             args.putBoolean(FEMALE, filterOption.isFemale());
+            args.putBoolean(CAN_VIEW_PRIESTHOOD, filterOption.isCanViewPriesthood());
             fragment.setArguments(args);
         }
         return fragment;
@@ -84,7 +85,8 @@ public class MemberLookupFilterFragment extends DialogFragment {
                     getArguments().getBoolean(RELIEF_SOCIETY), getArguments().getBoolean(LAUREL),
                     getArguments().getBoolean(MIA_MAID), getArguments().getBoolean(BEEHIVE),
                     getArguments().getBoolean(TWELVE_EIGHTEEN), getArguments().getBoolean(EIGHTEEN_PLUS),
-                    getArguments().getBoolean(MALE), getArguments().getBoolean(FEMALE));
+                    getArguments().getBoolean(MALE), getArguments().getBoolean(FEMALE),
+                    getArguments().getBoolean(CAN_VIEW_PRIESTHOOD));
         }
     }
 
@@ -388,10 +390,6 @@ public class MemberLookupFilterFragment extends DialogFragment {
             filterOption.setLaurel(false);
             filterOption.setMiaMaid(false);
             filterOption.setBeehive(false);
-            maleLayout = (TableLayout)view.findViewById(R.id.member_lookup_filter_priesthood_container);
-            if( getArguments().getBoolean(CAN_VIEW_PRIESTHOOD)) {
-                maleLayout.setVisibility(VISIBLE);
-            }
             femaleLayout = (TableLayout)view.findViewById(R.id.member_lookup_filter_relief_society_container);
             femaleLayout.setVisibility(GONE);
         } else if(female) {
