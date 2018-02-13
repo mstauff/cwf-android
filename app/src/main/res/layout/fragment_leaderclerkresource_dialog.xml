@@ -11,7 +11,7 @@
     tools:listitem="@layout/fragment_leaderclerkresource_dialog_item">
 
     <TextView
-        android:text="@string/update_calling_in_lcr"
+        android:text="@string/finalize_calling_in_lcr"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="@dimen/list_item_spacing"
@@ -51,6 +51,6 @@
         android:fontFamily="@font/roboto"
         android:textSize="@dimen/text_size_medium"
         android:textColor="@color/app_theme_color"
-        android:id="@+id/button_cancel_update_lds_org"/>
+        android:id="@+id/button_cancel_update_lds_org" />
 
 </LinearLayout>

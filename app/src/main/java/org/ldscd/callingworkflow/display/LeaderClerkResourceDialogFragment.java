@@ -99,6 +99,7 @@ public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment
             @Override
             public void onClick(View v) {
             AlertDialog.Builder adb = getAlertDialog();
+                adb.setTitle(getResources().getString(R.string.release_current_in_lcr));
             adb.setMessage(getResources().getString(R.string.warning_release_message, currentlyCalledMemberName, callingName));
             adb.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
@@ -125,6 +126,7 @@ public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment
             @Override
             public void onClick(View v) {
                 AlertDialog.Builder adb = getAlertDialog();
+                adb.setTitle(getResources().getString(R.string.update_calling_in_lcr));
                 String message = currentlyCalledMemberName != null && currentlyCalledMemberName.length() > 0
                         ? getResources().getString(R.string.warning_update_release_message, proposedMemberName, currentlyCalledMemberName, callingName)
                         : getResources().getString(R.string.warning_update_message, proposedMemberName, callingName);
@@ -154,8 +156,9 @@ public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment
                 @Override
                 public void onClick(final View view) {
                     AlertDialog.Builder adb = getAlertDialog();
+                    adb.setTitle(getResources().getString(R.string.delete_calling));
                     adb.setMessage(canDeleteLCR
-                        ? getResources().getString(R.string.warning_release_message, currentlyCalledMemberName, callingName)
+                        ? getResources().getString(R.string.warning_delete_lcr_message, currentlyCalledMemberName, callingName)
                         : getResources().getString(R.string.warning_delete_message));
 
                     final LeaderClerkResourceListener tempListener = mListener;
@@ -189,8 +192,6 @@ public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment
     /* Builds the core structure of an alert dialog. */
     private AlertDialog.Builder getAlertDialog() {
         AlertDialog.Builder adb = new AlertDialog.Builder(getContext());
-        adb.setIcon(android.R.drawable.ic_dialog_alert);
-        adb.setTitle(getResources().getString(R.string.warning));
         adb.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
                     dialog.cancel();
