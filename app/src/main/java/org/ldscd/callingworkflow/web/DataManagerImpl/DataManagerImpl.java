@@ -99,7 +99,11 @@ public class DataManagerImpl implements DataManager {
 
     @Override
     public void refreshLCROrgs(Response.Listener<Boolean> listener) {
-        callingData.refreshLCROrgs(listener, currentUser);
+        if(currentUser != null) {
+            callingData.refreshLCROrgs(listener, currentUser);
+        } else {
+            listener.onResponse(false);
+        }
     }
     public void loadOrgs(Response.Listener<Boolean> listener, ProgressBar progressBar, Activity activity) {
         callingData.loadOrgs(listener, progressBar, activity, currentUser);
@@ -153,14 +157,13 @@ public class DataManagerImpl implements DataManager {
     /* Google data. */
     @Override
     public void addCalling(Response.Listener<Boolean> listener, Calling calling) {
-        Org org = getOrg(calling.getParentOrg());
+        Org org = callingData.getBaseOrg(calling.getParentOrg());
         if(permissionManager.isAuthorized(currentUser.getUnitRoles(),
                 Permission.POTENTIAL_CALLING_CREATE,
                 new AuthorizableOrg(org.getUnitNumber(), UnitLevelOrgType.get(org.getOrgTypeId()), org.getOrgTypeId())))
         {
             callingData.addNewCalling(calling);
-            Org baseOrg = callingData.getBaseOrg(calling.getParentOrg());
-            saveCalling(listener, baseOrg, calling, Operation.CREATE);
+            saveCalling(listener, org, calling, Operation.CREATE);
         } else {
             listener.onResponse(false);
         }

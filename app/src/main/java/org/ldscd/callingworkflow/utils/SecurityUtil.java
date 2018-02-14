@@ -19,7 +19,7 @@ import javax.crypto.spec.SecretKeySpec;
 public class SecurityUtil {
 
     /* Fields */
-    private static final String TAG = "SecurityUtilLog";
+    private static final String TAG = "SecurityUtil.Class";
     private static final String UTF8 = "UTF-8";
     private static final String ALGORITHM = "AES";
     private static final String DIGEST = "SHA-1";
