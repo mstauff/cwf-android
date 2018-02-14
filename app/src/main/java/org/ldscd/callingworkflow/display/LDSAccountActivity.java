@@ -71,13 +71,18 @@ public class LDSAccountActivity extends AppCompatActivity {
                 return false;
             }
         });
+
         dataManager.getSharedPreferences(new Response.Listener<SharedPreferences>() {
             @Override
             public void onResponse(SharedPreferences preferences) {
                 sharedPreferences = preferences;
                 if(preferences != null) {
-                    userNameView.setText(SecurityUtil.decrypt(getApplicationContext(), preferences.getString("username", null)));
-                    mPasswordView.setText(SecurityUtil.decrypt(getApplicationContext(), preferences.getString("password", null)));
+                    String userName = preferences.getString("username", null);
+                    String password = preferences.getString("password", null);
+                    if(userName != null && password != null) {
+                        userNameView.setText(SecurityUtil.decrypt(getApplicationContext(), userName));
+                        mPasswordView.setText(SecurityUtil.decrypt(getApplicationContext(), password));
+                    }
                 }
             }
         });
@@ -91,15 +96,33 @@ public class LDSAccountActivity extends AppCompatActivity {
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
 
-        Button refreshDataButton = (Button) findViewById(R.id.button_data_sync);
-        refreshDataButton.setOnClickListener(new OnClickListener() {
+        dataManager.getUserInfo(null, null, false, new Response.Listener<LdsUser>() {
             @Override
-            public void onClick(View v) {
-                refreshDataEventHandler();
+            public void onResponse(LdsUser user) {
+                setRefreshButton(user != null);
             }
         });
     }
 
+    private void setRefreshButton(boolean canUpdate) {
+        Button refreshDataButton = (Button) findViewById(R.id.button_data_sync);
+        if(canUpdate) {
+            refreshDataButton.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    refreshDataEventHandler();
+                }
+            });
+        } else {
+            refreshDataButton.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(getApplicationContext(), "Please login before trying to refresh your data.", Toast.LENGTH_SHORT).show();
+
+                }
+            });
+        }
+    }
     /**
      * Attempts to sign in or register the account specified by the login form.
      * If there are form errors (invalid email, missing fields, etc.), the
@@ -224,7 +247,7 @@ public class LDSAccountActivity extends AppCompatActivity {
         protected void onPostExecute(final Boolean success) {
             mAuthTask = null;
             showProgress(false);
-
+            setRefreshButton(success);
             if (success) {
                 if(isTaskRoot()) {
                 /* Transition to splash screen or directory view depending on which view invoiced this page. */
@@ -255,7 +278,7 @@ public class LDSAccountActivity extends AppCompatActivity {
                 if(response) {
                     finish();
                 } else {
-                    Toast.makeText(getApplicationContext(), "Failed to refresh data", Toast.LENGTH_SHORT);
+                    Toast.makeText(getApplicationContext(), "Failed to refresh data", Toast.LENGTH_SHORT).show();
                 }
                 showProgress(false);
             }
