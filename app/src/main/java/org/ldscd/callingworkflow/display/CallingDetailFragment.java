@@ -238,6 +238,7 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
         if(calling.getProposedIndId() != null && calling.getProposedIndId() > 0) {
             args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, calling.getProposedIndId());
         }
+        args.putBoolean(CAN_VIEW_PRIESTHOOD, canViewPriesthoodFilters);
         args.putInt(MemberLookupFragment.positionTypeIdName, calling.getPosition().getPositionTypeId());
         memberLookupFragment.setArguments(args);
 

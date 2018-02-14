@@ -19,7 +19,9 @@ import com.android.volley.Response;
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.display.adapters.DirectoryAdapter;
 import org.ldscd.callingworkflow.model.FilterOption;
+import org.ldscd.callingworkflow.model.LdsUser;
 import org.ldscd.callingworkflow.model.Member;
+import org.ldscd.callingworkflow.model.permissions.constants.Permission;
 import org.ldscd.callingworkflow.web.DataManager;
 
 import java.util.List;
@@ -31,6 +33,7 @@ public class DirectoryActivity extends AppCompatActivity
 
     AppCompatActivity activity = this;
     DirectoryAdapter adapter;
+    private boolean canViewPriesthood;
 
     @Inject
     DataManager dataManager;
@@ -58,6 +61,15 @@ public class DirectoryActivity extends AppCompatActivity
         View recyclerView = findViewById(R.id.directory);
         assert recyclerView != null;
         setupRecyclerView((RecyclerView) recyclerView);
+
+        dataManager.getUserInfo(null, null, false, new Response.Listener<LdsUser>() {
+            @Override
+            public void onResponse(LdsUser user) {
+                if(user != null) {
+                    canViewPriesthood = dataManager.getPermissionManager().hasPermission(user.getUnitRoles(), Permission.PRIESTHOOD_OFFICE_READ);
+                }
+            }
+        });
 
     }
 
@@ -94,7 +106,8 @@ public class DirectoryActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.edit_filters) {
-            FilterOption filterOption = adapter.getCurrentFilterOption();
+            final FilterOption filterOption = adapter.getCurrentFilterOption();
+            filterOption.setCanViewPriesthood(canViewPriesthood);
             MemberLookupFilterFragment memberLookupFilterFragment = MemberLookupFilterFragment.newInstance(filterOption);
             memberLookupFilterFragment.setMemberLookupFilterListener(adapter);
             memberLookupFilterFragment.show(getSupportFragmentManager(), MemberLookupFragment.FRAG_NAME);

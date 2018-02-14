@@ -17,14 +17,18 @@ import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.constants.CallingStatus;
 import org.ldscd.callingworkflow.display.adapters.PositionArrayAdapter;
 import org.ldscd.callingworkflow.model.Calling;
+import org.ldscd.callingworkflow.model.LdsUser;
 import org.ldscd.callingworkflow.model.Member;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.model.Position;
+import org.ldscd.callingworkflow.model.permissions.constants.Permission;
 import org.ldscd.callingworkflow.web.DataManager;
 
 import java.util.List;
 
 import javax.inject.Inject;
+
+import static org.ldscd.callingworkflow.display.MemberLookupFilterFragment.CAN_VIEW_PRIESTHOOD;
 
 public class CreateCallingFragment extends Fragment implements MemberLookupFragment.OnMemberLookupFragmentListener {
     public static final String PARENT_ORG_ID = "parentOrgId";
@@ -38,7 +42,7 @@ public class CreateCallingFragment extends Fragment implements MemberLookupFragm
     private Member proposedMember;
     private SubFragmentOpenListener subFragmentListener;
     boolean resetProposedStatus = false;
-
+    boolean canViewPriesthood;
     Spinner positionDropdown;
     Spinner statusDropdown;
     EditText notesBox;
@@ -127,6 +131,15 @@ public class CreateCallingFragment extends Fragment implements MemberLookupFragm
             }
         });
 
+        dataManager.getUserInfo(null, null, false, new Response.Listener<LdsUser>() {
+            @Override
+            public void onResponse(LdsUser user) {
+                if(user != null) {
+                    canViewPriesthood = dataManager.getPermissionManager().hasPermission(user.getUnitRoles(), Permission.PRIESTHOOD_OFFICE_READ);
+                }
+            }
+        });
+
         return view;
 
     }
@@ -135,6 +148,7 @@ public class CreateCallingFragment extends Fragment implements MemberLookupFragm
         MemberLookupFragment memberLookupFragment = new MemberLookupFragment();
         memberLookupFragment.setMemberLookupListener(this);
         Bundle args = new Bundle();
+        args.putBoolean(CAN_VIEW_PRIESTHOOD, canViewPriesthood);
         if(proposedMember != null && proposedMember.getIndividualId() > 0) {
             args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, proposedMember.getIndividualId());
         }

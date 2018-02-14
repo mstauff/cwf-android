@@ -390,6 +390,10 @@ public class MemberLookupFilterFragment extends DialogFragment {
             filterOption.setLaurel(false);
             filterOption.setMiaMaid(false);
             filterOption.setBeehive(false);
+            if(filterOption.isCanViewPriesthood()) {
+                maleLayout = (TableLayout) view.findViewById(R.id.member_lookup_filter_priesthood_container);
+                maleLayout.setVisibility(VISIBLE);
+            }
             femaleLayout = (TableLayout)view.findViewById(R.id.member_lookup_filter_relief_society_container);
             femaleLayout.setVisibility(GONE);
         } else if(female) {
