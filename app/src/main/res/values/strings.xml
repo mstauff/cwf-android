@@ -26,6 +26,7 @@
     <string name="delete_calling_in_lcr">Remove Calling in LCR</string>
     <string name="delete_calling_in_workflow">Remove Workflow Item</string>
     <string name="delete_calling">Delete Calling</string>
+    <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="setting_header">Settings</string>
     <string name="user_name">User Name</string>
@@ -137,4 +138,6 @@
     <string name="reset_data">Reset Data</string>
     <string name="login_success">Log In Successful</string>
     <string name="logout_successful">Logged Out</string>
+    <string name="reset_usage_warning">This option is only to correct errors in individual organizations. If you are experiencing errors and unable to view certain organizations this option may correct it. It will destroy any in process calling data for the organization, and replace it with existing callings from lds.org. Do you want to select which organizations need reset?</string>
+    <string name="confirm_reset_warning">This will delete all in process calling data for the selected organizations. It will not affect any data on lds.org. This action cannot be undone. Are you sure you want to proceed?</string>
 </resources>

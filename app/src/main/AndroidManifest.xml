@@ -95,6 +95,11 @@
             android:parentActivityName=".display.SettingsActivity"
             android:screenOrientation="portrait"/>
         <activity
+            android:name=".display.ResetDataActivity"
+            android:label="@string/reset_data"
+            android:parentActivityName=".display.GoogleDriveOptionsActivity"
+            android:screenOrientation="portrait"/>
+        <activity
             android:name=".display.SettingsActivity"
             android:label="@string/title_activity_settings"
             android:screenOrientation="portrait"

@@ -1,6 +1,8 @@
 package org.ldscd.callingworkflow.display;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -91,7 +93,20 @@ public class GoogleDriveOptionsActivity extends AppCompatActivity {
         resetDataLink.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                View dialogView = getLayoutInflater().inflate(R.layout.warning_dialog_text, null);
+                TextView messageView = (TextView) dialogView.findViewById(R.id.warning_message);
+                messageView.setText(R.string.reset_usage_warning);
+                new AlertDialog.Builder(activity)
+                        .setView(dialogView)
+                        .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                Intent intent = new Intent(activity, ResetDataActivity.class);
+                                startActivity(intent);
+                            }
+                        })
+                        .setNegativeButton(R.string.cancel, null)
+                        .show();
             }
         });
 
@@ -121,14 +136,15 @@ public class GoogleDriveOptionsActivity extends AppCompatActivity {
     }
 
     private void setUISignedIn() {
-        signInButton.setVisibility(View.GONE);
-        signOutLink.setVisibility(View.VISIBLE);
+        signInButton.setEnabled(false);
+        signOutLink.setEnabled(true);
+        resetDataLink.setEnabled(true);
     }
 
     private void setUISignedOut() {
-        signInButton.setVisibility(View.VISIBLE);
-        signOutLink.setVisibility(View.GONE);
-
+        signInButton.setEnabled(true);
+        signOutLink.setEnabled(false);
+        resetDataLink.setEnabled(false);
     }
 
     @Override

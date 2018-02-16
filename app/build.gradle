@@ -28,7 +28,7 @@ android {
 }
 
 dependencies {
-    def androidVersion = "24.2.0"
+    def androidVersion = "24.2.1"
     def googlePlayServiceVersion = "9.6.1"
 
     compile fileTree(include: ['*.jar'], dir: 'libs')
