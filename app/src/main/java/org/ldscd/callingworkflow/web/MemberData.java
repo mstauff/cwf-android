@@ -10,6 +10,7 @@ import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Member;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,7 @@ public class MemberData {
             @Override
             public void onResponse(List<Member> response) {
                 members = response;
+                Collections.sort(members);
                 membersByIndividualId = new HashMap<Long, Member>();
                 for(Member member: members) {
                     if(member.getIndividualId() > 0) {

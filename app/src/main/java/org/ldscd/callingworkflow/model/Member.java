@@ -1,5 +1,7 @@
 package org.ldscd.callingworkflow.model;
 
+import android.support.annotation.NonNull;
+
 import org.joda.time.DateTime;
 import org.joda.time.Years;
 import org.ldscd.callingworkflow.constants.Gender;
@@ -16,7 +18,7 @@ import java.util.Map;
 /**
  * Represents a Ward Member.
  */
-public class Member {
+public class Member implements Comparable<Member> {
     /* Fields */
     long individualId;
     String formattedName;
@@ -149,5 +151,12 @@ public class Member {
 
     public int getCurrentAge() {
         return getBirthDate() != null ? Years.yearsBetween(getBirthDate(), DateTime.now()).getYears() : -1;
+    }
+
+    @Override
+    public int compareTo(@NonNull Member member) {
+        String name1 = getFormattedName().toLowerCase();
+        String name2 = member.getFormattedName().toLowerCase();
+        return name1.compareTo(name2);
     }
 }
