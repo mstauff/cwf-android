@@ -134,9 +134,11 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
         }
 
         TextView orgName = (TextView) convertView.findViewById(R.id.org_list_name);
+        ImageButton addButton = (ImageButton) convertView.findViewById(R.id.add_calling_button);
+        //final ImageView conflictIcon = (ImageView) convertView.findViewById(R.id.calling_conflict_icon);
+
         orgName.setText(groupOrg.getDefaultOrgName());
 
-        ImageButton addButton = (ImageButton) convertView.findViewById(R.id.add_calling_button);
         /* If the calling section has the ability to add a calling and
                 the user has permissions to add a calling to this org then show the
                 addButton in the list.
@@ -163,6 +165,24 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
             convertView.setPadding(GROUP_INDENT, 0, 0, 0);
         }
 
+        //todo: this section was moved from the calling view section and needs adapted for use with Orgs
+        //Manage conflict icon
+        /*if(groupOrg.getConflictCause() != null) {
+            conflictIcon.setVisibility(View.VISIBLE);
+            convertView.getBackground().setColorFilter(ContextCompat.getColor(ctx, R.color.conflict_background), PorterDuff.Mode.MULTIPLY);
+            conflictIcon.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    ConflictInfoFragment conflictInfo = new ConflictInfoFragment();
+                    conflictInfo.setCalling(calling);
+                    conflictInfo.show(fragmentManager, "ConflictInfo");
+                }
+            });
+        } else {
+            conflictIcon.setVisibility(View.GONE);
+            convertView.getBackground().clearColorFilter();
+        }*/
+
         return convertView;
     }
 
@@ -175,7 +195,6 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
         TextView callingTitle = (TextView) convertView.findViewById(R.id.calling_item_title);
         TextView current = (TextView) convertView.findViewById(R.id.calling_item_current);
         TextView proposed = (TextView) convertView.findViewById(R.id.calling_item_proposed);
-        final ImageView conflictIcon = (ImageView) convertView.findViewById(R.id.calling_conflict_icon);
 
         //set calling name
         PositionMetaData metaData = dataManager.getPositionMetadata(calling.getPosition().getPositionTypeId());
@@ -219,23 +238,6 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
         } else {
             convertView.setPadding(GROUP_INDENT, 0, 0, 0);
             convertView.setBackgroundColor(ContextCompat.getColor(ctx, R.color.white_background));
-        }
-
-        //Manage conflict icon
-        if(calling.getConflictCause() != null) {
-            conflictIcon.setVisibility(View.VISIBLE);
-            convertView.getBackground().setColorFilter(ContextCompat.getColor(ctx, R.color.conflict_background), PorterDuff.Mode.MULTIPLY);
-            conflictIcon.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    ConflictInfoFragment conflictInfo = new ConflictInfoFragment();
-                    conflictInfo.setCalling(calling);
-                    conflictInfo.show(fragmentManager, "ConflictInfo");
-                }
-            });
-        } else {
-            conflictIcon.setVisibility(View.GONE);
-            convertView.getBackground().clearColorFilter();
         }
 
         return convertView;

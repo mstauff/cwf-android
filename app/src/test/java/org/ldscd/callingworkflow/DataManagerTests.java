@@ -11,6 +11,7 @@ import org.ldscd.callingworkflow.constants.CallingStatus;
 import org.ldscd.callingworkflow.constants.ConflictCause;
 import org.ldscd.callingworkflow.model.*;
 import org.junit.Test;
+import org.ldscd.callingworkflow.model.permissions.PermissionManager;
 import org.ldscd.callingworkflow.services.GoogleDataService;
 import org.ldscd.callingworkflow.web.CallingData;
 import org.ldscd.callingworkflow.web.IWebResources;
@@ -21,6 +22,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
@@ -41,9 +44,8 @@ public class DataManagerTests {
     ProgressBar mockProgressBar;
     @Mock
     Activity mockActivity;
-    @Mock
-    LdsUser mockUser;
 
+    LdsUser user;
     CallingData callingData;
     Org sampleLCROrgMultiplesAllowed;
     Org sampleLCROrgNoMultiplesAllowed;
@@ -52,7 +54,13 @@ public class DataManagerTests {
     private static final Long unitNumber = 1234L;
     @Before
     public void prepData() {
-        callingData = new CallingData(mockWebResources, mockGoogleDataService, memberData, null);
+        PermissionManager permissionManager = new PermissionManager();
+        callingData = new CallingData(mockWebResources, mockGoogleDataService, memberData, permissionManager);
+
+        List<Position> userPositions = new ArrayList<>();
+        userPositions.add(new Position("Bishop", 4, false, false, 0L, unitNumber));
+        user = new LdsUser(1023456, userPositions);
+        user.setUnitRoles(permissionManager.createUnitRoles(userPositions, unitNumber));
 
         List<Calling> sampleCallings = new ArrayList<>();
         sampleCallings.add(new Calling(734820L, null, false, 11111L, null, null, new Position("Primary Teacher", 1481, false, false, 0L, 0L), "ACTIVE", null, null, 38432972L));
@@ -88,15 +96,15 @@ public class DataManagerTests {
     }
 
     private void removeCurrentCallingInfo(Calling calling) {
-        calling.setId(0);
-        calling.setMemberId(0);
+        calling.setId(0L);
+        calling.setMemberId(0L);
         calling.setExistingStatus(null);
         calling.setActiveDate(null);
         calling.setActiveDateTime(null);
     }
 
     private void removeProposedCallingInfo(Calling calling) {
-        calling.setProposedIndId(0);
+        calling.setProposedIndId(0L);
         calling.setProposedStatus(null);
         calling.setNotes(null);
     }
@@ -111,20 +119,32 @@ public class DataManagerTests {
         mergeWithNothingChanged(sampleLCROrgNoMultiplesAllowed, sampleCWFOrgNoMultiplesAllowed);
     }
 
-    private void mergeWithNothingChanged(Org lcrOrg, Org cwfOrg) {
-        int startingSize = lcrOrg.getCallings().size();
+    private void mergeWithNothingChanged(final Org lcrOrg, final Org cwfOrg) {
+        final int startingSize = lcrOrg.getCallings().size();
 
         //The app will re-import and merge data so we need to run it more than once
-        for(int i=0; i < 2; i++) {
-            callingData.mergeOrgs(lcrOrg, cwfOrg);
-
-            //all the callings should have matched up so the number should be the same
-            assertEquals(startingSize, lcrOrg.getCallings().size());
-
-            //Now check that the callings were updated with CWF data
-            for (int callingIndex = 0; callingIndex < lcrOrg.getCallings().size(); callingIndex++) {
-                confirmCWFDataMerged(lcrOrg.getCallings().get(callingIndex), cwfOrg.getCallings().get(callingIndex));
+        final List<Org> lcrList = Collections.singletonList(lcrOrg);
+        final List<Org> cwfList = Collections.singletonList(cwfOrg);
+        runLoadOrgs(lcrList, cwfList, new Response.Listener<Boolean>() {
+            @Override
+            public void onResponse(Boolean response) {
+                checkWithNothingChangedResult(startingSize, lcrOrg, cwfOrg);
+                runLoadOrgs(lcrList, cwfList, new Response.Listener<Boolean>() {
+                    @Override
+                    public void onResponse(Boolean response) {
+                        checkWithNothingChangedResult(startingSize, lcrOrg, cwfOrg);
+                    }
+                });
             }
+        });
+    }
+    private void checkWithNothingChangedResult(int startingSize, Org lcrOrg, Org cwfOrg) {
+        //all the callings should have matched up so the number should be the same
+        assertEquals(startingSize, lcrOrg.getCallings().size());
+
+        //Now check that the callings were updated with CWF data
+        for (int callingIndex = 0; callingIndex < lcrOrg.getCallings().size(); callingIndex++) {
+            confirmCWFDataMerged(lcrOrg.getCallings().get(callingIndex), cwfOrg.getCallings().get(callingIndex));
         }
     }
 
@@ -138,25 +158,36 @@ public class DataManagerTests {
         mergeWhenDeletedInLCR(sampleLCROrgNoMultiplesAllowed, sampleCWFOrgNoMultiplesAllowed);
     }
 
-    private void mergeWhenDeletedInLCR(Org lcrOrg, Org cwfOrg) {
+    private void mergeWhenDeletedInLCR(final Org lcrOrg, final Org cwfOrg) {
         //first we'll remove a calling from the end of the lcrOrg callings so the order still matches cwfOrg callings
         lcrOrg.getCallings().remove(1);
 
-        int startingSize = lcrOrg.getCallings().size();
+        final int startingSize = lcrOrg.getCallings().size();
 
         //The app will re-import and merge data so we need to run it more than once
-        for(int i=0; i < 2; i++) {
-            callingData.mergeOrgs(lcrOrg, cwfOrg);
-
-            //the extra calling in cwfOrg should be flagged and added to the lcrOrg
-            assertTrue(lcrOrg.getCallings().size() - startingSize == 1);
-            Calling resultCalling = lcrOrg.getCallings().get(1);
-            assertEquals(ConflictCause.LDS_EQUIVALENT_DELETED, resultCalling.getConflictCause());
-
-            //Now check that the callings were updated with CWF data
-            for (int callingIndex = 0; callingIndex < lcrOrg.getCallings().size(); callingIndex++) {
-                confirmCWFDataMerged(lcrOrg.getCallings().get(callingIndex), cwfOrg.getCallings().get(callingIndex));
+        final List<Org> lcrList = Collections.singletonList(lcrOrg);
+        final List<Org> cwfList = Collections.singletonList(cwfOrg);
+        runLoadOrgs(lcrList, cwfList, new Response.Listener<Boolean>() {
+            @Override
+            public void onResponse(Boolean response) {
+                checkWhenDeletedInLCRResult(startingSize, lcrOrg, cwfOrg);
+                runLoadOrgs(lcrList, cwfList, new Response.Listener<Boolean>() {
+                    @Override
+                    public void onResponse(Boolean response) {
+                        checkWhenDeletedInLCRResult(startingSize, lcrOrg, cwfOrg);
+                    }
+                });
             }
+        });
+    }
+    private void checkWhenDeletedInLCRResult(int startingSize, Org lcrOrg, Org cwfOrg) {
+        //since it has potential data the extra calling in cwfOrg should be added to the lcrOrg
+        assertEquals(startingSize+1, lcrOrg.getCallings().size());
+        Calling resultCalling = lcrOrg.getCallings().get(1);
+
+        //Now check that the callings were updated with CWF data
+        for (int callingIndex = 0; callingIndex < lcrOrg.getCallings().size(); callingIndex++) {
+            confirmCWFDataMerged(lcrOrg.getCallings().get(callingIndex), cwfOrg.getCallings().get(callingIndex));
         }
     }
 
@@ -170,33 +201,38 @@ public class DataManagerTests {
         mergeCurrentReleasedInLCR(sampleLCROrgNoMultiplesAllowed, sampleCWFOrgNoMultiplesAllowed);
     }
 
-    private void mergeCurrentReleasedInLCR(Org lcrOrg, Org cwfOrg) {
-        //When the current member in lcr changed so does the positionId so we'll change that and clear the memberId
-        lcrOrg.getCallings().get(0).setId(111L);
-        lcrOrg.getCallings().get(0).setMemberId(0);
+    private void mergeCurrentReleasedInLCR(final Org lcrOrg, final Org cwfOrg) {
+        //When there's no current member in lcr it doesn't have a positionId
+        lcrOrg.getCallings().get(0).setId(null);
+        lcrOrg.getCallings().get(0).setMemberId(0L);
+        lcrOrg.getCallings().get(1).setId(null);
+        lcrOrg.getCallings().get(1).setMemberId(0L);
+        removeProposedCallingInfo(cwfOrg.getCallings().get(1));
 
-        int startingSize = lcrOrg.getCallings().size();
+        final int startingSize = lcrOrg.getCallings().size();
 
         //The app will re-import and merge data so we need to run it more than once
-        for(int i=0; i < 2; i++) {
-            callingData.mergeOrgs(lcrOrg, cwfOrg);
-
-            //In this case we can merge matching position types only if multiples are not allowed
-            if (lcrOrg.getCallings().get(0).getPosition().getAllowMultiple()) {
-                assertTrue(startingSize < lcrOrg.getCallings().size());
-                assertEquals(ConflictCause.LDS_EQUIVALENT_DELETED, lcrOrg.getCallings().get(2).getConflictCause());
-
-                //make sure the calling matched by id still merged correctly
-                confirmCWFDataMerged(lcrOrg.getCallings().get(1), cwfOrg.getCallings().get(1));
-            } else {
-                assertEquals(startingSize, lcrOrg.getCallings().size());
-
-                //Now check that the callings were updated with CWF data
-                for (int callingIndex = 0; callingIndex < lcrOrg.getCallings().size(); callingIndex++) {
-                    confirmCWFDataMerged(lcrOrg.getCallings().get(callingIndex), cwfOrg.getCallings().get(callingIndex));
-                }
+        final List<Org> lcrList = Collections.singletonList(lcrOrg);
+        final List<Org> cwfList = Collections.singletonList(cwfOrg);
+        runLoadOrgs(lcrList, cwfList, new Response.Listener<Boolean>() {
+            @Override
+            public void onResponse(Boolean response) {
+                checkCurrentReleasedInLCRResult(startingSize, lcrOrg, cwfOrg);
+                runLoadOrgs(lcrList, cwfList, new Response.Listener<Boolean>() {
+                    @Override
+                    public void onResponse(Boolean response) {
+                        checkCurrentReleasedInLCRResult(startingSize, lcrOrg, cwfOrg);
+                    }
+                });
             }
-        }
+        });
+    }
+    private void checkCurrentReleasedInLCRResult(int startingSize, Org lcrOrg, Org cwfOrg) {
+        //the cwfCalling with proposed data should have merged without current info and the other discarded
+        assertEquals(startingSize, lcrOrg.getCallings().size());
+
+        //check the CWF data
+        confirmCWFDataMerged(lcrOrg.getCallings().get(0), cwfOrg.getCallings().get(0));
     }
 
     @Test
@@ -209,75 +245,133 @@ public class DataManagerTests {
         mergeCurrentChangedToProposed(sampleLCROrgNoMultiplesAllowed, sampleCWFOrgNoMultiplesAllowed);
     }
 
-    public void mergeCurrentChangedToProposed(Org lcrOrg, Org cwfOrg) {
+    private void mergeCurrentChangedToProposed(final Org lcrOrg, final Org cwfOrg) {
         //When the current member in lcr changes so does the positionId so we'll change that and set the memberId to the potential
         lcrOrg.getCallings().get(0).setId(111L);
         lcrOrg.getCallings().get(0).setMemberId(cwfOrg.getCallings().get(0).getProposedIndId());
 
-        int startingSize = lcrOrg.getCallings().size();
+        final int startingSize = lcrOrg.getCallings().size();
 
         //The app will re-import and merge data so we need to run it more than once
-        for(int i=0; i < 2; i++) {
-            callingData.mergeOrgs(lcrOrg, cwfOrg);
-
-            //In this case we can merge matching position types only if multiples are not allowed
-            if (lcrOrg.getCallings().get(0).getPosition().getAllowMultiple()) {
-                assertTrue(startingSize < lcrOrg.getCallings().size());
-                assertEquals(ConflictCause.EQUIVALENT_POTENTIAL_AND_ACTUAL, lcrOrg.getCallings().get(2).getConflictCause());
-
-                //make sure the calling matched by id still merged correctly
-                confirmCWFDataMerged(lcrOrg.getCallings().get(1), cwfOrg.getCallings().get(1));
-            } else {
-                assertEquals(startingSize, lcrOrg.getCallings().size());
-                //in the case potential matches the new current we don't keep the old cwf info
-                Calling resultCalling = lcrOrg.getCallings().get(0);
-                assertNull(resultCalling.getProposedIndId());
-                assertNull(resultCalling.getProposedStatus());
-                assertNull(resultCalling.getNotes());
-
-                //make sure the calling matched by id still merged correctly
-                confirmCWFDataMerged(lcrOrg.getCallings().get(1), cwfOrg.getCallings().get(1));
+        final List<Org> lcrList = Collections.singletonList(lcrOrg);
+        final List<Org> cwfList = Collections.singletonList(cwfOrg);
+        runLoadOrgs(lcrList, cwfList, new Response.Listener<Boolean>() {
+            @Override
+            public void onResponse(Boolean response) {
+                checkCurrentChangedToProposedResult(startingSize, lcrOrg, cwfOrg);
+                runLoadOrgs(lcrList, cwfList, new Response.Listener<Boolean>() {
+                    @Override
+                    public void onResponse(Boolean response) {
+                        checkCurrentChangedToProposedResult(startingSize, lcrOrg, cwfOrg);
+                    }
+                });
             }
-        }
+        });
+    }
+    private void checkCurrentChangedToProposedResult(int startingSize, Org lcrOrg, Org cwfOrg) {
+        //in the case potential matches the new current we can match on position type and don't keep the old cwf info
+        assertEquals(startingSize, lcrOrg.getCallings().size());
+        Calling resultCalling = lcrOrg.getCallings().get(0);
+        assertNull(resultCalling.getProposedIndId());
+        assertNull(resultCalling.getProposedStatus());
+        assertNull(resultCalling.getNotes());
+
+        //make sure the calling matched by id still merged correctly
+        confirmCWFDataMerged(lcrOrg.getCallings().get(1), cwfOrg.getCallings().get(1));
     }
 
     @Test
-    public void mergeCurrentChangedToOtherMultiplesAllowed() {
-        mergeCurrentChangedToOther(sampleLCROrgMultiplesAllowed, sampleCWFOrgMultiplesAllowed);
+    public void mergeCurrentChangedToOtherWithPotentialMultiplesAllowed() {
+        mergeCurrentChangedToOtherWithPotential(sampleLCROrgMultiplesAllowed, sampleCWFOrgMultiplesAllowed);
     }
 
     @Test
-    public void mergeCurrentChangedToOtherNoMultiplesAllowed() {
-        mergeCurrentChangedToOther(sampleLCROrgNoMultiplesAllowed, sampleCWFOrgNoMultiplesAllowed);
+    public void mergeCurrentChangedToOtherWithPotentialNoMultiplesAllowed() {
+        mergeCurrentChangedToOtherWithPotential(sampleLCROrgNoMultiplesAllowed, sampleCWFOrgNoMultiplesAllowed);
     }
 
-    public void mergeCurrentChangedToOther(Org lcrOrg, Org cwfOrg) {
+    private void mergeCurrentChangedToOtherWithPotential(final Org lcrOrg, final Org cwfOrg) {
         //When the current member in lcr changes so does the positionId so we'll change that and change the memberId
         lcrOrg.getCallings().get(0).setId(111L);
         lcrOrg.getCallings().get(0).setMemberId(33333L);
 
-        int startingSize = lcrOrg.getCallings().size();
+        final int startingSize = lcrOrg.getCallings().size();
 
         //The app will re-import and merge data so we need to run it more than once
-        for(int i=0; i < 2; i++) {
-            callingData.mergeOrgs(lcrOrg, cwfOrg);
+        final List<Org> lcrList = Collections.singletonList(lcrOrg);
+        final List<Org> cwfList = Collections.singletonList(cwfOrg);
+        runLoadOrgs(lcrList, cwfList, new Response.Listener<Boolean>() {
+            @Override
+            public void onResponse(Boolean response) {
+                checkCurrentChangedToOtherWithPotentialResult(startingSize, lcrOrg, cwfOrg);
+                runLoadOrgs(lcrList, cwfList, new Response.Listener<Boolean>() {
+                    @Override
+                    public void onResponse(Boolean response) {
+                        checkCurrentChangedToOtherWithPotentialResult(startingSize, lcrOrg, cwfOrg);
+                    }
+                });
+            }
+        });
+    }
+    private void checkCurrentChangedToOtherWithPotentialResult(int startingSize, Org lcrOrg, Org cwfOrg) {
+        //In this case we can merge matching position types only if multiples are not allowed
+        if (lcrOrg.getCallings().get(0).getPosition().getAllowMultiple()) {
+            assertEquals(startingSize+1, lcrOrg.getCallings().size());
 
-            //In this case we can merge matching position types only if multiples are not allowed
-            if (lcrOrg.getCallings().get(0).getPosition().getAllowMultiple()) {
-                assertTrue(startingSize < lcrOrg.getCallings().size());
-                assertEquals(ConflictCause.LDS_EQUIVALENT_DELETED, lcrOrg.getCallings().get(2).getConflictCause());
+            //make sure the calling matched by id still merged correctly
+            confirmCWFDataMerged(lcrOrg.getCallings().get(1), cwfOrg.getCallings().get(1));
+        } else {
+            assertEquals(startingSize, lcrOrg.getCallings().size());
 
-                //make sure the calling matched by id still merged correctly
-                confirmCWFDataMerged(lcrOrg.getCallings().get(1), cwfOrg.getCallings().get(1));
-            } else {
-                assertEquals(startingSize, lcrOrg.getCallings().size());
-
-                //Now check that the callings were updated with CWF data
-                for (int callingIndex = 0; callingIndex < lcrOrg.getCallings().size(); callingIndex++) {
-                    confirmCWFDataMerged(lcrOrg.getCallings().get(callingIndex), cwfOrg.getCallings().get(callingIndex));
-                }
+            //Now check that the callings were updated with CWF data
+            for (int callingIndex = 0; callingIndex < lcrOrg.getCallings().size(); callingIndex++) {
+                confirmCWFDataMerged(lcrOrg.getCallings().get(callingIndex), cwfOrg.getCallings().get(callingIndex));
             }
         }
+    }
+
+    @Test
+    public void mergeCurrentChangedToOtherWithoutPotentialMultiplesAllowed() {
+        mergeCurrentChangedToOtherWithoutPotential(sampleLCROrgMultiplesAllowed, sampleCWFOrgMultiplesAllowed);
+    }
+
+    @Test
+    public void mergeCurrentChangedToOtherWithoutPotentialNoMultiplesAllowed() {
+        mergeCurrentChangedToOtherWithoutPotential(sampleLCROrgNoMultiplesAllowed, sampleCWFOrgNoMultiplesAllowed);
+    }
+
+    private void mergeCurrentChangedToOtherWithoutPotential(final Org lcrOrg, final Org cwfOrg) {
+        //When the current member in lcr changes so does the positionId so we'll change that and change the memberId
+        lcrOrg.getCallings().get(0).setId(111L);
+        lcrOrg.getCallings().get(0).setMemberId(33333L);
+
+        removeProposedCallingInfo(cwfOrg.getCallings().get(0));
+        removeProposedCallingInfo(cwfOrg.getCallings().get(1));
+
+        final int startingSize = lcrOrg.getCallings().size();
+
+        //The app will re-import and merge data so we need to run it more than once
+        final List<Org> lcrList = Collections.singletonList(lcrOrg);
+        final List<Org> cwfList = Collections.singletonList(cwfOrg);
+        runLoadOrgs(lcrList, cwfList, new Response.Listener<Boolean>() {
+            @Override
+            public void onResponse(Boolean response) {
+                checkCurrentChangedToOtherWithoutPotentialResult(startingSize, lcrOrg, cwfOrg);
+                runLoadOrgs(lcrList, cwfList, new Response.Listener<Boolean>() {
+                    @Override
+                    public void onResponse(Boolean response) {
+                        checkCurrentChangedToOtherWithoutPotentialResult(startingSize, lcrOrg, cwfOrg);
+                    }
+                });
+            }
+        });
+    }
+    private void checkCurrentChangedToOtherWithoutPotentialResult(int startingSize, Org lcrOrg, Org cwfOrg) {
+        //In this case we can merge matching position types only if multiples are not allowed
+        assertEquals(startingSize, lcrOrg.getCallings().size());
+
+        //make sure the calling matched by id still merged correctly
+        confirmCWFDataMerged(lcrOrg.getCallings().get(1), cwfOrg.getCallings().get(1));
     }
 
     @Test
@@ -290,7 +384,7 @@ public class DataManagerTests {
         mergeWithNewCallingInCWF(sampleLCROrgNoMultiplesAllowed, sampleCWFOrgNoMultiplesAllowed);
     }
 
-    public void mergeWithNewCallingInCWF(Org lcrOrg, Org cwfOrg) {
+    private void mergeWithNewCallingInCWF(final Org lcrOrg, final Org cwfOrg) {
         //We add a new calling to cwfOrg as if created by the app
         Calling newCalling;
         if(lcrOrg.getCallings().get(0).getPosition().getAllowMultiple()) {
@@ -302,28 +396,40 @@ public class DataManagerTests {
         }
         cwfOrg.getCallings().add(newCalling);
 
-        int startingSize = lcrOrg.getCallings().size();
+        final int startingSize = lcrOrg.getCallings().size();
 
         //The app will re-import and merge data so we need to run it more than once
-        for(int i=0; i < 2; i++) {
-            callingData.mergeOrgs(lcrOrg, cwfOrg);
-
-            //the new calling should be unchanged and added to the org, other callings should have merged
-            assertTrue(startingSize < lcrOrg.getCallings().size());
-            for (int callingIndex = 0; callingIndex < lcrOrg.getCallings().size(); callingIndex++) {
-                confirmCWFDataMerged(lcrOrg.getCallings().get(callingIndex), cwfOrg.getCallings().get(callingIndex));
+        final List<Org> lcrList = Collections.singletonList(lcrOrg);
+        final List<Org> cwfList = Collections.singletonList(cwfOrg);
+        runLoadOrgs(lcrList, cwfList, new Response.Listener<Boolean>() {
+            @Override
+            public void onResponse(Boolean response) {
+                checkWithNewCallingInCWFResult(startingSize, lcrOrg, cwfOrg);
+                runLoadOrgs(lcrList, cwfList, new Response.Listener<Boolean>() {
+                    @Override
+                    public void onResponse(Boolean response) {
+                        checkWithNewCallingInCWFResult(startingSize, lcrOrg, cwfOrg);
+                    }
+                });
             }
-            Calling resultCalling = lcrOrg.getCallings().get(lcrOrg.getCallings().size() - 1);
-            assertNull(resultCalling.getId());
-            assertNull(resultCalling.getMemberId());
-            assertNull(resultCalling.getConflictCause());
+        });
+    }
+    private void checkWithNewCallingInCWFResult(int startingSize, Org lcrOrg, Org cwfOrg) {
+        //the new calling should be unchanged and added to the org, other callings should have merged
+        assertEquals(startingSize+1, lcrOrg.getCallings().size());
+        for (int callingIndex = 0; callingIndex < lcrOrg.getCallings().size(); callingIndex++) {
+            confirmCWFDataMerged(lcrOrg.getCallings().get(callingIndex), cwfOrg.getCallings().get(callingIndex));
         }
+        Calling resultCalling = lcrOrg.getCallings().get(lcrOrg.getCallings().size() - 1);
+        assertNull(resultCalling.getId());
+        assertNull(resultCalling.getMemberId());
+        assertNull(resultCalling.getConflictCause());
     }
 
     @Test
     public void mergeEmptyCallings() {
-        Org lcrOrg = sampleLCROrgMultiplesAllowed;
-        Org cwfOrg = sampleCWFOrgMultiplesAllowed;
+        final Org lcrOrg = sampleLCROrgMultiplesAllowed;
+        final Org cwfOrg = sampleCWFOrgMultiplesAllowed;
 
         for(Calling calling: lcrOrg.getCallings()) {
             removeCurrentCallingInfo(calling);
@@ -332,37 +438,50 @@ public class DataManagerTests {
             removeCurrentCallingInfo(calling);
         }
 
-        int startingSize = lcrOrg.getCallings().size();
+        final int startingSize = lcrOrg.getCallings().size();
 
         //The app will re-import and merge data so we need to run it more than once
-        for(int i=0; i < 2; i++) {
-            callingData.mergeOrgs(lcrOrg, cwfOrg);
-
-            //all the callings should have matched up so the number should be the same
-            assertEquals(startingSize, lcrOrg.getCallings().size());
-
-            //Now check that the callings were updated with CWF data, with empty callings we don't know what order they'll be match up in
-            int matchesFound = 0;
-            for (Calling cwfCalling: cwfOrg.getCallings()) {
-                for(Calling mergedCalling: lcrOrg.getCallings()) {
-                    if (cwfCalling.getCwfId().equals(mergedCalling.getCwfId())) {
-                        matchesFound++;
-                        confirmCWFDataMerged(mergedCalling, cwfCalling);
-                        break;
+        final List<Org> lcrList = Collections.singletonList(lcrOrg);
+        final List<Org> cwfList = Collections.singletonList(cwfOrg);
+        runLoadOrgs(lcrList, cwfList, new Response.Listener<Boolean>() {
+            @Override
+            public void onResponse(Boolean response) {
+                checkEmptyCallingsResult(startingSize, lcrOrg, cwfOrg);
+                runLoadOrgs(lcrList, cwfList, new Response.Listener<Boolean>() {
+                    @Override
+                    public void onResponse(Boolean response) {
+                        checkEmptyCallingsResult(startingSize, lcrOrg, cwfOrg);
                     }
+                });
+            }
+        });
+    }
+    private void checkEmptyCallingsResult(int startingSize, Org lcrOrg, Org cwfOrg) {
+
+        //all the callings should have matched up so the number should be the same
+        assertEquals(startingSize, lcrOrg.getCallings().size());
+
+        //Now check that the callings were updated with CWF data, with empty callings we don't know what order they'll be matched up in
+        int matchesFound = 0;
+        for (Calling cwfCalling: cwfOrg.getCallings()) {
+            for(Calling mergedCalling: lcrOrg.getCallings()) {
+                if (cwfCalling.getCwfId().equals(mergedCalling.getCwfId())) {
+                    matchesFound++;
+                    confirmCWFDataMerged(mergedCalling, cwfCalling);
+                    break;
                 }
             }
-            assertEquals(cwfOrg.getCallings().size(), matchesFound);
-
         }
+        assertEquals(cwfOrg.getCallings().size(), matchesFound);
     }
 
     @Test
     public void mergeEmptyCallingsDeletedFromLCR() {
-        Org lcrOrg = sampleLCROrgMultiplesAllowed;
-        Org cwfOrg = sampleCWFOrgMultiplesAllowed;
+        final Org lcrOrg = sampleLCROrgMultiplesAllowed;
+        final Org cwfOrg = sampleCWFOrgMultiplesAllowed;
 
-        lcrOrg.getCallings().remove(1);
+        lcrOrg.getCallings().clear();
+        removeProposedCallingInfo(cwfOrg.getCallings().get(1));
         for(Calling calling: lcrOrg.getCallings()) {
             removeCurrentCallingInfo(calling);
         }
@@ -370,34 +489,36 @@ public class DataManagerTests {
             removeCurrentCallingInfo(calling);
         }
 
-        int startingSize = lcrOrg.getCallings().size();
+        final int startingSize = lcrOrg.getCallings().size();
 
         //The app will re-import and merge data so we need to run it more than once
-        for(int i=0; i < 2; i++) {
-            callingData.mergeOrgs(lcrOrg, cwfOrg);
-
-            //all the callings should have matched up so the number should be the same
-            assertEquals(startingSize + 1, lcrOrg.getCallings().size());
-
-            //Now check that the callings were updated with CWF data, with empty callings we don't know what order they'll be match up in
-            int matchesFound = 0;
-            for (Calling cwfCalling: cwfOrg.getCallings()) {
-                for(Calling mergedCalling: lcrOrg.getCallings()) {
-                    if (cwfCalling.getCwfId().equals(mergedCalling.getCwfId())) {
-                        matchesFound++;
-                        confirmCWFDataMerged(mergedCalling, cwfCalling);
-                        break;
+        final List<Org> lcrList = Collections.singletonList(lcrOrg);
+        final List<Org> cwfList = Collections.singletonList(cwfOrg);
+        runLoadOrgs(lcrList, cwfList, new Response.Listener<Boolean>() {
+            @Override
+            public void onResponse(Boolean response) {
+                checkEmptyCallingsDeletedFromLCRResult(startingSize, lcrOrg, cwfOrg);
+                runLoadOrgs(lcrList, cwfList, new Response.Listener<Boolean>() {
+                    @Override
+                    public void onResponse(Boolean response) {
+                        checkEmptyCallingsDeletedFromLCRResult(startingSize, lcrOrg, cwfOrg);
                     }
-                }
+                });
             }
-            assertEquals(cwfOrg.getCallings().size(), matchesFound);
-        }
+        });
+    }
+    private void checkEmptyCallingsDeletedFromLCRResult(int startingSize, Org lcrOrg, Org cwfOrg) {
+        //the calling with potential data should be added and the one without should be left off
+        assertEquals(startingSize + 1, lcrOrg.getCallings().size());
+
+        //Now check that the calling was updated with CWF data
+        confirmCWFDataMerged(lcrOrg.getCallings().get(0), cwfOrg.getCallings().get(0));
     }
 
     @Test
     public void mergeEmptyCallingsAddedToLCR() {
-        Org lcrOrg = sampleLCROrgMultiplesAllowed;
-        Org cwfOrg = sampleCWFOrgMultiplesAllowed;
+        final Org lcrOrg = sampleLCROrgMultiplesAllowed;
+        final Org cwfOrg = sampleCWFOrgMultiplesAllowed;
 
         for(Calling calling: lcrOrg.getCallings()) {
             removeCurrentCallingInfo(calling);
@@ -407,66 +528,91 @@ public class DataManagerTests {
             removeCurrentCallingInfo(calling);
         }
 
-        int startingSize = lcrOrg.getCallings().size();
+        final int startingSize = lcrOrg.getCallings().size();
 
         //The app will re-import and merge data so we need to run it more than once
-        for(int i=0; i < 2; i++) {
-            callingData.mergeOrgs(lcrOrg, cwfOrg);
-
-            //all the callings should have matched up so the number should be the same
-            assertEquals(startingSize, lcrOrg.getCallings().size());
-
-            //Now check that the callings were updated with CWF data, with empty callings we don't know what order they'll be match up in
-            int matchesFound = 0;
-            for (Calling cwfCalling: cwfOrg.getCallings()) {
-                for(Calling mergedCalling: lcrOrg.getCallings()) {
-                    if (cwfCalling.getCwfId().equals(mergedCalling.getCwfId())) {
-                        matchesFound++;
-                        confirmCWFDataMerged(mergedCalling, cwfCalling);
-                        break;
+        final List<Org> lcrList = Collections.singletonList(lcrOrg);
+        final List<Org> cwfList = Collections.singletonList(cwfOrg);
+        runLoadOrgs(lcrList, cwfList, new Response.Listener<Boolean>() {
+            @Override
+            public void onResponse(Boolean response) {
+                checkEmptyCallingsAddedToLCRResult(startingSize, lcrOrg, cwfOrg);
+                runLoadOrgs(lcrList, cwfList, new Response.Listener<Boolean>() {
+                    @Override
+                    public void onResponse(Boolean response) {
+                        checkEmptyCallingsAddedToLCRResult(startingSize, lcrOrg, cwfOrg);
                     }
+                });
+            }
+        });
+    }
+    private void checkEmptyCallingsAddedToLCRResult(int startingSize, Org lcrOrg, Org cwfOrg) {
+
+        //all the callings should have matched up so the number should be the same
+        assertEquals(startingSize, lcrOrg.getCallings().size());
+
+        //Now check that the callings were updated with CWF data, with empty callings we don't know what order they'll be match up in
+        int matchesFound = 0;
+        for (Calling cwfCalling : cwfOrg.getCallings()) {
+            for (Calling mergedCalling : lcrOrg.getCallings()) {
+                if (cwfCalling.getCwfId().equals(mergedCalling.getCwfId())) {
+                    matchesFound++;
+                    confirmCWFDataMerged(mergedCalling, cwfCalling);
+                    break;
                 }
             }
-            assertEquals(cwfOrg.getCallings().size(), matchesFound);
         }
+        assertEquals(cwfOrg.getCallings().size(), matchesFound);
     }
 
     @Test
     public void mergeWithCWFOnly() {
-        Org lcrOrg = sampleLCROrgNoMultiplesAllowed;
-        Org cwfOrg = sampleCWFOrgNoMultiplesAllowed;
+        final Org lcrOrg = sampleLCROrgNoMultiplesAllowed;
+        final Org cwfOrg = sampleCWFOrgNoMultiplesAllowed;
 
         removeCurrentCallingInfo(cwfOrg.getCallings().get(1));
         cwfOrg.getCallings().get(1).setCwfOnly(true);
 
-        int startingSize = lcrOrg.getCallings().size();
+        final int startingSize = lcrOrg.getCallings().size();
 
         //The app will re-import and merge data so we need to run it more than once
-        for(int i=0; i < 2; i++) {
-            callingData.mergeOrgs(lcrOrg, cwfOrg);
-
-            //we should have one more since we changed the one to cwfOnly
-            assertEquals(startingSize + 1, lcrOrg.getCallings().size());
-
-            //Now check that the callings were updated with CWF data
-            int matchesFound = 0;
-            for (Calling cwfCalling: cwfOrg.getCallings()) {
-                for(Calling mergedCalling: lcrOrg.getCallings()) {
-                    if (cwfCalling.getCwfId().equals(mergedCalling.getCwfId())) {
-                        matchesFound++;
-                        confirmCWFDataMerged(mergedCalling, cwfCalling);
-                        break;
+        final List<Org> lcrList = Collections.singletonList(lcrOrg);
+        final List<Org> cwfList = Collections.singletonList(cwfOrg);
+        runLoadOrgs(lcrList, cwfList, new Response.Listener<Boolean>() {
+            @Override
+            public void onResponse(Boolean response) {
+                checkWithCWFOnlyResult(startingSize, lcrOrg, cwfOrg);
+                runLoadOrgs(lcrList, cwfList, new Response.Listener<Boolean>() {
+                    @Override
+                    public void onResponse(Boolean response) {
+                        checkWithCWFOnlyResult(startingSize, lcrOrg, cwfOrg);
                     }
+                });
+            }
+        });
+    }
+    private void checkWithCWFOnlyResult(int startingSize, Org lcrOrg, Org cwfOrg) {
+        //we should have one more since we changed the one to cwfOnly
+        assertEquals(startingSize + 1, lcrOrg.getCallings().size());
+
+        //Now check that the callings were updated with CWF data
+        int matchesFound = 0;
+        for (Calling cwfCalling : cwfOrg.getCallings()) {
+            for (Calling mergedCalling : lcrOrg.getCallings()) {
+                if (cwfCalling.getCwfId().equals(mergedCalling.getCwfId())) {
+                    matchesFound++;
+                    confirmCWFDataMerged(mergedCalling, cwfCalling);
+                    break;
                 }
             }
-            assertEquals(cwfOrg.getCallings().size(), matchesFound);
         }
+        assertEquals(cwfOrg.getCallings().size(), matchesFound);
     }
 
     @Test
     public void mergeCWFOnlyWithEmptyCallings() {
-        Org lcrOrg = sampleLCROrgMultiplesAllowed;
-        Org cwfOrg = sampleCWFOrgMultiplesAllowed;
+        final Org lcrOrg = sampleLCROrgMultiplesAllowed;
+        final Org cwfOrg = sampleCWFOrgMultiplesAllowed;
 
         for(Calling calling: lcrOrg.getCallings()) {
             removeCurrentCallingInfo(calling);
@@ -476,29 +622,40 @@ public class DataManagerTests {
         }
         cwfOrg.getCallings().get(1).setCwfOnly(true);
 
-        int startingSize = lcrOrg.getCallings().size();
+        final int startingSize = lcrOrg.getCallings().size();
 
         //The app will re-import and merge data so we need to run it more than once
-        for(int i=0; i < 2; i++) {
-            callingData.mergeOrgs(lcrOrg, cwfOrg);
-
-            //we should have one more since we change one to cwfOnly
-            assertEquals(startingSize + 1, lcrOrg.getCallings().size());
-
-            //Now check that the callings were updated with CWF data, with empty callings we don't know what order they'll be match up in
-            int matchesFound = 0;
-            for (Calling cwfCalling: cwfOrg.getCallings()) {
-                for(Calling mergedCalling: lcrOrg.getCallings()) {
-                    if (cwfCalling.getCwfId().equals(mergedCalling.getCwfId())) {
-                        matchesFound++;
-                        confirmCWFDataMerged(mergedCalling, cwfCalling);
-                        break;
+        final List<Org> lcrList = Collections.singletonList(lcrOrg);
+        final List<Org> cwfList = Collections.singletonList(cwfOrg);
+        runLoadOrgs(lcrList, cwfList, new Response.Listener<Boolean>() {
+            @Override
+            public void onResponse(Boolean response) {
+                checkCWFOnlyWithEmptyCallingsResult(startingSize, lcrOrg, cwfOrg);
+                runLoadOrgs(lcrList, cwfList, new Response.Listener<Boolean>() {
+                    @Override
+                    public void onResponse(Boolean response) {
+                        checkCWFOnlyWithEmptyCallingsResult(startingSize, lcrOrg, cwfOrg);
                     }
+                });
+            }
+        });
+    }
+    private void checkCWFOnlyWithEmptyCallingsResult(int startingSize, Org lcrOrg, Org cwfOrg) {
+        //we should have one more since we change one to cwfOnly
+        assertEquals(startingSize + 1, lcrOrg.getCallings().size());
+
+        //Now check that the callings were updated with CWF data, with empty callings we don't know what order they'll be match up in
+        int matchesFound = 0;
+        for (Calling cwfCalling : cwfOrg.getCallings()) {
+            for (Calling mergedCalling : lcrOrg.getCallings()) {
+                if (cwfCalling.getCwfId().equals(mergedCalling.getCwfId())) {
+                    matchesFound++;
+                    confirmCWFDataMerged(mergedCalling, cwfCalling);
+                    break;
                 }
             }
-            assertEquals(cwfOrg.getCallings().size(), matchesFound);
-
         }
+        assertEquals(cwfOrg.getCallings().size(), matchesFound);
     }
 
     @Test
@@ -690,8 +847,28 @@ public class DataManagerTests {
         testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates, expectedDeletes);
     }
 
-    public void testMergeUpdatingGoogleDrive(final List<Org> lcrOrgs, final List<Org> cwfOrgs, final List<Org> expectedSaves, final List<Org> expectedDeletes) {
-        //To properly test this we'll need to run the whole loadOrgs process. Do do this we'll need to set the mock objects to give values to the callbacks
+    private void testMergeUpdatingGoogleDrive(final List<Org> lcrOrgs, final List<Org> cwfOrgs, final List<Org> expectedSaves, final List<Org> expectedDeletes) {
+        runLoadOrgs(lcrOrgs, cwfOrgs, new Response.Listener<Boolean>() {
+            @Override
+            public void onResponse(Boolean success) {
+                assertTrue(success);
+                //check to make sure mockGoogleDataService received all expected save calls and no others
+                for(Org expectedOrgSave: expectedSaves) {
+                    verify(mockGoogleDataService).saveOrgFile(any(Response.Listener.class), eq(expectedOrgSave));
+                }
+                verify(mockGoogleDataService, times(expectedSaves.size())).saveOrgFile(any(Response.Listener.class), any(Org.class));
+
+                //check to make sure mockGoogleDataService received all expected delete calls and no others
+                for(Org expectedOrgDelete: expectedDeletes) {
+                    verify(mockGoogleDataService).deleteFile(any(Response.Listener.class), eq(expectedOrgDelete));
+                }
+                verify(mockGoogleDataService, times(expectedDeletes.size())).deleteFile(any(Response.Listener.class), any(Org.class));
+            }
+        });
+    }
+
+    private void runLoadOrgs(final List<Org> lcrOrgs, final List<Org> cwfOrgs, Response.Listener<Boolean> callback) {
+        //We need to set the mock objects to give values to the callbacks
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
@@ -702,10 +879,10 @@ public class DataManagerTests {
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
-                ((Response.Listener<List<Org>>)invocation.getArguments()[0]).onResponse(lcrOrgs);
+                ((Response.Listener<List<Org>>)invocation.getArguments()[1]).onResponse(lcrOrgs);
                 return null;
             }
-        }).when(mockWebResources).getOrgs(any(Response.Listener.class));
+        }).when(mockWebResources).getOrgs(any(boolean.class), any(Response.Listener.class));
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
@@ -722,22 +899,6 @@ public class DataManagerTests {
         }).when(mockGoogleDataService).getOrgs(any(Response.Listener.class), any(Response.ErrorListener.class));
 
         //run whole merge process including saving changes back to google drive
-        callingData.loadOrgs(new Response.Listener<Boolean>() {
-            @Override
-            public void onResponse(Boolean success) {
-                assertTrue(success);
-                //check to make sure mockGoogleDataService received all expected save calls and no others
-                for(Org expectedOrgSave: expectedSaves) {
-                    verify(mockGoogleDataService).saveOrgFile(any(Response.Listener.class), eq(expectedOrgSave));
-                }
-                verify(mockGoogleDataService, times(expectedSaves.size())).saveOrgFile(any(Response.Listener.class), any(Org.class));
-
-                //check to make sure mockGoogleDataService received all expected delete calls and no others
-                for(Org expectedOrgDelete: expectedDeletes) {
-                    verify(mockGoogleDataService).deleteFile(any(Response.Listener.class), eq(expectedOrgDelete));
-                }
-                verify(mockGoogleDataService, times(expectedDeletes.size())).deleteFile(any(Response.Listener.class), any(Org.class));
-            }
-        }, mockProgressBar, mockActivity, mockUser);
+        callingData.loadOrgs(callback, mockProgressBar, mockActivity, user);
     }
 }

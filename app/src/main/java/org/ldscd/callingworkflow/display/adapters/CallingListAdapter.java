@@ -3,19 +3,16 @@ package org.ldscd.callingworkflow.display.adapters;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.constants.CallingStatus;
 import org.ldscd.callingworkflow.display.CallingDetailActivity;
 import org.ldscd.callingworkflow.display.CallingDetailFragment;
-import org.ldscd.callingworkflow.display.ConflictInfoFragment;
 import org.ldscd.callingworkflow.display.ExpandableOrgsListActivity;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Org;
@@ -112,23 +109,6 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
                 //}
             }
         });
-
-        //Manage conflict icon
-        if(holder.callingItem.getConflictCause() != null) {
-            holder.conflictIconView.setVisibility(View.VISIBLE);
-            holder.view.setBackgroundColor(ContextCompat.getColor(holder.view.getContext(), R.color.conflict_background));
-            holder.conflictIconView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    ConflictInfoFragment conflictInfo = new ConflictInfoFragment();
-                    conflictInfo.setCalling(holder.callingItem);
-                    conflictInfo.show(fragmentManager, "ConflictInfo");
-                }
-            });
-        } else {
-            holder.conflictIconView.setVisibility(View.GONE);
-            holder.view.setBackgroundColor(ContextCompat.getColor(holder.view.getContext(), R.color.white_background));
-        }
     }
 
     @Override
@@ -141,7 +121,6 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
         public final TextView callingTitleView;
         public final TextView currentCalledView;
         public final TextView proposedMemberView;
-        public final ImageView conflictIconView;
         public Calling callingItem;
 
         public ViewHolder(View view) {
@@ -150,7 +129,6 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
             callingTitleView = (TextView) view.findViewById(R.id.calling_item_title);
             currentCalledView = (TextView) view.findViewById(R.id.calling_item_current);
             proposedMemberView = (TextView) view.findViewById(R.id.calling_item_proposed);
-            conflictIconView = (ImageView) view.findViewById(R.id.calling_conflict_icon);
         }
     }
 

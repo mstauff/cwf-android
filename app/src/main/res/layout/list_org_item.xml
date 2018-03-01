@@ -21,6 +21,15 @@
             android:fontFamily="@font/roboto"
             android:textAppearance="?attr/textAppearanceListItem" />
 
+        <!-- this was moved here from list_calling_item for future use -->
+        <!--<ImageView
+            android:id="@+id/calling_conflict_icon"
+            android:layout_width="@dimen/icon_width"
+            android:layout_height="match_parent"
+            android:layout_margin="@dimen/text_margin"
+            app:srcCompat="?android:attr/alertDialogIcon"
+            android:layout_gravity="center_vertical"/>-->
+
         <View
             android:layout_width="1dp"
             android:layout_height="match_parent"
