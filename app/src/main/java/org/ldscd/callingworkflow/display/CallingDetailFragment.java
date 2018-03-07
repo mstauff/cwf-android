@@ -1,5 +1,6 @@
 package org.ldscd.callingworkflow.display;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.Bundle;
@@ -7,6 +8,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +16,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TextView;
@@ -29,6 +33,8 @@ import org.ldscd.callingworkflow.constants.Operation;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.LdsUser;
 import org.ldscd.callingworkflow.model.Member;
+import org.ldscd.callingworkflow.model.PositionMetaData;
+import org.ldscd.callingworkflow.model.PositionRequirements;
 import org.ldscd.callingworkflow.model.permissions.constants.Permission;
 import org.ldscd.callingworkflow.web.DataManager;
 
@@ -205,6 +211,8 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
             TextView proposedNameLabel = (TextView) view.findViewById(R.id.label_calling_detail_proposed);
             proposedNameLabel.setVisibility(View.GONE);
         } else {
+            ImageView memberWarningIcon = (ImageView) view.findViewById(R.id.member_selection_warning);
+            memberWarningIcon.setVisibility(View.GONE);
             if (calling.getProposedIndId() != null && calling.getProposedIndId() != 0) {
                 this.proposedMember = dataManager.getMember(calling.getProposedIndId());
                 String formattedName = dataManager.getMemberName(calling.getProposedIndId());
@@ -218,6 +226,27 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
                                 wireUpIndividualInformationFragments(proposedMember.getIndividualId());
                             }
                         });
+                        PositionMetaData metaData = dataManager.getPositionMetadata(calling.getPosition().getPositionTypeId());
+                        PositionRequirements requirements = metaData != null ? metaData.getRequirements() : null;
+                        if(requirements != null && !requirements.meetsRequirements(proposedMember)) {
+                            memberWarningIcon.setVisibility(View.VISIBLE);
+                            memberWarningIcon.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    View dialogView = getActivity().getLayoutInflater().inflate(R.layout.warning_dialog_text, null);
+                                    TextView messageTextView = (TextView)dialogView.findViewById(R.id.warning_message);
+                                    messageTextView.setText(R.string.missing_requirement_warning);
+                                    AlertDialog alertDialog = new AlertDialog.Builder(getContext())
+                                            .setView(dialogView)
+                                            .setPositiveButton(R.string.ok, null)
+                                            .show();
+                                    Button positiveButton = alertDialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                                    LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams)positiveButton.getLayoutParams();
+                                    layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                                    positiveButton.setLayoutParams(layoutParams);
+                                }
+                            });
+                        }
                     }
                 }
             }
