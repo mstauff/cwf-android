@@ -150,7 +150,7 @@ public class ExpandableOrgsListActivity extends AppCompatActivity {
                     context.startActivity(intent);
                     return true;
                 } else {
-                    String callingId = subOrg.getCallings().get(subIndex).getCallingId();
+                    String callingId = subOrg.getCallings().get(subIndex - subOrg.getChildren().size()).getCallingId();
                     openCallingDetail(view.getContext(), callingId);
                     return true;
                 }

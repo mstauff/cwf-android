@@ -869,16 +869,16 @@ public class CallingData {
             @Override
             public void onResponse(UnitSettings unitSettings) {
                 List<CallingStatus> statuses = new ArrayList<CallingStatus>();
-                if(unitSettings.getDisabledStatuses().size()+1 == CallingStatus.values().length) {
+                //if(unitSettings.getDisabledStatuses().size()+1 == CallingStatus.values().length) {
                     statuses.clear();
                     statuses.addAll(Arrays.asList(CallingStatus.values()));
-                } else {
+                /*} else {
                     for (CallingStatus status : CallingStatus.values()) {
                         if (!unitSettings.getDisabledStatuses().contains(status)) {
                             statuses.add((status));
                         }
                     }
-                }
+                }*/
                 listener.onResponse(statuses);
             }
         }, unitNumber);
