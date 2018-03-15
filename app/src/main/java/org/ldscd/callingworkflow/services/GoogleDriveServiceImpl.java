@@ -92,6 +92,7 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
         mDriveClient = Drive.getDriveClient(context, signInAccount);
         mDriveResourceClient = Drive.getDriveResourceClient(context, signInAccount);
     }
+
     @Override
     public boolean isAuthenticated(Context context) {
         signInAccount = GoogleSignIn.getLastSignedInAccount(context);
