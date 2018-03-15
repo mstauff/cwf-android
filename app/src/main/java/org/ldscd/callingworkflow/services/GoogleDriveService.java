@@ -16,6 +16,6 @@ public interface GoogleDriveService {
     Task<Boolean> saveOrgFile(final Org org);
     Task<Boolean> deleteOrgs(final List<Org> orgs);
     Task<Boolean> syncDriveIds(List<Org> orgList);
-    Task<UnitSettings> getUnitSettings(Long unitNumber, boolean getCachedItems);
+    Task<UnitSettings> getUnitSettings(Long unitNumber);
     Task<Boolean> saveUnitSettings(UnitSettings unitSettings);
 }

@@ -109,10 +109,11 @@ public class CallingData {
                                         public Task<Void> then(@NonNull Task<Boolean> task) throws Exception {
                                             if(task.getResult()) {
                                                 pb.setProgress(pb.getProgress() + 15);
+                                                orgsCallback.onResponse(true);
                                                 importAndMergeGoogleData(new Response.Listener<Boolean>(){
                                                     @Override
                                                     public void onResponse(Boolean mergeSucceeded) {
-                                                        if(mergeSucceeded) {
+                                                        if(mergeSucceeded){
                                                             for (Org org : orgs) {
                                                                 extractOrg(org, org.getId());
                                                             }
@@ -170,7 +171,6 @@ public class CallingData {
         callingsById = new HashMap<>();
         baseOrgByOrgId = new HashMap<>();
     }
-
     public void refreshLCROrgs(final Response.Listener<Boolean> listener, final LdsUser currentUser) {
         webResources.getOrgs(true, new Response.Listener<List<Org>>() {
             @Override
@@ -187,6 +187,7 @@ public class CallingData {
                             @Override
                             public Task<Org> then(@NonNull Task<Boolean> task) throws Exception {
                                 if(task.getResult()) {
+                                    listener.onResponse(true);
                                     importAndMergeGoogleData(new Response.Listener<Boolean>() {
                                         @Override
                                         public void onResponse(Boolean response) {
@@ -200,37 +201,29 @@ public class CallingData {
                                                     baseOrgsToSave.add(getBaseOrg(org.getId()));
                                                 }
                                                 orgsToSave.clear();
-                                                /* Save orgs if necessary. */
-                                                if(baseOrgsToSave.size() > 0) {
-                                                    final List<Task<Boolean>> saveOrgFileTasks = new ArrayList<>(orgs.size());
-                                                    for (Org org : baseOrgsToSave) {
-                                                        saveOrgFileTasks.add(googleDriveService.saveOrgFile(org));
-                                                    }
-                                                    Tasks.whenAllComplete(saveOrgFileTasks)
-                                                        .continueWithTask(new Continuation<List<Task<?>>, Task<Void>>() {
-                                                            @Override
-                                                            public Task<Void> then(@NonNull Task<List<Task<?>>> task) throws Exception {
-                                                                Boolean good = true;
-                                                                for (Task<Boolean> results : saveOrgFileTasks) {
-                                                                    if (!results.getResult()) {
-                                                                        good = false;
-                                                                        break;
-                                                                    }
-                                                                }
-                                                                listener.onResponse(good);
-                                                                return null;
-                                                            }
-                                                        });
-                                                } else {
-                                                    listener.onResponse(true);
+                                                final List<Task<Boolean>> saveOrgFileTasks = new ArrayList<>(orgs.size());
+                                                for (Org org : baseOrgsToSave) {
+                                                    saveOrgFileTasks.add(googleDriveService.saveOrgFile(org));
                                                 }
+                                                Tasks.whenAllComplete(saveOrgFileTasks)
+                                                    .continueWithTask(new Continuation<List<Task<?>>, Task<Void>>() {
+                                                        @Override
+                                                        public Task<Void> then(@NonNull Task<List<Task<?>>> task) throws Exception {
+                                                            for(Task<Boolean> results : saveOrgFileTasks) {
+                                                                if(!results.getResult()) {
+                                                                    listener.onResponse(false);
+                                                                    break;
+                                                                }
+                                                            }
+                                                            listener.onResponse(true);
+                                                            return null;
+                                                        }
+                                                    });
                                             } else {
                                                 listener.onResponse(false);
                                             }
                                         }
                                     }, currentUser);
-                                } else {
-                                    listener.onResponse(false);
                                 }
                                 return null;
                             }
@@ -240,30 +233,22 @@ public class CallingData {
         });
     }
 
-    /* Removes and replaces the data in google drive with the latest data from LCR.  All pending callings will be removed. */
     public void refreshGoogleDriveOrgs(final Response.Listener<Boolean> listener, final LdsUser currentUser, List<Long> orgIds) {
-       /* Reset all cached items. */
-       List<Org> orgList = new ArrayList<>(orgIds.size());
-       for(Long orgId : orgIds) {
-           Org org = getOrg(orgId);
-           if(org != null) {
-               orgList.add(org);
-           }
-       }
-        List<Org> organizations = getAuthorizableOrgs(orgList, currentUser);
-        googleDriveService.deleteOrgs(organizations)
-                .addOnCompleteListener(new OnCompleteListener<Boolean>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Boolean> task) {
-                        if(task.getResult()) {
-                            memberData.removeAllMemberCallings();
-                            refreshLCROrgs(listener, currentUser);
-                        }
-                    }
-                });
+        webResources.getOrgs(true, new Response.Listener<List<Org>>() {
+            @Override
+            public void onResponse(List<Org> lcrOrgs) {
+                if(lcrOrgs != null) {
+                    /* Reset all cached items. */
+                    List<Org> organizations = getAuthorizableOrgs(lcrOrgs, currentUser);
+                    Task<Boolean> deleteOrgsTask = googleDriveService.deleteOrgs(organizations);
+                    //TODO: finish the rest of this method.
+                } else {
+                    listener.onResponse(true);
+                }
+            }
+        });
     }
 
-    /* Get's the latest data stored in google drive and refreshes the data on the device. */
     public void refreshOrgFromGoogleDrive(final Response.Listener<Org> listener, Long orgId, final LdsUser currentUser) {
         final Org org = getOrg(orgId);
         /* Check org viewing permissions first */
@@ -274,8 +259,8 @@ public class CallingData {
                     @Override
                     public Task<Void> then(@NonNull Task<Org> task) throws Exception {
                         Org googleOrg = task.getResult();
-                        /*changes to current and potential assignments will leave incorrect data in the member objects, we must remove them now
-                        while references still exist in the current org and correct data is added back in after the merge completes*/
+                        //changes to current and potential assignments will leave incorrect data in the member objects, we must remove them now
+                        //while references still exist in the current org and correct data is added back in after the merge completes
                         memberData.removeMemberCallings(org.getCallings());
                         mergeOrgs(org, googleOrg, currentUser);
                         extractOrg(org, org.getId());
@@ -325,10 +310,10 @@ public class CallingData {
                     List<Org> cwfOrgs = task.getResult();
                     if(cwfOrgs != null) {
                         List<Org> cwfOrgsToAdd = new ArrayList<Org>();
-                         /* Cycle through all google drive orgs. */
+                        /* Cycle through all google drive orgs */
                         for (Org cwfOrg : cwfOrgs) {
                             boolean matchFound = false;
-                             /* Cycle through all lcr orgs only until or if a match is found. */
+                            /* Cycle through all lcr orgs only until or if a match is found */
                             for (Org org : orgs) {
                                 if (cwfOrg.getId() == org.getId()) {
                                     memberData.removeMemberCallings(cwfOrg.allOrgCallings());
@@ -337,7 +322,7 @@ public class CallingData {
                                     break;
                                 }
                             }
-                            /* If the org is gone then the user will need to address this cwf org. */
+                            /* If the org is gone then the user will need to address this cwf org */
                             if (!matchFound) {
                                 if (hasProposedData(cwfOrg)) {
                                     cwfOrg.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
@@ -368,7 +353,7 @@ public class CallingData {
             });
     }
 
-    /* This merges the orgs and callings from the cwfOrg into the lcrOrg so when completed the lcrOrg will have both. */
+    //This merges the orgs and callings from the cwfOrg into the lcrOrg so when completed the lcrOrg will have both
     public void mergeOrgs(Org lcrOrg, Org cwfOrg, LdsUser currentUser) {
         if(cwfOrg != null && cwfOrg.getChildren() != null) {
             for (Org cwfSubOrg : cwfOrg.getChildren()) {
@@ -406,7 +391,7 @@ public class CallingData {
         }
     }
 
-    /* This merges callings from both orgs into the lcrOrg. */
+    //This merges callings from both orgs into the lcrOrg
     private void mergeCallings(Org lcrOrg, Org cwfOrg) {
         List<Calling> lcrCallings = lcrOrg.getCallings();
         int cwfMatchableCallingCount = 0;
@@ -931,7 +916,7 @@ public class CallingData {
 
     /* Returns a filtered list of calling status' */
     public void getCallingStatus(final Response.Listener<List<CallingStatus>> listener, Long unitNumber) {
-        Task<UnitSettings> getUnitSettingsTask = googleDriveService.getUnitSettings(unitNumber, true);
+        Task<UnitSettings> getUnitSettingsTask = googleDriveService.getUnitSettings(unitNumber);
         getUnitSettingsTask
             .continueWithTask(new Continuation<UnitSettings, Task<Void>>() {
                 @Override

@@ -67,7 +67,6 @@ public class DataManagerImpl implements DataManager {
         //googleDataService.signIn(signInTask, activity);
     }
     /* User data */
-    public LdsUser getCurrentUser() { return currentUser; }
     @Override
     public void getUserInfo(String userName, String password, boolean hasChanges, final Response.Listener<LdsUser> userListener) {
 
@@ -344,8 +343,8 @@ public class DataManagerImpl implements DataManager {
 
     /* Unit Settings */
     @Override
-    public void getUnitSettings(final Response.Listener<UnitSettings> listener, boolean getCachedItems) {
-        googleDataService.getUnitSettings(getUnitNumber(), getCachedItems)
+    public void getUnitSettings(final Response.Listener<UnitSettings> listener) {
+        googleDataService.getUnitSettings(getUnitNumber())
             .addOnSuccessListener(new OnSuccessListener<UnitSettings>() {
                 @Override
                 public void onSuccess(UnitSettings unitSettings) {
@@ -361,13 +360,7 @@ public class DataManagerImpl implements DataManager {
     }
     @Override
     public void saveUnitSettings(final Response.Listener<Boolean> listener, UnitSettings unitSettings) {
-        googleDataService.saveUnitSettings(unitSettings)
-            .addOnCompleteListener(new OnCompleteListener<Boolean>() {
-                @Override
-                public void onComplete(@NonNull Task<Boolean> task) {
-                    listener.onResponse(task.getResult());
-                }
-            });
+        listener.onResponse(googleDataService.saveUnitSettings(unitSettings).getResult());
     }
     private Long getUnitNumber() {
         return currentUser != null ? currentUser.getUnitNumber() : 0L;
