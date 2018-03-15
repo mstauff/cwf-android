@@ -15,6 +15,7 @@ import javax.inject.Inject;
 
 public class SplashActivity extends AppCompatActivity {
 
+    public static String SPLASH_ACTIVITY = "SplashActivity";
     protected ProgressBar pb;
     private boolean orgDataFinished = false;
     private boolean memberDataFinished = false;
@@ -48,7 +49,13 @@ public class SplashActivity extends AppCompatActivity {
     protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
-            dataManager.loadOrgs(orgListener, pb, this);
+            if(dataManager.isGoogleDriveAuthenticated(getApplicationContext())) {
+                dataManager.loadOrgs(orgListener, pb, this);
+            } else {
+                Intent intent = new Intent(SplashActivity.this, GoogleDriveOptionsActivity.class);
+                intent.putExtra("activity", SPLASH_ACTIVITY);
+                startActivity(intent);
+            }
         }
     }
 
@@ -68,7 +75,13 @@ public class SplashActivity extends AppCompatActivity {
         public void onResponse(Boolean response) {
             if (response) {
                 memberDataFinished = true;
-                dataManager.loadOrgs(orgListener, pb, activity);
+                if(dataManager.isGoogleDriveAuthenticated(getApplicationContext())) {
+                    dataManager.loadOrgs(orgListener, pb, activity);
+                } else {
+                    Intent intent = new Intent(SplashActivity.this, GoogleDriveOptionsActivity.class);
+                    intent.putExtra("activity", SPLASH_ACTIVITY);
+                    startActivity(intent);
+                }
                 if(orgDataFinished) {
                     startApplication();
                 }

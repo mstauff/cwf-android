@@ -1,10 +1,12 @@
 package org.ldscd.callingworkflow.web;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.widget.ProgressBar;
 
 import com.android.volley.Response;
+import com.google.android.gms.tasks.Task;
 
 import org.json.JSONException;
 import org.ldscd.callingworkflow.constants.CallingStatus;
@@ -21,6 +23,8 @@ import java.util.List;
 public interface DataManager {
     /* Methods */
     PermissionManager getPermissionManager();
+    /* Google Drive */
+    boolean isGoogleDriveAuthenticated(Context context);
     /* User data */
     void getUserInfo(String userName, String password, boolean hasChanges, Response.Listener<LdsUser> userListener);
     void getSharedPreferences(Response.Listener<SharedPreferences> listener);
@@ -29,6 +33,7 @@ public interface DataManager {
     Calling getCalling(String id);
     Org getOrg(long id);
     List<Org> getOrgs();
+    void refreshGoogleDriveOrgs(List<Long> orgIds, Response.Listener<Boolean> listener);
     void refreshLCROrgs(Response.Listener<Boolean> listener);
     void loadOrgs(Response.Listener<Boolean> listener, ProgressBar progressBar, Activity activity);
     void loadPositionMetadata();

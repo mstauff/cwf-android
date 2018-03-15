@@ -115,6 +115,12 @@
     <string name="action_sign_in">Sign in and Save</string>
     <string name="action_sign_in_short">Sign in</string>
     <string name="action_sign_out">Sign out of Google</string>
+    <string name="action_disconnect">Disconnect</string>
+    <string name="action_signed_in_format">Signed in as: %s</string>
+    <string name="action_signed_in">Signed in</string>
+    <string name="action_signing_in">Signing in…</string>
+    <string name="action_signed_out">Signed out</string>
+    <string name="action_signed_in_err">"Error: please try again."</string>
     <string name="error_invalid_email">This username is invalid</string>
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>
@@ -137,4 +143,5 @@
     <string name="reset_data">Reset Data</string>
     <string name="login_success">Log In Successful</string>
     <string name="logout_successful">Logged Out</string>
+    <string name="logout_failed">Failed to logout</string>
 </resources>

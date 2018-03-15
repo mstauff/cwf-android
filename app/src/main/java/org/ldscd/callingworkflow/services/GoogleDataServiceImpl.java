@@ -10,6 +10,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.drive.Drive;
@@ -179,7 +180,7 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
     }
 
     @Override
-    public void getUnitSettings(final Response.Listener<UnitSettings> listener, final Long unitNumber) {
+    public void getUnitSettings(final Long unitNumber, final Response.Listener<UnitSettings> listener) {
         if(unitSettings == null) {
             DriveFolder appFolder = Drive.DriveApi.getAppFolder(mGoogleApiClient);
             /* From the drive file do invoke the call to open a fresh copy of the file from google drive. */
@@ -247,7 +248,7 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
     }
 
     @Override
-    public void saveUnitSettings(final Response.Listener<Boolean> listener, final UnitSettings unitSettings) {
+    public void saveUnitSettings(final UnitSettings unitSettings, final Response.Listener<Boolean> listener) {
         if (unitSettingsMetadata != null) {
             unitSettingsMetadata.getDriveId().asDriveFile().open(mGoogleApiClient, DriveFile.MODE_WRITE_ONLY, null)
                 .setResultCallback(new ResultCallback<DriveApi.DriveContentsResult>() {
@@ -459,12 +460,12 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
              * the if statement should go away.
              */
             if(metadata == null) {
-                syncDriveIds(new Response.Listener<Boolean>() {
+                syncDriveIds(null, new Response.Listener<Boolean>() {
                     @Override
                     public void onResponse(Boolean response) {
                         listener.onResponse(response);
                     }
-                }, null);
+                });
             }
             if (metadata != null) {
                 DriveId driveId = metadata.getDriveId();
@@ -526,33 +527,56 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
     }
 
     @Override
-    public void deleteFile(final Response.Listener<Boolean> listener, final Org org) {
-        Metadata metadata = metaFileMap.get(DataUtil.getOrgFileName(org));
-        if (metadata != null) {
-            if (metadata.getDriveId() != null) {
-                DriveId fileId = metadata.getDriveId();
-                DriveFile orgFile = fileId.asDriveFile();
-                /* Call to delete app data file. Unable to use trash because it's not a visible file. */
-                com.google.android.gms.common.api.Status deleteStatus =
-                        orgFile.delete(mGoogleApiClient).await();
-                listener.onResponse(deleteStatus.isSuccess());
-                if (!deleteStatus.isSuccess()) {
-                    Log.e(TAG, "Unable to delete app data file.");
+    public void deleteFile(final Response.Listener<Boolean> listener, final List<Org> orgs) {
+        if(orgs != null) {
+            for(Org org : orgs) {
+                Metadata metadata = metaFileMap.get(DataUtil.getOrgFileName(org));
+                if (metadata != null) {
+                    if (metadata.getDriveId() != null) {
+                        DriveId fileId = metadata.getDriveId();
+                        DriveFile orgFile = fileId.asDriveFile();
+                        orgFile.delete(mGoogleApiClient);
+                        /* Call to delete app data file. Unable to use trash because it's not a visible file. */
+                        PendingResult<Status> deleteStatus = orgFile.delete(mGoogleApiClient);
+                        if (deleteStatus.isCanceled()) {
+                            Log.e(TAG, "Unable to delete app data file.");
+                        }
+                        /* Remove stored MetaData. */
+                        metaFileMap.remove(DataUtil.getOrgFileName(org));
+                        Log.d(TAG, "Org file deleted.");
+                    }
                 }
-                /* Remove stored MetaData. */
-                metaFileMap.remove(DataUtil.getOrgFileName(org));
-                Log.d(TAG, "Org file deleted.");
             }
+            listener.onResponse(true);
+        } else {
+            listener.onResponse(false);
         }
     }
 
+    /*public void deleteDriveFile(final DriveFile file) {
+        DriveResourceClient client;
+            client.delete(file)
+            .addOnSuccessListener((Executor) this,
+                    new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            Log.e(TAG, "File: " + file.getDriveId() + "was deleted");
+                        }
+                    })
+            .addOnFailureListener((Executor) this, new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.e(TAG, "Unable to delete file", e);
+                }
+            });
+    }*/
     @Override
     public boolean isAuthenticated() {
         return mGoogleApiClient.isConnected();
     }
 
     @Override
-    public void syncDriveIds(final Response.Listener<Boolean> listener, final List<Org> orgList) {
+    public void syncDriveIds(final List<Org> orgList, final Response.Listener<Boolean> listener) {
         Drive.DriveApi.requestSync(mGoogleApiClient).setResultCallback(new ResultCallback<Status>() {
             @Override
             public void onResult(@NonNull Status status) {
@@ -569,6 +593,7 @@ public class GoogleDataServiceImpl implements GoogleDataService, GoogleApiClient
                                 return;
                             }
                             Map<String, Org> lcrOrgNames = new HashMap<>();
+                            Long unitNumber = orgList.get(0).getUnitNumber();
                             for(Org org : orgList) {
                                 lcrOrgNames.put(DataUtil.getOrgFileName(org), org);
                             }

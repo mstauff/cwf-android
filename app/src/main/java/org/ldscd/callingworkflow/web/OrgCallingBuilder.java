@@ -63,7 +63,7 @@ public class OrgCallingBuilder {
         return orgs;
     }
 
-    private Org extractOrg(JSONObject orgJson) throws JSONException {
+    public Org extractOrg(JSONObject orgJson) throws JSONException {
         long unitNumber = 0;
         try {
             unitNumber = orgJson.getLong(unitNumberFieldName);

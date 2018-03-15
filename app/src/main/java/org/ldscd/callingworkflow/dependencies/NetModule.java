@@ -10,6 +10,8 @@ import dagger.Provides;
 import org.ldscd.callingworkflow.model.permissions.PermissionManager;
 import org.ldscd.callingworkflow.services.GoogleDataService;
 import org.ldscd.callingworkflow.services.GoogleDataServiceImpl;
+import org.ldscd.callingworkflow.services.GoogleDriveService;
+import org.ldscd.callingworkflow.services.GoogleDriveServiceImpl;
 import org.ldscd.callingworkflow.web.DataManager;
 import org.ldscd.callingworkflow.web.DataManagerImpl.DataManagerImpl;
 import org.ldscd.callingworkflow.web.LocalFileResources;
@@ -33,18 +35,18 @@ public class NetModule {
     @Provides
     @Singleton
     IWebResources providesWebResources(Context context, RequestQueue requestQueue, SharedPreferences preferences) {
-        return new LocalFileResources(context, requestQueue); //new WebResources(context, requestQueue, preferences);
+        return new LocalFileResources(context, requestQueue);//new WebResources(context, requestQueue, preferences);
     }
 
     @Provides
     @Singleton
-    GoogleDataService providesGoogleDataServices() {
-        return new GoogleDataServiceImpl();
+    GoogleDriveService providesGoogleDataServices() {
+        return new GoogleDriveServiceImpl();
     }
 
     @Provides
     @Singleton
-    CallingData providesCallingData(IWebResources webResources, GoogleDataService googleDataService, MemberData memberData, PermissionManager permissionManager) {
+    CallingData providesCallingData(IWebResources webResources, GoogleDriveService googleDataService, MemberData memberData, PermissionManager permissionManager) {
         return new CallingData(webResources, googleDataService, memberData, permissionManager);
     }
 
@@ -56,7 +58,7 @@ public class NetModule {
 
     @Provides
     @Singleton
-    DataManager providesDataManagerService(CallingData callingData, MemberData memberData, GoogleDataService googleDataService, IWebResources webResources, PermissionManager permissionManager) {
+    DataManager providesDataManagerService(CallingData callingData, MemberData memberData, GoogleDriveService googleDataService, IWebResources webResources, PermissionManager permissionManager) {
         return new DataManagerImpl(callingData, memberData, googleDataService, webResources, permissionManager);
     }
 

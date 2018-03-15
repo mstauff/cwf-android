@@ -12,11 +12,11 @@ public interface GoogleDataService {
     void getOrgData(Response.Listener<Org> listener, Response.ErrorListener errorListener, Org org);
     void getOrgs(Response.Listener<List<Org>> listener, Response.ErrorListener errorListener);
     void saveOrgFile(final Response.Listener<Boolean> listener, final Org org);
-    void deleteFile(final Response.Listener<Boolean> listener, final Org org);
+    void deleteFile(final Response.Listener<Boolean> listener, final List<Org> orgs);
     boolean isAuthenticated();
-    void syncDriveIds(Response.Listener<Boolean> listener, List<Org> orgList);
+    void syncDriveIds(List<Org> orgList, Response.Listener<Boolean> listener);
     void stopConnection();
     void restartConnection(Response.Listener<Boolean> listener, Activity activity);
-    void getUnitSettings(Response.Listener<UnitSettings> listener, Long unitNumber);
-    void saveUnitSettings(Response.Listener<Boolean> listener, UnitSettings jsonObject);
+    void getUnitSettings(Long unitNumber, Response.Listener<UnitSettings> listener);
+    void saveUnitSettings(UnitSettings unitSettings, Response.Listener<Boolean> listener);
 }

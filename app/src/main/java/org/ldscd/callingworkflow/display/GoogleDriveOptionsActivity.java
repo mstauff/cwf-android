@@ -8,168 +8,227 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.MenuItem;
+import android.util.Log;
 import android.view.View;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.Response;
-import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.SignInButton;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.Scope;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 
 import org.ldscd.callingworkflow.R;
-import org.ldscd.callingworkflow.services.GoogleDataService;
+import org.ldscd.callingworkflow.services.GoogleDriveService;
 import org.ldscd.callingworkflow.web.DataManager;
 
 import javax.inject.Inject;
 
-public class GoogleDriveOptionsActivity extends AppCompatActivity {
-    protected static final int REQUEST_CODE_SIGN_IN = 1;
+import static org.ldscd.callingworkflow.display.SplashActivity.SPLASH_ACTIVITY;
 
+public class GoogleDriveOptionsActivity extends AppCompatActivity implements View.OnClickListener {
+    /** Fields */
+    private static final String TAG = "GoogleDriveOptionsActivity";
+    private Activity activity;
+    private boolean loadDataOnExit = false;
+    private static final int RC_SIGN_IN = 9001;
+    private GoogleSignInClient mGoogleSignInClient;
+    private TextView mStatusTextView;
+    private GoogleSignInOptions gso;
+    /** Properties */
     @Inject
-    GoogleDataService googleDataService;
+    GoogleDriveService googleDataService;
+
     @Inject
     DataManager dataManager;
 
-    private Activity activity;
-    private SignInButton signInButton;
-    private TextView signOutLink;
-    private TextView resetDataLink;
-    private boolean loadDataOnExit = false;
-
+    /** Methods */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ((CWFApplication) getApplication()).getNetComponent().inject(this);
         setContentView(R.layout.activity_google_settings);
+        /* Wire up injected items. */
+        ((CWFApplication)getApplication()).getNetComponent().inject(this);
 
-        // Show the Up button in the action bar.
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        /* Show the Up button in the action bar. */
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
+        assert actionBar != null;
         actionBar.setDisplayHomeAsUpEnabled(true);
         actionBar.setTitle(R.string.title_google_settings);
 
         activity = this;
-        signInButton = (SignInButton) findViewById(R.id.google_sign_in_button);
-        signOutLink = (TextView) findViewById(R.id.google_sign_out_link);
-        resetDataLink = (TextView) findViewById(R.id.reset_data_link);
 
-        final GoogleApiClient signInClient = new GoogleApiClient.Builder(this)
-                .addApi(Auth.GOOGLE_SIGN_IN_API)
+        /* Views */
+        mStatusTextView = findViewById(R.id.status);
+
+        /* Button listeners */
+        findViewById(R.id.google_sign_in_button).setOnClickListener(this);
+        findViewById(R.id.google_sign_out_button).setOnClickListener(this);
+        findViewById(R.id.google_disconnect_button).setOnClickListener(this);
+        findViewById(R.id.reset_data_link).setOnClickListener(this);
+
+        /* [START configure_signin]
+         * Configure sign-in to request the user's ID, email address, and basic
+         * profile. ID and basic profile are included in DEFAULT_SIGN_IN. */
+        gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestScopes(new Scope(Scopes.DRIVE_FILE))
+                .requestScopes(new Scope(Scopes.DRIVE_APPFOLDER))
                 .build();
+        /* [END configure_signin] */
 
-        signInButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(signInClient);
-                startActivityForResult(signInIntent, REQUEST_CODE_SIGN_IN);
-            }
-        });
+        /* [START build_client]
+         * Build a GoogleSignInClient with access to the Google Sign-In API and the
+         * options specified by gso. */
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+        /* [END build_client] */
 
-        signOutLink.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Auth.GoogleSignInApi.signOut(signInClient).setResultCallback(new ResultCallback<Status>() {
-                    @Override
-                    public void onResult(@NonNull Status status) {
-                        googleDataService.stopConnection();
-                        dataManager.clearLocalOrgData();
-                        loadDataOnExit = false;
-                        setUISignedOut();
-                        Toast.makeText(activity, R.string.logout_successful, Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-        });
-        resetDataLink.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-            }
-        });
-
-        GoogleApiClient.ConnectionCallbacks connectionCallbacks = new GoogleApiClient.ConnectionCallbacks() {
-            @Override
-            public void onConnected(@Nullable Bundle bundle) {
-                //Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(signInClient);
-                Auth.GoogleSignInApi.silentSignIn(signInClient).setResultCallback(new ResultCallback<GoogleSignInResult>() {
-                    @Override
-                    public void onResult(@NonNull GoogleSignInResult googleSignInResult) {
-                        if(googleSignInResult.isSuccess()) {
-                            setUISignedIn();
-                        } else {
-                            setUISignedOut();
-                        }
-                    }
-                });
-            }
-
-            @Override
-            public void onConnectionSuspended(int i) {
-
-            }
-        };
-        signInClient.registerConnectionCallbacks(connectionCallbacks);
-        signInClient.connect();
+        /* [START customize_button]
+         * Customize sign-in button. The sign-in button can be displayed in
+         * multiple sizes. */
+        SignInButton signInButton = findViewById(R.id.google_sign_in_button);
+        signInButton.setSize(SignInButton.SIZE_STANDARD);
+        /* [END customize_button] */
     }
 
-    private void setUISignedIn() {
-        signInButton.setVisibility(View.GONE);
-        signOutLink.setVisibility(View.VISIBLE);
+    @Override
+    public void onStart() {
+        super.onStart();
+        /* Check if the user is already signed in and all required scopes are granted. */
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+        if (account != null && GoogleSignIn.hasPermissions(account, gso.getScopeArray())) {
+            updateUI(account);
+            /* Go back to the splash screen once login was successful */
+            if(getIntent().getStringExtra("activity") != null && getIntent().getStringExtra("activity").equals(SPLASH_ACTIVITY)) {
+                /* Transition to splash screen or directory view depending on which view invoiced this page. */
+                Intent intent = new Intent(this, SplashActivity.class);
+                startActivity(intent);
+            }
+        } else {
+            updateUI(null);
+        }
     }
 
-    private void setUISignedOut() {
-        signInButton.setVisibility(View.VISIBLE);
-        signOutLink.setVisibility(View.GONE);
-
-    }
-
+    /* [START onActivityResult] */
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == REQUEST_CODE_SIGN_IN) {
-            GoogleSignInResult signInResult = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
-            if(signInResult != null && signInResult.isSuccess()) {
-                googleDataService.restartConnection(new Response.Listener<Boolean>() {
-                    @Override
-                    public void onResponse(Boolean response) {
-                        loadDataOnExit = true;
-                        setUISignedIn();
-                        Toast.makeText(activity, R.string.login_success, Toast.LENGTH_SHORT).show();
-                    }
-                }, activity);
+
+        /* Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...); */
+        if (requestCode == RC_SIGN_IN) {
+            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+            handleSignInResult(task);
+        }
+    }
+    /* [END onActivityResult] */
+
+    /* [START handleSignInResult] */
+    private void handleSignInResult(@Nullable Task<GoogleSignInAccount> completedTask) {
+        Log.d(TAG, "handleSignInResult:" + (completedTask != null && completedTask.isSuccessful()));
+
+        try {
+            /* Signed in successfully, show authenticated User */
+            GoogleSignInAccount account = completedTask != null ? completedTask.getResult(ApiException.class) : null;
+            updateUI(account);
+            Toast.makeText(activity, R.string.login_success, Toast.LENGTH_SHORT).show();
+            /* Go back to the splash screen once login was successful */
+            if(getIntent().getStringExtra("activity") != null && getIntent().getStringExtra("activity").equals(SPLASH_ACTIVITY)) {
+                /* Transition to splash screen or directory view depending on which view invoiced this page. */
+                Intent intent = new Intent(this, SplashActivity.class);
+                startActivity(intent);
             }
+        } catch (ApiException e) {
+            /* Signed out, show unauthenticated UI. */
+            Log.w(TAG, "handleSignInResult:error", e);
+            updateUI(null);
         }
     }
+    /* [END handleSignInResult] */
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == android.R.id.home) {
-            finish();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+    /* [START signIn] */
+    private void signIn() {
+        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+        startActivityForResult(signInIntent, RC_SIGN_IN);
     }
+    /* [END signIn] */
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if(loadDataOnExit) {
-            //todo: loadOrgs is a lengthy process, we should display a progress bar to keep them from navigating
-            dataManager.loadOrgs(new Response.Listener<Boolean>() {
-                @Override
-                public void onResponse(Boolean response) {
-                    Toast.makeText(activity, "Done", Toast.LENGTH_SHORT).show();
+    /* [START signOut] */
+    private void signOut() {
+        mGoogleSignInClient.signOut().addOnCompleteListener(this, new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if(task.isSuccessful()) {
+                    /* [START_EXCLUDE] */
+                    dataManager.clearLocalOrgData();
+                    loadDataOnExit = false;
+                    Toast.makeText(activity, R.string.logout_successful, Toast.LENGTH_SHORT).show();
+                    updateUI(null);
+                    /* [END_EXCLUDE] */
+                } else {
+                    Toast.makeText(activity, R.string.logout_failed, Toast.LENGTH_SHORT).show();
                 }
-            }, new ProgressBar(activity), activity);
+            }
+        });
+    }
+    /* [END signOut] */
+
+    /* [START revokeAccess] */
+    private void revokeAccess() {
+        mGoogleSignInClient.revokeAccess().addOnCompleteListener(this,
+            new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    /* [START_EXCLUDE] */
+                    updateUI(null);
+                    Toast.makeText(activity, "Logged out and revoked rights to google drive.", Toast.LENGTH_SHORT).show();
+                    /* [END_EXCLUDE] */
+                }
+            });
+    }
+    /* [END revokeAccess]
+
+     * [START resetGoogleDriveData] */
+    private void resetGoogleDriveData() {
+       dataManager.refreshGoogleDriveOrgs(null, null);
+    }
+    /* [END resetGoogleDriveData] */
+
+    private void updateUI(@Nullable GoogleSignInAccount account) {
+        if (account != null) {
+            mStatusTextView.setText(getString(R.string.action_signed_in_format, account.getDisplayName()));
+
+            findViewById(R.id.google_sign_in_button).setVisibility(View.GONE);
+            findViewById(R.id.google_sign_out_and_disconnect).setVisibility(View.VISIBLE);
+        } else {
+            mStatusTextView.setText(R.string.action_signed_out);
+
+            findViewById(R.id.google_sign_in_button).setVisibility(View.VISIBLE);
+            findViewById(R.id.google_sign_out_and_disconnect).setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.google_sign_in_button:
+                signIn();
+                break;
+            case R.id.google_sign_out_button:
+                signOut();
+                break;
+            case R.id.google_disconnect_button:
+                revokeAccess();
+                break;
+            case R.id.reset_data_link:
+                resetGoogleDriveData();
+                break;
         }
     }
 }
