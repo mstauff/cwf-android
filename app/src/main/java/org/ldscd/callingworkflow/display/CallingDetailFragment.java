@@ -93,8 +93,10 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
 
     @Override
     public void onMemberLookupFragmentInteraction(Member member) {
-        //set status spinner to be reset to proposed if proposedMember changed, UI must be done after the fragment has been restarted
-        if(this.proposedMember != member) {
+        /* Set status spinner to be reset to proposed if proposedMember changed,
+         *  UI must be done after the fragment has been restarted
+         */
+        if(this.proposedMember != member || member == null) {
             resetProposedStatus = true;
         }
 

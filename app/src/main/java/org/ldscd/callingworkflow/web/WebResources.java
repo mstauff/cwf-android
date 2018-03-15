@@ -192,7 +192,7 @@ public class WebResources implements IWebResources {
             authCallback.onResponse(authCookie);
         } else {
             /* Authentication Request to the LDS church. */
-            AuthenticationRequest authRequest = new AuthenticationRequest(userName, password, "https://signin-uat.lds.org/login.html", //configInfo.getEndpointUrl("SIGN_IN"),
+            AuthenticationRequest authRequest = new AuthenticationRequest(userName, password, "https://signin-int.lds.org/login.html", //configInfo.getEndpointUrl("SIGN_IN"),
                     new Response.Listener<String>() {
                         @Override
                         public void onResponse(String response) {

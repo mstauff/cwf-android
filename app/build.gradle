@@ -2,14 +2,14 @@ apply plugin: "com.android.application"
 /*apply plugin: "com.neenbedankt.android-apt"*/
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion '26.0.2'
+    compileSdkVersion 27
+    buildToolsVersion '27.0.2'
     compileOptions.incremental = false
 
     defaultConfig {
         applicationId "org.ldscd.callingworkflow"
-        minSdkVersion 16
-        targetSdkVersion 24
+        minSdkVersion 24
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
 
@@ -28,8 +28,8 @@ android {
 }
 
 dependencies {
-    def androidVersion = "24.2.1"
-    def googlePlayServiceVersion = "9.6.1"
+    def androidVersion = "27.0.2"
+    def googlePlayServiceVersion = "11.8.0"
 
     compile fileTree(include: ['*.jar'], dir: 'libs')
 
@@ -58,10 +58,10 @@ dependencies {
     compile 'com.google.dagger:dagger:2.7'
     compile 'com.android.volley:volley:1.0.0'
     compile 'com.google.code.gson:gson:2.2.4'
-    compile 'com.android.support:design:24.2.1'
-    compile 'com.android.support:support-v4:24.2.1'
+    compile "com.android.support:design:${androidVersion}"
+    compile "com.android.support:support-v4:${androidVersion}"
+    compile "com.android.support:support-vector-drawable:${androidVersion}"
     compile 'com.google.android:flexbox:0.2.7'
-    compile 'com.android.support:support-vector-drawable:24.2.1'
     testCompile 'junit:junit:4.12'
     testCompile 'org.json:json:20140107'
     testCompile 'org.mockito:mockito-core:1.10.19'
