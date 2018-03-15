@@ -1,13 +1,14 @@
 apply plugin: "com.android.application"
+/*apply plugin: "com.neenbedankt.android-apt"*/
 
 android {
     compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    buildToolsVersion '27.0.2'
     compileOptions.incremental = false
 
     defaultConfig {
         applicationId "org.ldscd.callingworkflow"
-        minSdkVersion 19
+        minSdkVersion 24
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
@@ -15,33 +16,10 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
-
-    signingConfigs {
-        release {
-            storeFile file("myreleasekey.keystore")
-            storePassword "password"
-            keyAlias "MyReleaseKey"
-            keyPassword "password"
-        }
-    }
     buildTypes {
         release {
-            minifyEnabled true
+            minifyEnabled false
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
-            //signingConfig signingConfigs.release
-            zipAlignEnabled true
-            /* Custom Parameters */
-            buildConfigField "String", "appConfigUrl", "\"http://dev-config-server-ldscd.7e14.starter-us-west-2.openshiftapps.com/cwf/config\""
-            buildConfigField "boolean", "useLDSOrgData", "true"
-            buildConfigField "boolean", "authRemoteDataWithLdsAcct", "true"
-        }
-        debug {
-            //applicationIdSuffix ".debug"
-            debuggable true
-            /* Custom Parameters */
-            buildConfigField "String", "appConfigUrl", "\"http://dev-config-server-ldscd.7e14.starter-us-west-2.openshiftapps.com/cwf/config?env=stage\""
-            buildConfigField "boolean", "useLDSOrgData", "false"
-            buildConfigField "boolean", "authRemoteDataWithLdsAcct", "false"
         }
     }
     testOptions {
@@ -52,13 +30,16 @@ android {
 dependencies {
     def androidVersion = "27.0.2"
     def googlePlayServiceVersion = "11.8.0"
+
     compile fileTree(include: ['*.jar'], dir: 'libs')
+
     compile "com.android.support:appcompat-v7:${androidVersion}"
     compile "com.android.support:support-v4:${androidVersion}"
     compile "com.android.support:recyclerview-v7:${androidVersion}"
     compile "com.google.android.gms:play-services-drive:${googlePlayServiceVersion}"
     compile "com.google.android.gms:play-services-auth:${googlePlayServiceVersion}"
     compile "com.android.support:support-annotations:${androidVersion}"
+
     /* Test dependencies */
     def espressoVersion = "2.2.2"
     def testRunnerVersion = "0.5"

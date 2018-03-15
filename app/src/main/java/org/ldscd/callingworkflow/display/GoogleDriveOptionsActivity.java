@@ -1,9 +1,6 @@
 package org.ldscd.callingworkflow.display;
 
 import android.app.Activity;
-import android.app.ActivityManager;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -13,11 +10,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.Response;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -29,7 +24,6 @@ import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
-import org.ldscd.callingworkflow.BuildConfig;
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.services.GoogleDriveService;
 import org.ldscd.callingworkflow.web.DataManager;
@@ -40,8 +34,9 @@ import static org.ldscd.callingworkflow.display.SplashActivity.SPLASH_ACTIVITY;
 
 public class GoogleDriveOptionsActivity extends AppCompatActivity implements View.OnClickListener {
     /** Fields */
-    private static final String TAG = "GoogleDriveOptions";
+    private static final String TAG = "GoogleDriveOptionsActivity";
     private Activity activity;
+    private boolean loadDataOnExit = false;
     private static final int RC_SIGN_IN = 9001;
     private GoogleSignInClient mGoogleSignInClient;
     private TextView mStatusTextView;
@@ -84,7 +79,6 @@ public class GoogleDriveOptionsActivity extends AppCompatActivity implements Vie
          * Configure sign-in to request the user's ID, email address, and basic
          * profile. ID and basic profile are included in DEFAULT_SIGN_IN. */
         gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestScopes(new Scope(Scopes.EMAIL))
                 .requestScopes(new Scope(Scopes.DRIVE_FILE))
                 .requestScopes(new Scope(Scopes.DRIVE_APPFOLDER))
                 .build();
@@ -142,41 +136,18 @@ public class GoogleDriveOptionsActivity extends AppCompatActivity implements Vie
         try {
             /* Signed in successfully, show authenticated User */
             GoogleSignInAccount account = completedTask != null ? completedTask.getResult(ApiException.class) : null;
-            if(BuildConfig.authRemoteDataWithLdsAcct) {
-                if(!account.getEmail().contains(dataManager.getCurrentUser().getUnitNumber().toString())) {
-                    Toast.makeText(activity, R.string.account_unit_number_no_match, Toast.LENGTH_LONG).show();
-                    signOut();
-                } else {
-                    continueLoading(account);
-                }
-            } else {
-                continueLoading(account);
+            updateUI(account);
+            Toast.makeText(activity, R.string.login_success, Toast.LENGTH_SHORT).show();
+            /* Go back to the splash screen once login was successful */
+            if(getIntent().getStringExtra("activity") != null && getIntent().getStringExtra("activity").equals(SPLASH_ACTIVITY)) {
+                /* Transition to splash screen or directory view depending on which view invoiced this page. */
+                Intent intent = new Intent(this, SplashActivity.class);
+                startActivity(intent);
             }
-
         } catch (ApiException e) {
             /* Signed out, show unauthenticated UI. */
             Log.w(TAG, "handleSignInResult:error", e);
             updateUI(null);
-        }
-    }
-    private void continueLoading(GoogleSignInAccount account) {
-        updateUI(account);
-        Toast.makeText(activity, R.string.login_success, Toast.LENGTH_SHORT).show();
-            /* Go back to the splash screen once login was successful */
-        if(getIntent().getStringExtra("activity") != null && getIntent().getStringExtra("activity").equals(SPLASH_ACTIVITY)) {
-                /* Transition to splash screen or directory view depending on which view invoiced this page. */
-            Intent intent = new Intent(this, SplashActivity.class);
-            startActivity(intent);
-        } else {
-            final ProgressBar pb = findViewById(R.id.google_sign_in_progress);
-            pb.setVisibility(View.VISIBLE);
-            dataManager.loadOrgs(new Response.Listener<Boolean>() {
-                @Override
-                public void onResponse(Boolean response) {
-                    pb.setVisibility(View.GONE);
-                    finish();
-                }
-            }, pb, this);
         }
     }
     /* [END handleSignInResult] */
@@ -184,7 +155,6 @@ public class GoogleDriveOptionsActivity extends AppCompatActivity implements Vie
     /* [START signIn] */
     private void signIn() {
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
     /* [END signIn] */
@@ -197,6 +167,7 @@ public class GoogleDriveOptionsActivity extends AppCompatActivity implements Vie
                 if(task.isSuccessful()) {
                     /* [START_EXCLUDE] */
                     dataManager.clearLocalOrgData();
+                    loadDataOnExit = false;
                     Toast.makeText(activity, R.string.logout_successful, Toast.LENGTH_SHORT).show();
                     updateUI(null);
                     /* [END_EXCLUDE] */
@@ -225,21 +196,7 @@ public class GoogleDriveOptionsActivity extends AppCompatActivity implements Vie
 
      * [START resetGoogleDriveData] */
     private void resetGoogleDriveData() {
-        View dialogView = getLayoutInflater().inflate(R.layout.warning_dialog_text, null);
-        TextView messageView = (TextView) dialogView.findViewById(R.id.warning_message);
-        messageView.setText(R.string.reset_usage_warning);
-        new AlertDialog.Builder(activity)
-                .setView(dialogView)
-                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        Intent intent = new Intent(activity, ResetDataActivity.class);
-                        startActivity(intent);
-                    }
-                })
-                .setNegativeButton(R.string.cancel, null)
-                .show();
-
+       dataManager.refreshGoogleDriveOrgs(null, null);
     }
     /* [END resetGoogleDriveData] */
 
@@ -249,13 +206,11 @@ public class GoogleDriveOptionsActivity extends AppCompatActivity implements Vie
 
             findViewById(R.id.google_sign_in_button).setVisibility(View.GONE);
             findViewById(R.id.google_sign_out_and_disconnect).setVisibility(View.VISIBLE);
-            findViewById(R.id.reset_data_link).setVisibility(View.VISIBLE);
         } else {
             mStatusTextView.setText(R.string.action_signed_out);
 
             findViewById(R.id.google_sign_in_button).setVisibility(View.VISIBLE);
             findViewById(R.id.google_sign_out_and_disconnect).setVisibility(View.GONE);
-            findViewById(R.id.reset_data_link).setVisibility(View.GONE);
         }
     }
 
