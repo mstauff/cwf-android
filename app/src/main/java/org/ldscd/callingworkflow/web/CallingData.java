@@ -170,6 +170,7 @@ public class CallingData {
         callingsById = new HashMap<>();
         baseOrgByOrgId = new HashMap<>();
     }
+
     public void refreshLCROrgs(final Response.Listener<Boolean> listener, final LdsUser currentUser) {
         webResources.getOrgs(true, new Response.Listener<List<Org>>() {
             @Override
@@ -239,22 +240,30 @@ public class CallingData {
         });
     }
 
+    /* Removes and replaces the data in google drive with the latest data from LCR.  All pending callings will be removed. */
     public void refreshGoogleDriveOrgs(final Response.Listener<Boolean> listener, final LdsUser currentUser, List<Long> orgIds) {
-        webResources.getOrgs(true, new Response.Listener<List<Org>>() {
-            @Override
-            public void onResponse(List<Org> lcrOrgs) {
-                if(lcrOrgs != null) {
-                    /* Reset all cached items. */
-                    List<Org> organizations = getAuthorizableOrgs(lcrOrgs, currentUser);
-                    Task<Boolean> deleteOrgsTask = googleDriveService.deleteOrgs(organizations);
-                    //TODO: finish the rest of this method.
-                } else {
-                    listener.onResponse(true);
-                }
-            }
-        });
+       /* Reset all cached items. */
+       List<Org> orgList = new ArrayList<>(orgIds.size());
+       for(Long orgId : orgIds) {
+           Org org = getOrg(orgId);
+           if(org != null) {
+               orgList.add(org);
+           }
+       }
+        List<Org> organizations = getAuthorizableOrgs(orgList, currentUser);
+        googleDriveService.deleteOrgs(organizations)
+                .addOnCompleteListener(new OnCompleteListener<Boolean>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Boolean> task) {
+                        if(task.getResult()) {
+                            memberData.removeAllMemberCallings();
+                            refreshLCROrgs(listener, currentUser);
+                        }
+                    }
+                });
     }
 
+    /* Get's the latest data stored in google drive and refreshes the data on the device. */
     public void refreshOrgFromGoogleDrive(final Response.Listener<Org> listener, Long orgId, final LdsUser currentUser) {
         final Org org = getOrg(orgId);
         /* Check org viewing permissions first */
