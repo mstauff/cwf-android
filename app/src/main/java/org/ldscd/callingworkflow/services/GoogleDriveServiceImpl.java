@@ -139,7 +139,7 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                         } else {
                             final Org newOrg = new Org(org.getUnitNumber(), org.getId(), org.getDefaultOrgName(), org.getOrgTypeId(),
                                     org.getDisplayOrder(), org.getChildren(), org.getCallings());
-                            createOrgFile(org, null).addOnCompleteListener(new OnCompleteListener<Boolean>() {
+                            createOrgFile(org).addOnCompleteListener(new OnCompleteListener<Boolean>() {
                                 @Override
                                 public void onComplete(@NonNull Task<Boolean> task) {
                                     if(task.getResult()) {
@@ -161,7 +161,13 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
     public Task<List<Org>> getOrgs() {
         final TaskCompletionSource<List<Org>> taskCompletionSource = new TaskCompletionSource<>();
         final List<Task<Metadata>> metadataTasks = new ArrayList<>(metaDriveMap.size());
-        for(DriveId driveId : metaDriveMap.values()) {
+        List<DriveId> driveIds = new ArrayList<>();
+        for(String key : metaDriveMap.keySet()) {
+            if(!key.toLowerCase().contains("config")) {
+                driveIds.add(metaDriveMap.get(key));
+            }
+        }
+        for(DriveId driveId : driveIds) {
             metadataTasks.add(getFileMetaData(driveId.asDriveFile()));
         }
         Tasks.whenAll(metadataTasks)
@@ -277,7 +283,7 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                         });
             } else {
                 /* If the file doesn't exist then create it in google drive. */
-                createOrgFile(org, null)
+                createOrgFile(org)
                     .addOnSuccessListener(new OnSuccessListener<Boolean>() {
                         @Override
                         public void onSuccess(Boolean aBoolean) {
@@ -347,37 +353,8 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
     private Task<Boolean> createOrgFiles(final List<Org> orgs) {
         final TaskCompletionSource taskCompletionSource = new TaskCompletionSource();
         final List<Task<Boolean>> tasks = new ArrayList<>(orgs.size());
-        /*
-        if(orgs.isEmpty()) {
-            taskCompletionSource.setResult(true);
-        } else {
-            getDriveResourceClient().getAppFolder()
-                .addOnSuccessListener(new OnSuccessListener<DriveFolder>() {
-                    @Override
-                    public void onSuccess(DriveFolder driveFolder) {
-                        createOrgFile(orgs.get(0), null)
-                            .addOnSuccessListener(new OnSuccessListener<Boolean>() {
-                                @Override
-                                public void onSuccess(Boolean aBoolean) {
-                                    if(orgs.size() > 1) {
-                                        createOrgFiles(orgs.subList(1, orgs.size()))
-                                                .addOnSuccessListener(new OnSuccessListener<Boolean>() {
-                                                    @Override
-                                                    public void onSuccess(Boolean aBoolean) {
-                                                        taskCompletionSource.setResult(true);
-                                                    }
-                                                });
-                                    } else {
-                                        taskCompletionSource.setResult(true);
-                                    }
-                                }
-                           });
-                    //}
-                //});
-        }*/
-
         for(Org org : orgs) {
-            tasks.add(createOrgFile(org, null));
+            tasks.add(createOrgFile(org));
         }
         Tasks.whenAll(tasks)
             .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -404,7 +381,7 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
         return taskCompletionSource.getTask();
     }
     /* Create a single Org file in the AppData Folder. */
-    private Task<Boolean> createOrgFile(final Org org, DriveFolder driveFolder) {
+    private Task<Boolean> createOrgFile(final Org org) {
         final TaskCompletionSource<Boolean> taskCompletionSource = new TaskCompletionSource<>();
         /* Meta data for the file to be saved. */
         final MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
@@ -417,7 +394,7 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
         gsonBuilder.registerTypeAdapter(Calling.class, new PositionSerializer());
         String flattenedJson = gsonBuilder.create().toJson(org, Org.class);
         if(flattenedJson != null && flattenedJson.length() > 0) {
-            createFile(changeSet, flattenedJson, driveFolder)
+            createFile(changeSet, flattenedJson)
                 .addOnSuccessListener(new OnSuccessListener<DriveFile>() {
                     @Override
                     public void onSuccess(DriveFile driveFile) {
@@ -519,37 +496,14 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                             }
                         }
                         metadataBuffer.release();
-                        /* Possible orgs that need to be created */
-                        if (orgList.size() > 0) {
-                            List<Org> itemsToCreate = new ArrayList<>();
-                            for (Org org : orgList) {
-                                if (org.getOrgTypeId() > 0 && !metaDriveMap.containsKey(DataUtil.getOrgFileName(org))) {
-                                    itemsToCreate.add(org);
+                        createOneOffFiles(orgList, hasUnitSettings)
+                            .addOnCompleteListener(new OnCompleteListener<Boolean>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Boolean> task) {
+                                    taskCompletionSource.setResult(task.getResult());
                                 }
-                            }
-                            if (!itemsToCreate.isEmpty()) {
-                                /* The missing orgs that need to be created */
-                                createOrgFiles(itemsToCreate)
-                                        .addOnSuccessListener(new OnSuccessListener<Boolean>() {
-                                            @Override
-                                            public void onSuccess(Boolean result) {
-                                                taskCompletionSource.setResult(result);
-                                            }
-                                        })
-                                        .addOnFailureListener(new OnFailureListener() {
-                                            @Override
-                                            public void onFailure(@NonNull Exception e) {
-                                                taskCompletionSource.setResult(false);
-                                                taskCompletionSource.trySetException(e);
-                                            }
-                                        });
+                            });
 
-                            } else {
-                                taskCompletionSource.setResult(true);
-                            }
-                        } else {
-                            taskCompletionSource.setResult(true);
-                        }
                     } else if(orgList != null && orgList.size() > 0) {
                         /* Create Org files because none exist */
                         createOrgFiles(orgList)
@@ -583,61 +537,73 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
         return taskCompletionSource.getTask();
     }
 
+    private Task<Boolean> createOneOffFiles(List<Org> orgList, Boolean hasUnitSettings)
+    {
+        final TaskCompletionSource<Boolean> taskCompletionSource = new TaskCompletionSource<>();
+        /* Possible orgs that need to be created */
+        if (orgList.size() > 0 || !hasUnitSettings) {
+            List<Org> itemsToCreate = new ArrayList<>();
+            for (Org org : orgList) {
+                if (org.getOrgTypeId() > 0 && !metaDriveMap.containsKey(DataUtil.getOrgFileName(org))) {
+                    itemsToCreate.add(org);
+                }
+            }
+            /* Create a Task for the Org creation.*/
+            final TaskCompletionSource<Boolean> orgsTask = new TaskCompletionSource<>();
+            if(!itemsToCreate.isEmpty()) {
+                createOrgFiles(itemsToCreate)
+                        .addOnSuccessListener(new OnSuccessListener<Boolean>() {
+                            @Override
+                            public void onSuccess(Boolean result) {
+                                orgsTask.setResult(result);
+                            }
+                        });
+            } else {
+                orgsTask.setResult(true);
+            }
+            /* Create a Task for the UnitSettings creation. */
+            final TaskCompletionSource<Boolean> unitSettingTask = new TaskCompletionSource();
+            if(!hasUnitSettings) {
+                createUnitSettingsFile(new UnitSettings(orgList.get(0).getUnitNumber(), new ArrayList<CallingStatus>()))
+                    .addOnCompleteListener(new OnCompleteListener<Boolean>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Boolean> task) {
+                            unitSettingTask.setResult(task.getResult());
+                        }
+                    });
+            } else {
+                unitSettingTask.setResult(true);
+            }
+
+            /* Evaluate both tasks and set the taskCompletionSource. */
+            Tasks.whenAll(unitSettingTask.getTask(), orgsTask.getTask())
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        taskCompletionSource.setResult(unitSettingTask.getTask().getResult() && orgsTask.getTask().getResult());
+                    }
+                });
+        } else {
+            taskCompletionSource.setResult(true);
+        }
+        return taskCompletionSource.getTask();
+    }
+
     /** Unit Settings */
     @Override
     public Task<UnitSettings> getUnitSettings(final Long unitNumber) {
-        final TaskCompletionSource taskCompletionSource = new TaskCompletionSource();
+        final TaskCompletionSource<UnitSettings> taskCompletionSource = new TaskCompletionSource();
         if(unitSettings == null) {
             DriveId driveId = metaDriveMap.get(DataUtil.getUnitFileName(unitNumber));
-            Task<String> fileContentTask = null;
             if(driveId != null) {
-                fileContentTask =  getFileContent(driveId.asDriveFile());
-            } else {
-                /* If unit settings does not exist create the unit settings file */
-                final UnitSettings tempSettings = new UnitSettings(unitNumber, new ArrayList<CallingStatus>());
-                Task<Boolean> createUnitSettingsFileTask = createUnitSettingsFile(tempSettings);
-                createUnitSettingsFileTask.addOnCompleteListener(new OnCompleteListener<Boolean>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Boolean> task) {
-                        if (task.getResult()) {
-                            unitSettings = tempSettings;
-                            taskCompletionSource.setResult(unitSettings);
-                        } else {
-                            taskCompletionSource.setResult(null);
+                getFileContent(driveId.asDriveFile())
+                    .addOnCompleteListener(new OnCompleteListener<String>() {
+                        @Override
+                        public void onComplete(@NonNull Task<String> task) {
+                            Gson gson = new GsonBuilder().create();
+                            taskCompletionSource.setResult(gson.fromJson(task.getResult(), UnitSettings.class));
                         }
-                    }
-                });
-            }
-            if(taskCompletionSource.getTask() != null) {
-                return taskCompletionSource.getTask();
-            }
-            if(fileContentTask != null) {
-                fileContentTask.addOnCompleteListener(new OnCompleteListener<String>() {
-                    @Override
-                    public void onComplete(@NonNull Task<String> unitSettingsTask) {
-                        String unitSettingsStr = unitSettingsTask.getResult();
-                     /* If unit settings exist in google drive return it. */
-                        if (unitSettingsStr != null) {
-                            unitSettings = new Gson().fromJson(unitSettingsStr, UnitSettings.class);
-                            taskCompletionSource.setResult(unitSettings);
-                        } else {
-                            /* If unit settings does not exist create the unit settings file */
-                            final UnitSettings tempSettings = new UnitSettings(unitNumber, new ArrayList<CallingStatus>());
-                            Task<Boolean> createUnitSettingsFileTask = createUnitSettingsFile(tempSettings);
-                            createUnitSettingsFileTask.addOnCompleteListener(new OnCompleteListener<Boolean>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Boolean> task) {
-                                    if (task.getResult()) {
-                                        unitSettings = tempSettings;
-                                        taskCompletionSource.setResult(unitSettings);
-                                    } else {
-                                        taskCompletionSource.setResult(null);
-                                    }
-                                }
-                            });
-                        }
-                    }
-                });
+                    });
             } else {
                 /* If unit settings does not exist create the unit settings file */
                 final UnitSettings tempSettings = new UnitSettings(unitNumber, new ArrayList<CallingStatus>());
@@ -701,7 +667,7 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
         String flattenedJson = gsonBuilder.create().toJson(unitSettings, UnitSettings.class);
         if(flattenedJson != null && flattenedJson.length() > 0) {
             /* Create the UnitSettings file. */
-            createFile(changeSet, flattenedJson, null)
+            createFile(changeSet, flattenedJson)
                 /* Retrieve the Metadata for the the DriveFile newly created file. */
                 .continueWithTask(new Continuation<DriveFile, Task<Metadata>>() {
                     @Override
@@ -721,7 +687,7 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                             metadataTask.setResult(true);
                         } else {
                             metadataTask.setResult(false);
-                            metadataTask.trySetException(task.getException());
+                            metadataTask.trySetException(new Exception("No Meta data for unitSettings was returned."));
                         }
                         return metadataTask.getTask();
                     }
@@ -785,7 +751,7 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
         return taskCompletionSource.getTask();
     }
     /* All files needing to be created will use this method. */
-    private Task<DriveFile> createFile(final MetadataChangeSet changeSet, final String content, final DriveFolder driveFolder) {
+    private Task<DriveFile> createFile(final MetadataChangeSet changeSet, final String content) {
         final TaskCompletionSource<DriveFile> taskCompletionSource = new TaskCompletionSource<>();
         final Task<DriveFolder> appFolderTask = getDriveResourceClient().getAppFolder();
         final Task<DriveContents> createContentsTask = getDriveResourceClient().createContents();
@@ -793,8 +759,6 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
             .continueWithTask(new Continuation<Void, Task<DriveFile>>() {
                 @Override
                 public Task<DriveFile> then(@NonNull Task<Void> task) throws Exception {
-                    /*Thread.sleep(3000);
-                    Thread.yield();*/
                     DriveFolder parent = appFolderTask.getResult();
                     DriveContents contents = createContentsTask.getResult();
                     OutputStream outputStream = contents.getOutputStream();
@@ -920,63 +884,6 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
             }
         });
 
-
-                /*.continueWithTask(new Continuation<Void, Task<DriveFile>>() {
-                    @Override
-                    public Task<DriveFile> then(@NonNull Task<Void> task) throws Exception {
-                        DriveFolder appFolder = appFolderTask.getResult();
-                        SortOrder sortOrder = new SortOrder.Builder().addSortAscending(SortableField.TITLE).build();
-                        Query query = new Query.Builder().setSortOrder(sortOrder).build();
-                        Task<MetadataBuffer> queryTask = getDriveResourceClient().queryChildren(appFolder, query);
-                        queryTask.addOnSuccessListener(
-                                new OnSuccessListener<MetadataBuffer>() {
-                                    @Override
-                                    public void onSuccess(MetadataBuffer metadataBuffer) {
-                                        taskCompletionSource.setResult(metadataBuffer);
-                                    }
-                                })
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        Log.e(TAG, "Unable to get files from the AppData folder.  " + e.toString());
-                                        taskCompletionSource.setResult(null);
-                                        taskCompletionSource.setException(e);
-                                    }
-                                });
-                        return null;
-                    }
-                });*/
-        /*appFolderTask.addOnSuccessListener(new OnSuccessListener<DriveFolder>() {
-            @Override
-            public void onSuccess(DriveFolder driveFolder) {
-                SortOrder sortOrder = new SortOrder.Builder().addSortAscending(SortableField.TITLE).build();
-                Query query = new Query.Builder().setSortOrder(sortOrder).build();
-                Task<MetadataBuffer> queryTask = getDriveResourceClient().queryChildren(driveFolder, query);
-                queryTask
-                    .addOnSuccessListener(
-                        new OnSuccessListener<MetadataBuffer>() {
-                            @Override
-                            public void onSuccess(MetadataBuffer metadataBuffer) {
-                                taskCompletionSource.setResult(metadataBuffer);
-                            }
-                        })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Log.e(TAG, "Unable to get files from the AppData folder.  " + e.toString());
-                            taskCompletionSource.setResult(null);
-                            taskCompletionSource.setException(e);
-                        }
-                    });
-            }*/
-       /* }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.e(TAG, "Unable to access appData folder");
-                taskCompletionSource.setResult(null);
-                taskCompletionSource.setException(e);
-            }
-        });*/
         return taskCompletionSource.getTask();
     }
     /* Deletes a specified File in Google Drive. */

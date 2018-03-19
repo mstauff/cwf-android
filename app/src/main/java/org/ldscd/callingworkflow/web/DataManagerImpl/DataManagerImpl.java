@@ -360,7 +360,13 @@ public class DataManagerImpl implements DataManager {
     }
     @Override
     public void saveUnitSettings(final Response.Listener<Boolean> listener, UnitSettings unitSettings) {
-        listener.onResponse(googleDataService.saveUnitSettings(unitSettings).getResult());
+        googleDataService.saveUnitSettings(unitSettings)
+            .addOnCompleteListener(new OnCompleteListener<Boolean>() {
+                @Override
+                public void onComplete(@NonNull Task<Boolean> task) {
+                    listener.onResponse(task.getResult());
+                }
+            });
     }
     private Long getUnitNumber() {
         return currentUser != null ? currentUser.getUnitNumber() : 0L;
