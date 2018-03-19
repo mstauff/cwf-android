@@ -1,6 +1,8 @@
 package org.ldscd.callingworkflow.display;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -34,9 +36,8 @@ import static org.ldscd.callingworkflow.display.SplashActivity.SPLASH_ACTIVITY;
 
 public class GoogleDriveOptionsActivity extends AppCompatActivity implements View.OnClickListener {
     /** Fields */
-    private static final String TAG = "GoogleDriveOptionsActivity";
+    private static final String TAG = "GoogleDriveOptions";
     private Activity activity;
-    private boolean loadDataOnExit = false;
     private static final int RC_SIGN_IN = 9001;
     private GoogleSignInClient mGoogleSignInClient;
     private TextView mStatusTextView;
@@ -167,7 +168,6 @@ public class GoogleDriveOptionsActivity extends AppCompatActivity implements Vie
                 if(task.isSuccessful()) {
                     /* [START_EXCLUDE] */
                     dataManager.clearLocalOrgData();
-                    loadDataOnExit = false;
                     Toast.makeText(activity, R.string.logout_successful, Toast.LENGTH_SHORT).show();
                     updateUI(null);
                     /* [END_EXCLUDE] */
@@ -196,7 +196,21 @@ public class GoogleDriveOptionsActivity extends AppCompatActivity implements Vie
 
      * [START resetGoogleDriveData] */
     private void resetGoogleDriveData() {
-       dataManager.refreshGoogleDriveOrgs(null, null);
+        View dialogView = getLayoutInflater().inflate(R.layout.warning_dialog_text, null);
+        TextView messageView = (TextView) dialogView.findViewById(R.id.warning_message);
+        messageView.setText(R.string.reset_usage_warning);
+        new AlertDialog.Builder(activity)
+                .setView(dialogView)
+                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        Intent intent = new Intent(activity, ResetDataActivity.class);
+                        startActivity(intent);
+                    }
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+
     }
     /* [END resetGoogleDriveData] */
 
