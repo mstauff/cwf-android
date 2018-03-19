@@ -460,14 +460,16 @@ public class CallingData {
                             }
                         }
 
-                        //set the flag if there's a matching potentialId, else if there's potential data we'll save it with the deleted flag
-                        //if neither of those is true then discard and set the org to be saved without it
-                        if (potentialMatchesActual) {
-                            cwfCalling.setConflictCause(ConflictCause.EQUIVALENT_POTENTIAL_AND_ACTUAL);
-                            lcrCallings.add(cwfCalling);
-                        } else if(hasPotentialInfo) {
-                            cwfCalling.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
-                            lcrCallings.add(cwfCalling);
+
+                        //if there's potential data and it doesn't match an actual then we'll remove current called data and add it to be considered
+                        //with the list of vacant callings, otherwise discard and set change to be saved
+                        if (!potentialMatchesActual && hasPotentialInfo) {
+                            cwfCalling.setId(null);
+                            if (cwfCalling.getCwfId() == null) {
+                                cwfCalling.setCwfId(Calling.generateCwfId());
+                            }
+                            cwfCalling.setMemberId(null);
+                            cwfVacantCallingsByType.get(cwfCalling.getPosition().getPositionTypeId()).add(cwfCalling);
                         } else {
                             orgsToSave.add(lcrOrg);
                         }
@@ -513,7 +515,6 @@ public class CallingData {
                         lcrVacantCallings.get(i).importCWFData(cwfVacantCallings.get(i));
                     } else {
                         Calling calling = cwfVacantCallings.get(i);
-                        calling.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
                         lcrCallings.add(calling);
                     }
                 }

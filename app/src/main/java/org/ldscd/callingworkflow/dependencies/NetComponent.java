@@ -15,6 +15,7 @@ import org.ldscd.callingworkflow.display.LDSAccountActivity;
 import org.ldscd.callingworkflow.display.MemberLookupFragment;
 import org.ldscd.callingworkflow.display.ExpandableOrgsListActivity;
 import org.ldscd.callingworkflow.display.OrgListActivity;
+import org.ldscd.callingworkflow.display.ResetDataActivity;
 import org.ldscd.callingworkflow.display.SettingsActivity;
 import org.ldscd.callingworkflow.display.SplashActivity;
 import org.ldscd.callingworkflow.display.StatusEditActivity;
@@ -40,5 +41,6 @@ public interface NetComponent {
     void inject(CreateCallingFragment fragment);
     void inject(StatusEditActivity activity);
     void inject(GoogleDriveOptionsActivity activity);
+    void inject(ResetDataActivity activity);
     void inject(LDSAccountActivity activity);
 }

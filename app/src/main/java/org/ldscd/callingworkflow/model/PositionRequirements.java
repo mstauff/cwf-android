@@ -64,4 +64,40 @@ public class PositionRequirements {
                 this.gender.equals(requirements.gender) &&
                 this.priesthood.equals(requirements.priesthood);
     }
+
+    public boolean meetsRequirements(Member member) {
+        boolean result = true;
+        if(age > 0 && member.getCurrentAge() < age) {
+            result = false;
+        }
+        if(gender != null && member.getGender() != gender) {
+            result = false;
+        }
+        if(priesthood != null && !priesthood.isEmpty() && !priesthood.contains(member.getPriesthood())) {
+            result = false;
+        }
+        if(memberClasses != null && !memberClasses.isEmpty()) {
+            int memberAge = member.getCurrentAge();
+            if(memberAge < 12) {
+                result = false;
+            } else if(memberAge < 14) {
+                if (!memberClasses.contains(MemberClass.BEEHIVE)) {
+                    result = false;
+                }
+            } else if(memberAge < 16) {
+                if (!memberClasses.contains(MemberClass.MIA_MAID)) {
+                    result = false;
+                }
+            } else if(memberAge < 18) {
+                if (!memberClasses.contains(MemberClass.LAUREL)) {
+                    result = false;
+                }
+            } else {
+                if(!memberClasses.contains(MemberClass.RELIEF_SOCIETY)) {
+                    result = false;
+                }
+            }
+        }
+        return result;
+    }
 }

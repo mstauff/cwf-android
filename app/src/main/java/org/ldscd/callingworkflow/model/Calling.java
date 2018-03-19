@@ -32,6 +32,11 @@ public class Calling implements Serializable {
     private transient Long parentOrg;
     private transient ConflictCause conflictCause;
     private transient DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
+
+    public static String generateCwfId() {
+        return UUID.randomUUID().toString();
+    }
+
     /* Constructors */
     public Calling() {}
 
@@ -46,7 +51,7 @@ public class Calling implements Serializable {
         this.positionId = positionId;
         /* If we don't have a unique id then we create an internal one. */
         if(positionId == null || positionId == 0) {
-            this.cwfId = (cwfId != null && cwfId.length() > 0) ? cwfId : UUID.randomUUID().toString();
+            this.cwfId = (cwfId != null && cwfId.length() > 0) ? cwfId : generateCwfId();
         }
         this.cwfOnly = cwfOnly;
         this.memberId = memberId;
