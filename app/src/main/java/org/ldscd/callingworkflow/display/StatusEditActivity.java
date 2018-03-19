@@ -15,6 +15,7 @@ import com.google.android.flexbox.FlexboxLayout;
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.constants.CallingStatus;
 import org.ldscd.callingworkflow.model.UnitSettings;
+import org.ldscd.callingworkflow.services.GoogleDriveService;
 import org.ldscd.callingworkflow.web.DataManager;
 
 import java.util.ArrayList;
@@ -28,6 +29,8 @@ public class StatusEditActivity extends AppCompatActivity {
     List<CallingStatus> selectedStatus;
     final UnitSettings unitSettings = new UnitSettings();
 
+    @Inject
+    GoogleDriveService googleDataService;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,7 +38,9 @@ public class StatusEditActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_status_edit);
         wireUpToolbar();
-        init();
+        if(googleDataService.isAuthenticated(getApplicationContext())) {
+            init();
+        }
     }
 
     private void init() {
@@ -89,25 +94,27 @@ public class StatusEditActivity extends AppCompatActivity {
         int id = item.getItemId();
         /* If the back button is pushed save the status changes. */
         if (id == android.R.id.home) {
+            if(googleDataService.isAuthenticated(getApplicationContext())) {
             /* Save status items. */
-            List<CallingStatus> statuses = new ArrayList<CallingStatus>();
-            for(CallingStatus status : CallingStatus.values()) {
-                if(selectedStatus.contains(status) && !status.equals(CallingStatus.NONE)) {
-                    statuses.add(status);
-                }
-            }
-            unitSettings.setDisabledStatuses(statuses);
-            dataManager.saveUnitSettings(new Response.Listener<Boolean>() {
-                @Override
-                public void onResponse(Boolean response) {
-                    if(response) {
-                        Toast.makeText(getApplicationContext(), getResources().getText(R.string.items_saved), Toast.LENGTH_LONG).show();
-                        finish();
-                    } else {
-                        Toast.makeText(getApplicationContext(), getResources().getText(R.string.saving_error), Toast.LENGTH_LONG).show();
+                List<CallingStatus> statuses = new ArrayList<CallingStatus>();
+                for (CallingStatus status : CallingStatus.values()) {
+                    if (selectedStatus.contains(status) && !status.equals(CallingStatus.NONE)) {
+                        statuses.add(status);
                     }
                 }
-            }, unitSettings);
+                unitSettings.setDisabledStatuses(statuses);
+                dataManager.saveUnitSettings(new Response.Listener<Boolean>() {
+                    @Override
+                    public void onResponse(Boolean response) {
+                        if (response) {
+                            Toast.makeText(getApplicationContext(), getResources().getText(R.string.items_saved), Toast.LENGTH_LONG).show();
+                            finish();
+                        } else {
+                            Toast.makeText(getApplicationContext(), getResources().getText(R.string.saving_error), Toast.LENGTH_LONG).show();
+                        }
+                    }
+                }, unitSettings);
+            }
             finish();
             return true;
         }
