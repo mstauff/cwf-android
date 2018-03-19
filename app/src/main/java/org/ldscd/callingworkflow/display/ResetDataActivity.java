@@ -12,10 +12,13 @@ import android.view.View;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.android.volley.Response;
+
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.display.adapters.ResetOrgsListAdapter;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.services.GoogleDataService;
+import org.ldscd.callingworkflow.services.GoogleDriveService;
 import org.ldscd.callingworkflow.web.DataManager;
 
 import java.util.List;
@@ -25,7 +28,7 @@ import javax.inject.Inject;
 public class ResetDataActivity extends AppCompatActivity {
 
     @Inject
-    GoogleDataService googleDataService;
+    GoogleDriveService googleDataService;
     @Inject
     DataManager dataManager;
 
@@ -68,7 +71,13 @@ public class ResetDataActivity extends AppCompatActivity {
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     List<Long> selectedOrgIds = adapter.getSelectedOrgIds();
-                                    //todo: reset orgs call should be made here
+                                    dataManager.refreshGoogleDriveOrgs(selectedOrgIds, new Response.Listener<Boolean>() {
+                                        @Override
+                                        public void onResponse(Boolean response) {
+                                            if(response)
+                                                finish();
+                                        }
+                                    });
                                 }
                             })
                             .setNegativeButton(R.string.cancel, null)
