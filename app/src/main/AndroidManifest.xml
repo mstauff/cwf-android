@@ -112,12 +112,6 @@
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
-        <activity android:name=".display.ManageDataActivity"
-                  android:label="@string/manage_data"
-                  android:parentActivityName=".display.SettingsActivity"
-                  android:screenOrientation="portrait"
-                  android:theme="@style/AppTheme.NoActionBar">
-        </activity>
 
         <service
             android:name=".google.MyDriveEventService"

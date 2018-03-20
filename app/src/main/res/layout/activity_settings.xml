@@ -53,18 +53,6 @@
                 android:text="@string/google_drive"/>
 
             <TextView
-                android:id="@+id/settings_sync_data_link"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="1dp"
-                android:padding="15dp"
-                android:background="@color/white"
-                android:textColor="@color/ldstools_black"
-                android:textSize="16dp"
-                android:fontFamily="@font/roboto"
-                android:text="@string/manage_data"/>
-
-            <TextView
                 android:id="@+id/settings_edit_calling_status_link"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
