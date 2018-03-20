@@ -22,21 +22,23 @@
             android:padding="5dp"
             android:weightSum="3"
             android:background="@drawable/custom_rectangle">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginTop="6dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
                 android:paddingBottom="5dp"
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp"
                 android:paddingTop="5dp"
-                android:textColor="@color/gray_status"
-                android:fontFamily="@font/roboto"
-                android:textSize="@dimen/text_size_medium"
                 android:id="@+id/member_lookup_clear_selection_button"
-                android:text="X" />
+                android:background="@drawable/close_button"
+                />
             <View
                 android:layout_width="1dp"
                 android:layout_height="match_parent"
+                android:paddingLeft="10dp"
                 android:background="@color/light_grey"/>
             <TextView
                 android:id="@+id/member_lookup_current_selection_label"
