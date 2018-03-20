@@ -96,14 +96,6 @@ public class SettingsActivity extends AppCompatActivity {
                 getApplicationContext().startActivity(intent);
             }
         });
-        TextView syncDataLink = (TextView) findViewById(R.id.settings_sync_data_link);
-        syncDataLink.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), ManageDataActivity.class);
-                getApplicationContext().startActivity(intent);
-            }
-        });
         TextView editCallingStatusLink = (TextView) findViewById(R.id.settings_edit_calling_status_link);
         /* If the current user is not a Unit Admin they cannot edit the statuses */
         if(permissionManager.hasPermission(currentUser.getUnitRoles(), Permission.UNIT_GOOGLE_ACCOUNT_CREATE)) {
