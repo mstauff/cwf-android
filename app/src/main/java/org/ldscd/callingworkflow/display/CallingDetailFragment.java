@@ -67,6 +67,7 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     private View view;
     private OnCallingDetailFragmentListener mListener;
     private boolean resetProposedStatus = false;
+    private int statusPosition = 0;
     private boolean canView = true;
     private boolean canViewPriesthoodFilters = false;
     /**
@@ -98,6 +99,7 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
          */
         if(this.proposedMember != member || member == null) {
             resetProposedStatus = true;
+            statusPosition = member == null ? 0 : 1;
         }
 
         /* If the currently selected member is different from the originally selected member
@@ -179,10 +181,6 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     @Override
     public void onResume() {
         super.onResume();
-        if(resetProposedStatus) {
-            statusDropdown.setSelection(1); //set to first option below 'none'
-            resetProposedStatus = false;
-        }
     }
 
     @Override
@@ -336,6 +334,10 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
                     statusDropdown.setAdapter(adapter);
                     if (calling != null && calling.getProposedStatus() != null) {
                         statusDropdown.setSelection(adapter.getPosition(calling.getProposedStatus()));
+                    }
+                    if(resetProposedStatus) {
+                        statusDropdown.setSelection(statusPosition, true);
+                        resetProposedStatus = false;
                     }
                     statusDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                         @Override
