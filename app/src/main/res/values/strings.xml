@@ -2,6 +2,8 @@
 <resources>
 
     <string name="app_name">Calling Workflow</string>
+    <string name="version">1.0.0</string>
+    <string name="company">LDS Community Developers</string>
     <string name="title_calling_detail">Calling Detail</string>
     <string name="title_create_calling">Create Calling</string>
     <string name="title_settings">Settings</string>

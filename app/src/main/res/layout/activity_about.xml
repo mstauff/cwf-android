@@ -15,45 +15,36 @@
         <LinearLayout
                 android:orientation="vertical"
                 android:layout_width="fill_parent"
-                android:layout_height="fill_parent" android:layout_alignParentTop="true"
-                android:layout_alignParentLeft="true" android:layout_alignParentStart="true"
+                android:layout_height="wrap_content"
                 android:id="@+id/linearLayoutActivity">
 
             <TextView
-                android:id="@+id/user_name_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:clickable="false"
                 android:fontFamily="@font/roboto"
-                android:labelFor="@string/user_name"
-                android:text="@string/user_name"
+                android:textSize="30dp"
+                android:textStyle="bold"
+                android:text="@string/app_name"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
-            <EditText
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/userName" android:inputType="text"/>
+
 
             <TextView
-                android:id="@+id/textView3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/roboto"
-                android:labelFor="@string/password"
-                android:text="@string/password"
+                android:textSize="14dp"
+                android:text="@string/version"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
-            <EditText
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="textPassword"
-                    android:ems="10"
-                    android:id="@+id/password"/>
 
-            <Button
-                android:id="@+id/button"
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/roboto"
-                android:text="@string/sync"/>
+                android:textSize="14dp"
+                android:textStyle="italic"
+                android:text="@string/company"
+                android:textAppearance="?android:attr/textAppearanceMedium"/>
+
         </LinearLayout>
     </ScrollView>
 </RelativeLayout>
