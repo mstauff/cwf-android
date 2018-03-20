@@ -15,6 +15,12 @@ public class AboutActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_about);
 
+        // Show the Up button in the action bar.
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setTitle(R.string.title_about);
+        }
         wireUpToolbar();
     }
 
@@ -27,7 +33,8 @@ public class AboutActivity extends AppCompatActivity {
             // more details, see the Navigation pattern on Android Design:
             //
             // http://developer.android.com/design/patterns/navigation.html#up-vs-back
-            finish();
+            //
+            navigateUpTo(new Intent(this, ExpandableOrgsListActivity.class));
             return true;
         }
         return super.onOptionsItemSelected(item);
