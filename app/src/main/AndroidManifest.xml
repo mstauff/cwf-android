@@ -86,8 +86,7 @@
             android:name=".display.LDSAccountActivity"
             android:label="@string/title_activity_ldsaccount"
             android:parentActivityName=".display.SettingsActivity"
-            android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:screenOrientation="portrait">
         </activity>
         <activity
             android:name=".display.GoogleDriveOptionsActivity"
@@ -102,15 +101,13 @@
         <activity
             android:name=".display.SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:screenOrientation="portrait">
         </activity>
         <activity
             android:name=".display.StatusEditActivity"
             android:label="@string/title_activity_status_edit"
             android:parentActivityName=".display.SettingsActivity"
-            android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:screenOrientation="portrait">
         </activity>
 
         <service
