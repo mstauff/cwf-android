@@ -143,6 +143,7 @@
     <string name="google_drive">Google Drive</string>
     <string name="title_google_settings">Google Account Management</string>
     <string name="reset_data">Reset Data</string>
+    <string name="load_data">Load Data</string>
     <string name="login_success">Log In Successful</string>
     <string name="logout_successful">Logged Out</string>
     <string name="logout_failed">Failed to logout</string>

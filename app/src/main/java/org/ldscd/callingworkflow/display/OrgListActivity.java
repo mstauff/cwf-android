@@ -1,20 +1,23 @@
 package org.ldscd.callingworkflow.display;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.GravityCompat;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+
+import com.android.volley.Response;
 
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.display.adapters.OrgListAdapter;
@@ -24,6 +27,8 @@ import org.ldscd.callingworkflow.web.DataManager;
 import java.util.List;
 
 import javax.inject.Inject;
+
+import static android.view.View.GONE;
 
 // Default startup view is a list of Org's
 // Initial login is not yet designed.  Needs google id etc.
@@ -89,6 +94,41 @@ public class OrgListActivity extends AppCompatActivity
     private void setupRecyclerView() {
         List<Org> orgs = dataManager.getOrgs();
         recyclerView.setAdapter(new OrgListAdapter(orgs, twoPane, fragmentManager));
+        if(orgs.isEmpty()) {
+            reloadData();
+        }
+    }
+
+    private void reloadData() {
+        final Activity activity = this;
+        final LinearLayout layout = findViewById(R.id.org_list_reload_data_container);
+        layout.setVisibility(View.VISIBLE);
+        final TextView reloadButton = findViewById(R.id.org_list_reload_data_progress_data_link);
+        reloadButton.setVisibility(View.VISIBLE);
+        reloadButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final ProgressBar pb = findViewById(R.id.org_list_reload_data_progress);
+                pb.setVisibility(View.VISIBLE);
+                if(dataManager.isGoogleDriveAuthenticated(getApplicationContext())) {
+                    dataManager.loadOrgs(new Response.Listener<Boolean>() {
+                        @Override
+                        public void onResponse(Boolean response) {
+                            layout.setVisibility(GONE);
+                            reloadButton.setVisibility(GONE);
+                            pb.setVisibility(GONE);
+                        }
+                    }, pb, activity);
+                } else {
+                    layout.setVisibility(GONE);
+                    reloadButton.setVisibility(GONE);
+                    pb.setVisibility(GONE);
+                    Intent intent = new Intent(OrgListActivity.this, GoogleDriveOptionsActivity.class);
+                    intent.putExtra("activity", "");
+                    startActivity(intent);
+                }
+            }
+        });
     }
 
     @Override

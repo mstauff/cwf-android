@@ -1,4 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="0dp"
+    android:paddingRight="0dp"
+    android:paddingTop="0dp"
+    android:orientation="vertical"
+    android:background="@color/ldstools_gray_very_light"
+    tools:context="org.ldscd.callingworkflow.display.OrgListActivity">
 <android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -6,8 +17,38 @@
     android:name="org.ldscd.callingworkflow.OrgListFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginLeft="16dp"
-    android:layout_marginRight="16dp"
+    android:layout_marginLeft="0dp"
+    android:layout_marginRight="0dp"
     app:layoutManager="LinearLayoutManager"
     tools:context="org.ldscd.callingworkflow.display.OrgListActivity"
     tools:listitem="@layout/org_list_content" />
+    <LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:id="@+id/org_list_reload_data_container">
+    <TextView
+        android:id="@+id/org_list_reload_data_progress_data_link"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="1dp"
+        android:padding="12dp"
+        android:textSize="@dimen/text_size_medium"
+        android:background="@color/white"
+        android:textColor="@color/ldstools_black"
+        android:fontFamily="@font/roboto"
+        android:gravity="center"
+        android:text="@string/load_data"
+        android:visibility="gone" />
+
+    <ProgressBar
+        android:id="@+id/org_list_reload_data_progress"
+        style="@android:style/Widget.Holo.Light.ProgressBar.Horizontal"
+        android:layout_width="300dp"
+        android:layout_height="10dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="188dp"
+        android:visibility="gone" />
+    </LinearLayout>
+</RelativeLayout>
