@@ -12,9 +12,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Response;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -144,6 +146,15 @@ public class GoogleDriveOptionsActivity extends AppCompatActivity implements Vie
                 /* Transition to splash screen or directory view depending on which view invoiced this page. */
                 Intent intent = new Intent(this, SplashActivity.class);
                 startActivity(intent);
+            } else {
+                final ProgressBar pb = findViewById(R.id.google_sign_in_progress);
+                pb.setVisibility(View.VISIBLE);
+                dataManager.loadOrgs(new Response.Listener<Boolean>() {
+                    @Override
+                    public void onResponse(Boolean response) {
+                        pb.setVisibility(View.GONE);
+                    }
+                }, pb, this);
             }
         } catch (ApiException e) {
             /* Signed out, show unauthenticated UI. */
