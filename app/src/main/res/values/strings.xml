@@ -82,6 +82,7 @@
     <string name="warning_delete_lcr_message">%1$s will be released as %2$s and delete the calling on lds.org (LCR). This will make the release public (it will appear in lds.org sites, LDS Tools, etc.). Generally this should only be done after the individual has been released in Sacrament Meeting. Do you want to record the release on lds.org?</string>
     <string name="warning_delete_message">This will remove the workflow item from the callings list. Do you want to continue?</string>
     <string name="error_update_Message">You have selected a member that does not meet the requirements for the calling selected.  You may not be able to save these changes in LCR</string>
+    <string name="error_saving_changes">There was an error saving the changes.  Would you like to undo all your changes and return to the calling list?</string>
 
 
     <string name="action_settings">setting</string>

@@ -120,10 +120,10 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
         final TaskCompletionSource<Org> taskCompletionSource = new TaskCompletionSource<>();
         if(org != null) {
             getFileContent(metaDriveMap.get(DataUtil.getOrgFileName(org)).asDriveFile())
-                .addOnCompleteListener(new OnCompleteListener<String>() {
+                .addOnSuccessListener(new OnSuccessListener<String>() {
                     @Override
-                    public void onComplete(@NonNull Task<String> orgContentTask) {
-                        String orgStr = orgContentTask.getResult();
+                    public void onSuccess(String s) {
+                        String orgStr = s;
                          /* If Org exist in google drive return it. */
                         if(orgStr != null) {
                             /* If org does not exist create the org file */
@@ -150,6 +150,13 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                                 }
                             });
                         }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        taskCompletionSource.setResult(null);
+                        taskCompletionSource.setException(e);
                     }
                 });
         } else {
@@ -601,7 +608,8 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                         @Override
                         public void onComplete(@NonNull Task<String> task) {
                             Gson gson = new GsonBuilder().create();
-                            taskCompletionSource.setResult(gson.fromJson(task.getResult(), UnitSettings.class));
+                            unitSettings = gson.fromJson(task.getResult(), UnitSettings.class);
+                            taskCompletionSource.setResult(unitSettings);
                         }
                     });
             } else {
