@@ -8,7 +8,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -186,8 +185,8 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, final Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_calling_detail, container, false);
-        statusDropdown = (Spinner) view.findViewById(R.id.calling_detail_status_dropdown);
-        notes = (TextView) view.findViewById(R.id.notes_calling_detail);
+        statusDropdown = view.findViewById(R.id.calling_detail_status_dropdown);
+        notes = view.findViewById(R.id.notes_calling_detail);
         Bundle bundle = this.getArguments();
         if (bundle != null && !bundle.isEmpty()) {
             /* Initialize UI */
@@ -317,10 +316,9 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     }
 
     private void wireUpStatusDropdown(boolean canView) {
-        final Spinner statusDropdown = (Spinner)view.findViewById(R.id.calling_detail_status_dropdown);
         if(!canView) {
             statusDropdown.setVisibility(View.GONE);
-            TextView statusLabel = (TextView) view.findViewById(R.id.label_calling_detail_status);
+            TextView statusLabel = view.findViewById(R.id.label_calling_detail_status);
             statusLabel.setVisibility(View.GONE);
         } else {
             dataManager.getCallingStatus(new Response.Listener<List<CallingStatus>>() {
@@ -356,14 +354,11 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     }
 
     private void wireUpNotes(boolean canView) {
-        TextView notes = (TextView) view.findViewById(R.id.notes_calling_detail);
         if(!canView) {
             notes.setVisibility(View.GONE);
         } else {
             notes.addTextChangedListener(textWatcherNotesListener);
-            if (calling.getNotes() != null && calling.getNotes().length() > 0) {
-                notes.setText(calling.getNotes());
-            }
+            notes.setText(calling.getNotes() != null && calling.getNotes().length() > 0 ? calling.getNotes() : "");
         }
     }
 

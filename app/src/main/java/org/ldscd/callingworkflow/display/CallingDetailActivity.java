@@ -1,5 +1,7 @@
 package org.ldscd.callingworkflow.display;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
@@ -71,24 +73,55 @@ public class CallingDetailActivity
              activity, the Up button is shown. For
              more details, see the Navigation pattern on Android Design:*/
             /* Save changes if the back button is pushed. */
-            submitOrgChanges();
-            /* Go to the list of callings if the back button is pushed. */
-            finish();
+            submitOrgChanges(new Response.Listener<Boolean>() {
+                @Override
+                public void onResponse(Boolean response) {
+                    if(response) {
+                        /* Go to the list of callings if the back button is pushed. */
+                        finish();
+                    } else {
+                        AlertDialog dialog = getAlertDialog();
+                        dialog.show();
+                    }
+                }
+            });
+
             return true;
         }
         return true;
     }
 
-    private void submitOrgChanges() {
+    private AlertDialog getAlertDialog() {
+        //Do nothing.  Be sure the data is reset to original state.
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(R.string.error_saving_changes)
+                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        finish();
+                    }
+                })
+                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        wireUpFragments(null);
+                    }
+                });
+        // Create the AlertDialog object and return it
+        return builder.create();
+    }
+
+    private void submitOrgChanges(final Response.Listener<Boolean> listener) {
         /* If changes were made to the workflow, go ahead and save them. */
         if(hasChanges) {
             dataManager.updateCalling(new Response.Listener<Boolean>() {
                 @Override
                 public void onResponse(Boolean response) {
+                    listener.onResponse(response);
                     String message = response ? getResources().getString(R.string.items_saved) : getResources().getString(R.string.new_calling_failed);
                     Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
                 }
             }, calling);
+        } else {
+            listener.onResponse(true);
         }
     }
 
