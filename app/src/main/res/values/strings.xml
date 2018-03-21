@@ -83,7 +83,7 @@
     <string name="warning_delete_message">This will remove the workflow item from the callings list. Do you want to continue?</string>
     <string name="error_update_Message">You have selected a member that does not meet the requirements for the calling selected.  You may not be able to save these changes in LCR</string>
     <string name="error_saving_changes">There was an error saving the changes.  Would you like to undo all your changes and return to the calling list?</string>
-    <string name="account_unit_number_no_match">The Unit Number was found in the google account you selected.  Please use or create an account that has your unit number in the email address. i.e. callingworkflow.12345@gmail.com</string>
+
 
     <string name="action_settings">setting</string>
     <string name="title_activity_base">BaseActivity</string>
