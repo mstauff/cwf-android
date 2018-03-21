@@ -62,7 +62,8 @@ public class SettingsActivity extends AppCompatActivity {
             //
             // http://developer.android.com/design/patterns/navigation.html#up-vs-back
             //
-            navigateUpTo(new Intent(this, ExpandableOrgsListActivity.class));
+            //navigateUpTo(new Intent(this, ExpandableOrgsListActivity.class));
+            finish();
             return true;
         }
         return super.onOptionsItemSelected(item);
