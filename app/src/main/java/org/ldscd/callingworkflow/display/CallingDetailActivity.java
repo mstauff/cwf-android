@@ -9,9 +9,6 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.android.volley.Response;
@@ -20,7 +17,6 @@ import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.web.DataManager;
-import org.ldscd.callingworkflow.web.UI.Spinner;
 
 import javax.inject.Inject;
 
@@ -73,10 +69,6 @@ public class CallingDetailActivity
             }
         }
         if (proceed && id == android.R.id.home) {
-            final LinearLayout formView = findViewById(R.id.calling_detail_main_fragment_container);
-            final ProgressBar progressBar = findViewById(R.id.calling_detail_save_progress);
-            Spinner.showProgress(true, formView, progressBar, getResources());
-
             /* This ID represents the Home or Up button. In the case of this
              activity, the Up button is shown. For
              more details, see the Navigation pattern on Android Design:*/
@@ -84,7 +76,6 @@ public class CallingDetailActivity
             submitOrgChanges(new Response.Listener<Boolean>() {
                 @Override
                 public void onResponse(Boolean response) {
-                    Spinner.showProgress(false, formView, progressBar, getResources());
                     if(response) {
                         /* Go to the list of callings if the back button is pushed. */
                         finish();
