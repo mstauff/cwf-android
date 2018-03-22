@@ -66,29 +66,17 @@ public class ConflictUtil {
      * @return String resulting from reading is.
      */
     public static String getStringFromInputStream(InputStream is) {
-        BufferedReader br = null;
-        StringBuilder sb = new StringBuilder();
-
+        StringBuilder builder = new StringBuilder();
         String line;
-        try {
-
-            br = new BufferedReader(new InputStreamReader(is));
-            while ((line = br.readLine()) != null) {
-                sb.append(line + "\n");
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
+            while ((line = reader.readLine()) != null) {
+                builder.append(line).append("\n");
             }
 
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-            if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
 
-        return sb.toString();
+        return builder.toString();
     }
 }
