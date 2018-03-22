@@ -596,9 +596,9 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
 
     /** Unit Settings */
     @Override
-    public Task<UnitSettings> getUnitSettings(final Long unitNumber) {
+    public Task<UnitSettings> getUnitSettings(final Long unitNumber, boolean getCachedItems) {
         final TaskCompletionSource<UnitSettings> taskCompletionSource = new TaskCompletionSource();
-        if(unitSettings == null) {
+        if( unitSettings == null || !getCachedItems) {
             DriveId driveId = metaDriveMap.get(DataUtil.getUnitFileName(unitNumber));
             if(driveId != null) {
                 getFileContent(driveId.asDriveFile())

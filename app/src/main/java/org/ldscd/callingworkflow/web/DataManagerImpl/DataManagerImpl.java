@@ -343,8 +343,8 @@ public class DataManagerImpl implements DataManager {
 
     /* Unit Settings */
     @Override
-    public void getUnitSettings(final Response.Listener<UnitSettings> listener) {
-        googleDataService.getUnitSettings(getUnitNumber())
+    public void getUnitSettings(final Response.Listener<UnitSettings> listener, boolean getCachedItems) {
+        googleDataService.getUnitSettings(getUnitNumber(), getCachedItems)
             .addOnSuccessListener(new OnSuccessListener<UnitSettings>() {
                 @Override
                 public void onSuccess(UnitSettings unitSettings) {
