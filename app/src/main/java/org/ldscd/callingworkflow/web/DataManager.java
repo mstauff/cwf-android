@@ -56,6 +56,6 @@ public interface DataManager {
     void deleteCalling(Calling calling, Response.Listener<Boolean> listener, Response.ErrorListener errorListener);
     List<Calling> getUnfinalizedCallings();
     /* Unit Settings */
-    void getUnitSettings(Response.Listener<UnitSettings> listener);
+    void getUnitSettings(Response.Listener<UnitSettings> listener, boolean getCachedItems);
     void saveUnitSettings(Response.Listener<Boolean> listener, UnitSettings unitSettings);
 }
