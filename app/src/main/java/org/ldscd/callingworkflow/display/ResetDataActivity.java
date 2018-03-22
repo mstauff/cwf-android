@@ -17,7 +17,6 @@ import com.android.volley.Response;
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.display.adapters.ResetOrgsListAdapter;
 import org.ldscd.callingworkflow.model.Org;
-import org.ldscd.callingworkflow.services.GoogleDataService;
 import org.ldscd.callingworkflow.services.GoogleDriveService;
 import org.ldscd.callingworkflow.web.DataManager;
 
