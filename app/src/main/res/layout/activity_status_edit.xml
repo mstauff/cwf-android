@@ -18,10 +18,9 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-        <LinearLayout
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_height="wrap_content">
             <TextView
                 android:id="@+id/settings_sync_data_link"
                 android:layout_width="match_parent"
@@ -29,19 +28,22 @@
                 android:layout_marginTop="50dp"
                 android:padding="15dp"
                 android:background="@color/white"
-                android:textColor="@color/ldstools_gray"
-                android:textSize="12dp"
+                android:textColor="@color/ldstools_gray_dark"
+                android:textSize="14dp"
                 android:fontFamily="@font/roboto"
                 android:text="@string/calling_status_edit_disclaimer"/>
 
             <com.google.android.flexbox.FlexboxLayout
                 android:id="@+id/status_list"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_below="@id/settings_sync_data_link"
                 android:layout_margin="@dimen/text_margin"
                 android:fontFamily="@font/roboto"
+                app:showDivider="beginning|middle"
+                app:dividerDrawable="@drawable/divider"
                 app:flexWrap="wrap"/>
-        </LinearLayout>
+        </RelativeLayout>
 
     </ScrollView>
 </RelativeLayout>

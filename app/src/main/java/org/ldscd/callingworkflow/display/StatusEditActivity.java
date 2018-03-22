@@ -6,6 +6,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.GridLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -63,7 +66,7 @@ public class StatusEditActivity extends AppCompatActivity {
             if (!status.equals(CallingStatus.NONE)) {
                 TextView statusView = new TextView(statusLayout.getContext());
                 statusView.setText(status.toString());
-                statusView.setPadding(16, 16, 16, 16);
+                statusView.setPadding(36, 26, 36, 26);
                 if (!selectedStatus.contains(status)) {
                     giveSelectedAppearance(statusView);
                 } else {
