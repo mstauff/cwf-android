@@ -931,7 +931,7 @@ public class CallingData {
 
     /* Returns a filtered list of calling status' */
     public void getCallingStatus(final Response.Listener<List<CallingStatus>> listener, Long unitNumber) {
-        Task<UnitSettings> getUnitSettingsTask = googleDriveService.getUnitSettings(unitNumber);
+        Task<UnitSettings> getUnitSettingsTask = googleDriveService.getUnitSettings(unitNumber, true);
         getUnitSettingsTask
             .continueWithTask(new Continuation<UnitSettings, Task<Void>>() {
                 @Override

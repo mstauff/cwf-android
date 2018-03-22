@@ -56,7 +56,7 @@ public class StatusEditActivity extends AppCompatActivity {
                     wireUpStatus();
                 }
             }
-        });
+        }, false);
     }
 
     private void wireUpStatus() {
