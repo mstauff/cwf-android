@@ -153,6 +153,7 @@ public class GoogleDriveOptionsActivity extends AppCompatActivity implements Vie
                     @Override
                     public void onResponse(Boolean response) {
                         pb.setVisibility(View.GONE);
+                        finish();
                     }
                 }, pb, this);
             }

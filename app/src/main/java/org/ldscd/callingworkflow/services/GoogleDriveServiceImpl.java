@@ -59,7 +59,7 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
     private UnitSettings unitSettings;
     private Map<String, DriveId> metaDriveMap;
     /* Name of the service being used. */
-    private String TAG = "GoogleDataService";
+    private String TAG = "GoogleDriveService";
     /* Handles high-level drive functions like sync. */
     private DriveClient mDriveClient;
     /* Handle access to Drive resources/files. */
@@ -89,7 +89,6 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
         mDriveClient = Drive.getDriveClient(context, signInAccount);
         mDriveResourceClient = Drive.getDriveResourceClient(context, signInAccount);
     }
-
     @Override
     public boolean isAuthenticated(Context context) {
         signInAccount = GoogleSignIn.getLastSignedInAccount(context);
@@ -544,8 +543,7 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
         return taskCompletionSource.getTask();
     }
 
-    private Task<Boolean> createOneOffFiles(List<Org> orgList, Boolean hasUnitSettings)
-    {
+    private Task<Boolean> createOneOffFiles(List<Org> orgList, Boolean hasUnitSettings) {
         final TaskCompletionSource<Boolean> taskCompletionSource = new TaskCompletionSource<>();
         /* Possible orgs that need to be created */
         if (orgList.size() > 0 || !hasUnitSettings) {
@@ -802,33 +800,32 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
         Task<DriveContents> openFileTask = getDriveResourceClient().openFile(file, DriveFile.MODE_READ_ONLY);
         /* Begin reading file */
         openFileTask
-                .continueWithTask(new Continuation<DriveContents, Task<Void>>() {
-                    @Override
-                    public Task<Void> then(@NonNull Task<DriveContents> task) throws Exception {
-                        DriveContents contents = task.getResult();
-                        /* Start to read as string */
-                        try  {
-                            InputStream inputStream = contents.getInputStream();
-                            /* Convert the stream into a string for usability. */
-                            taskCompletionSource.setResult(ConflictUtil.getStringFromInputStream(inputStream));
-                        } catch(Exception e) {
-                            Log.e(TAG, "Unable to parse contents for: " + file.getDriveId(), e);
-                            taskCompletionSource.setResult(null);
-                            taskCompletionSource.setException(e);
-                        }
-                        /* End reading and begin discarding content.  Must discard or commit from the open call. */
-                        Task<Void> discardTask = getDriveResourceClient().discardContents(contents);
-                        return discardTask;
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.e(TAG, "Unable to retrieve contents for: " + file.getDriveId(), e);
-                        taskCompletionSource.setResult(null);
-                        taskCompletionSource.setException(e);
-                    }
-                });
+            .continueWithTask(new Continuation<DriveContents, Task<DriveContents>>() {
+                @Override
+                public Task<DriveContents> then(@NonNull Task<DriveContents> task) throws Exception {
+                    return task;
+                }
+            })
+            .addOnSuccessListener(new OnSuccessListener<DriveContents>() {
+                @Override
+                public void onSuccess(DriveContents contents) {
+                    /* Start to read as string */
+                    InputStream inputStream = contents.getInputStream();
+                    /* Convert the stream into a string for usability. */
+                    taskCompletionSource.setResult(ConflictUtil.getStringFromInputStream(inputStream));
+
+                    /* End reading and begin discarding content.  Must discard or commit from the open call. */
+                    Task<Void> discardTask = getDriveResourceClient().discardContents(contents);
+                }
+            })
+            .addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.e(TAG, "Unable to retrieve contents for: " + file.getDriveId(), e);
+                    taskCompletionSource.setResult(null);
+                    taskCompletionSource.setException(e);
+                }
+            });
         return taskCompletionSource.getTask();
     }
     /* All retrieval of metaData for a specified file wil go through this method. */
