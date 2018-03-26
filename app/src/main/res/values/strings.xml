@@ -29,6 +29,7 @@
     <string name="delete_calling_in_workflow">Remove Workflow Item</string>
     <string name="delete_calling">Delete Calling</string>
     <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
     <string name="setting_header">Settings</string>
     <string name="user_name">User Name</string>
     <string name="password">Password</string>
