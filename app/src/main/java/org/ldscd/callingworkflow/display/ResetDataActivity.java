@@ -24,6 +24,7 @@ import org.ldscd.callingworkflow.display.adapters.ResetOrgsListAdapter;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.services.GoogleDriveService;
 import org.ldscd.callingworkflow.web.DataManager;
+import org.ldscd.callingworkflow.web.UI.Spinner;
 
 import java.util.List;
 
@@ -79,12 +80,12 @@ public class ResetDataActivity extends AppCompatActivity {
                             .setPositiveButton(R.string.reset_data, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {
-                                    showProgress(true);
+                                    Spinner.showProgress(true, resetDataContainer, progressBar, getResources());
                                     List<Long> selectedOrgIds = adapter.getSelectedOrgIds();
                                     dataManager.refreshGoogleDriveOrgs(selectedOrgIds, new Response.Listener<Boolean>() {
                                         @Override
                                         public void onResponse(Boolean response) {
-                                            showProgress(false);
+                                            Spinner.showProgress(false, resetDataContainer, progressBar, getResources());
                                             if(response)
                                                 finish();
                                         }
@@ -106,37 +107,5 @@ public class ResetDataActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    private void showProgress(final boolean show) {
-        /* On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
-         * for very easy animations. If available, use these APIs to fade-in
-         * the progress spinner.
-         */
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
-
-            resetDataContainer.setVisibility(show ? View.GONE : View.VISIBLE);
-            resetDataContainer.animate().setDuration(shortAnimTime).alpha(
-                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    resetDataContainer.setVisibility(show ? View.GONE : View.VISIBLE);
-                }
-            });
-
-            progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
-            progressBar.animate().setDuration(shortAnimTime).alpha(
-                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
-                }
-            });
-        } else {
-            /* The ViewPropertyAnimator APIs are not available, so simply show and hide the relevant UI components */
-            progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
-            resetDataContainer.setVisibility(show ? View.GONE : View.VISIBLE);
-        }
     }
 }
