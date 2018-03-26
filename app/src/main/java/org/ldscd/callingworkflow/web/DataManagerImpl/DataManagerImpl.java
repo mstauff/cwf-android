@@ -67,6 +67,7 @@ public class DataManagerImpl implements DataManager {
         //googleDataService.signIn(signInTask, activity);
     }
     /* User data */
+    public LdsUser getCurrentUser() { return currentUser; }
     @Override
     public void getUserInfo(String userName, String password, boolean hasChanges, final Response.Listener<LdsUser> userListener) {
 

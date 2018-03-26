@@ -26,6 +26,7 @@ public interface DataManager {
     /* Google Drive */
     boolean isGoogleDriveAuthenticated(Context context);
     /* User data */
+    LdsUser getCurrentUser();
     void getUserInfo(String userName, String password, boolean hasChanges, Response.Listener<LdsUser> userListener);
     void getSharedPreferences(Response.Listener<SharedPreferences> listener);
     /* Calling data. */

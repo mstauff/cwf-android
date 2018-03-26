@@ -8,6 +8,8 @@ import android.util.Log;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.Scopes;
+import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.drive.DriveClient;
 import com.google.android.gms.drive.DriveContents;
@@ -71,8 +73,9 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
     private static GoogleSignInOptions googleSignInOptions;
     static {
         googleSignInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestScopes(Drive.SCOPE_FILE)
-            .requestScopes(Drive.SCOPE_APPFOLDER)
+            .requestScopes(new Scope(Scopes.EMAIL))
+            .requestScopes(new Scope(Scopes.DRIVE_FILE))
+            .requestScopes(new Scope(Scopes.DRIVE_APPFOLDER))
             .build();
     }
 
@@ -632,19 +635,21 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
         return taskCompletionSource.getTask();
     }
     @Override
-    public Task<Boolean> saveUnitSettings(UnitSettings unitSettings) {
-        this.unitSettings = unitSettings;
+    public Task<Boolean> saveUnitSettings(final UnitSettings updatedUnitSettings) {
         final TaskCompletionSource<Boolean> taskCompletionSource = new TaskCompletionSource<>();
         /* Create Gson object to flatten the Unit Settings object. */
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.serializeNulls();
-        String flattenedJson = gsonBuilder.create().toJson(unitSettings, UnitSettings.class);
+        String flattenedJson = gsonBuilder.create().toJson(updatedUnitSettings, UnitSettings.class);
         if(flattenedJson != null && flattenedJson.length() > 0) {
-            DriveId driveId = metaDriveMap.get(DataUtil.getUnitFileName(unitSettings.getUnitNumber()));
+            DriveId driveId = metaDriveMap.get(DataUtil.getUnitFileName(updatedUnitSettings.getUnitNumber()));
             updateFileContent(driveId.asDriveFile(), flattenedJson)
                 .addOnSuccessListener(new OnSuccessListener<Boolean>() {
                     @Override
                     public void onSuccess(Boolean aBoolean) {
+                        if(aBoolean) {
+                            unitSettings = updatedUnitSettings;
+                        }
                         taskCompletionSource.setResult(aBoolean);
                     }
                 })
@@ -659,18 +664,17 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
         return taskCompletionSource.getTask();
     }
     /* Creates the Unit Settings Json file and saves it in goolge drive AppData. */
-    private Task<Boolean> createUnitSettingsFile(final UnitSettings unitSettings) {
+    private Task<Boolean> createUnitSettingsFile(final UnitSettings newUnitSettings) {
         final TaskCompletionSource taskCompletionSource = new TaskCompletionSource();
-        this.unitSettings = unitSettings;
         /* Meta data for the file to be saved. */
         final MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
-                .setTitle(DataUtil.getUnitFileName(unitSettings.getUnitNumber()))
+                .setTitle(DataUtil.getUnitFileName(newUnitSettings.getUnitNumber()))
                 .setMimeType("text/json")
                 .build();
         /* Create Gson object to flatten the Unit Settings object. */
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.serializeNulls();
-        String flattenedJson = gsonBuilder.create().toJson(unitSettings, UnitSettings.class);
+        String flattenedJson = gsonBuilder.create().toJson(newUnitSettings, UnitSettings.class);
         if(flattenedJson != null && flattenedJson.length() > 0) {
             /* Create the UnitSettings file. */
             createFile(changeSet, flattenedJson)
@@ -689,7 +693,7 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                         TaskCompletionSource metadataTask = new TaskCompletionSource<Boolean>();
                         if (metadata != null) {
                             /* Add meta data to quick lookup hashmap. */
-                            metaDriveMap.put(DataUtil.getUnitFileName(unitSettings.getUnitNumber()), metadata.getDriveId());
+                            metaDriveMap.put(DataUtil.getUnitFileName(newUnitSettings.getUnitNumber()), metadata.getDriveId());
                             metadataTask.setResult(true);
                         } else {
                             metadataTask.setResult(false);
@@ -700,6 +704,9 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                 }).addOnSuccessListener(new OnSuccessListener<Boolean>() {
                     @Override
                     public void onSuccess(Boolean aBoolean) {
+                        if(aBoolean) {
+                            unitSettings = newUnitSettings;
+                        }
                         taskCompletionSource.setResult(aBoolean);
                     }
                 }).addOnFailureListener(new OnFailureListener() {
