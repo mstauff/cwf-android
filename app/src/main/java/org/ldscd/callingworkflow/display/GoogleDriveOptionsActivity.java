@@ -1,6 +1,7 @@
 package org.ldscd.callingworkflow.display;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -28,6 +29,7 @@ import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
+import org.ldscd.callingworkflow.BuildConfig;
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.services.GoogleDriveService;
 import org.ldscd.callingworkflow.web.DataManager;
@@ -82,6 +84,7 @@ public class GoogleDriveOptionsActivity extends AppCompatActivity implements Vie
          * Configure sign-in to request the user's ID, email address, and basic
          * profile. ID and basic profile are included in DEFAULT_SIGN_IN. */
         gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestScopes(new Scope(Scopes.EMAIL))
                 .requestScopes(new Scope(Scopes.DRIVE_FILE))
                 .requestScopes(new Scope(Scopes.DRIVE_APPFOLDER))
                 .build();
@@ -139,28 +142,41 @@ public class GoogleDriveOptionsActivity extends AppCompatActivity implements Vie
         try {
             /* Signed in successfully, show authenticated User */
             GoogleSignInAccount account = completedTask != null ? completedTask.getResult(ApiException.class) : null;
-            updateUI(account);
-            Toast.makeText(activity, R.string.login_success, Toast.LENGTH_SHORT).show();
-            /* Go back to the splash screen once login was successful */
-            if(getIntent().getStringExtra("activity") != null && getIntent().getStringExtra("activity").equals(SPLASH_ACTIVITY)) {
-                /* Transition to splash screen or directory view depending on which view invoiced this page. */
-                Intent intent = new Intent(this, SplashActivity.class);
-                startActivity(intent);
+            if(BuildConfig.authRemoteDataWithLdsAcct) {
+                if(!account.getEmail().contains(dataManager.getCurrentUser().getUnitNumber().toString())) {
+                    Toast.makeText(activity, R.string.account_unit_number_no_match, Toast.LENGTH_LONG).show();
+                    signOut();
+                } else {
+                    continueLoading(account);
+                }
             } else {
-                final ProgressBar pb = findViewById(R.id.google_sign_in_progress);
-                pb.setVisibility(View.VISIBLE);
-                dataManager.loadOrgs(new Response.Listener<Boolean>() {
-                    @Override
-                    public void onResponse(Boolean response) {
-                        pb.setVisibility(View.GONE);
-                        finish();
-                    }
-                }, pb, this);
+                continueLoading(account);
             }
+
         } catch (ApiException e) {
             /* Signed out, show unauthenticated UI. */
             Log.w(TAG, "handleSignInResult:error", e);
             updateUI(null);
+        }
+    }
+    private void continueLoading(GoogleSignInAccount account) {
+        updateUI(account);
+        Toast.makeText(activity, R.string.login_success, Toast.LENGTH_SHORT).show();
+            /* Go back to the splash screen once login was successful */
+        if(getIntent().getStringExtra("activity") != null && getIntent().getStringExtra("activity").equals(SPLASH_ACTIVITY)) {
+                /* Transition to splash screen or directory view depending on which view invoiced this page. */
+            Intent intent = new Intent(this, SplashActivity.class);
+            startActivity(intent);
+        } else {
+            final ProgressBar pb = findViewById(R.id.google_sign_in_progress);
+            pb.setVisibility(View.VISIBLE);
+            dataManager.loadOrgs(new Response.Listener<Boolean>() {
+                @Override
+                public void onResponse(Boolean response) {
+                    pb.setVisibility(View.GONE);
+                    finish();
+                }
+            }, pb, this);
         }
     }
     /* [END handleSignInResult] */
@@ -168,6 +184,7 @@ public class GoogleDriveOptionsActivity extends AppCompatActivity implements Vie
     /* [START signIn] */
     private void signIn() {
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
     /* [END signIn] */
@@ -232,11 +249,13 @@ public class GoogleDriveOptionsActivity extends AppCompatActivity implements Vie
 
             findViewById(R.id.google_sign_in_button).setVisibility(View.GONE);
             findViewById(R.id.google_sign_out_and_disconnect).setVisibility(View.VISIBLE);
+            findViewById(R.id.reset_data_link).setVisibility(View.VISIBLE);
         } else {
             mStatusTextView.setText(R.string.action_signed_out);
 
             findViewById(R.id.google_sign_in_button).setVisibility(View.VISIBLE);
             findViewById(R.id.google_sign_out_and_disconnect).setVisibility(View.GONE);
+            findViewById(R.id.reset_data_link).setVisibility(View.GONE);
         }
     }
 

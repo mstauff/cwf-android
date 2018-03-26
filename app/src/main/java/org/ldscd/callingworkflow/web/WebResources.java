@@ -20,6 +20,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ldscd.callingworkflow.BuildConfig;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.ConfigInfo;
 import org.ldscd.callingworkflow.model.LdsUser;
@@ -49,7 +50,7 @@ import java.util.Map;
 
 public class WebResources implements IWebResources {
     private static final String TAG = "WebResourcesLog";
-    private static final String CONFIG_URL = "http://dev-config-server-ldscd.7e14.starter-us-west-2.openshiftapps.com/cwf/config?env=stage";
+    private static final String CONFIG_URL = BuildConfig.appConfigUrl; // "http://dev-config-server-ldscd.7e14.starter-us-west-2.openshiftapps.com/cwf/config?env=stage";
     private static final String LDS_ENDPOINTS = "ldsEndpointUrls";
     private static final String USER_DATA = "USER_DATA";
     private static final String SIGN_IN = "SIGN_IN";
