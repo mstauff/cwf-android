@@ -1,11 +1,7 @@
 package org.ldscd.callingworkflow.display;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -28,9 +24,11 @@ import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.model.LdsUser;
 import org.ldscd.callingworkflow.utils.SecurityUtil;
 import org.ldscd.callingworkflow.web.DataManager;
+import org.ldscd.callingworkflow.web.UI.Spinner;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import javax.inject.Inject;
 
@@ -59,8 +57,8 @@ public class LDSAccountActivity extends AppCompatActivity {
         setContentView(R.layout.activity_ldsaccount);
         wireUpToolbar();
         /* Set up the login form. */
-        userNameView = (AutoCompleteTextView) findViewById(R.id.userName);
-        mPasswordView = (EditText) findViewById(R.id.password);
+        userNameView = findViewById(R.id.userName);
+        mPasswordView = findViewById(R.id.password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
@@ -86,7 +84,7 @@ public class LDSAccountActivity extends AppCompatActivity {
                 }
             }
         });
-        Button mLDSAccountSignInButton = (Button) findViewById(R.id.lds_credentials_sign_in_button);
+        Button mLDSAccountSignInButton = findViewById(R.id.lds_credentials_sign_in_button);
         mLDSAccountSignInButton.setOnClickListener(new OnClickListener() {
             public void onClick(View view) {
                 attemptLogin();
@@ -105,7 +103,7 @@ public class LDSAccountActivity extends AppCompatActivity {
     }
 
     private void setRefreshButton(boolean canUpdate) {
-        Button refreshDataButton = (Button) findViewById(R.id.button_data_sync);
+        Button refreshDataButton = findViewById(R.id.button_data_sync);
         if(canUpdate) {
             refreshDataButton.setOnClickListener(new OnClickListener() {
                 @Override
@@ -167,9 +165,9 @@ public class LDSAccountActivity extends AppCompatActivity {
             focusView.requestFocus();
         } else {
             /* Show a progress spinner, and kick off a background task to perform the user login attempt. */
-            showProgress(true);
+            Spinner.showProgress(true, mLoginFormView, mProgressView, getResources());
             mAuthTask = new UserLoginTask(userName, password);
-            mAuthTask.doInBackground((Void) null);
+            mAuthTask.doInBackground();
         }
     }
 
@@ -179,42 +177,6 @@ public class LDSAccountActivity extends AppCompatActivity {
 
     private boolean isPasswordValid(String password) {
         return password.length() > 4;
-    }
-
-    /**
-     * Shows the progress UI and hides the login form.
-     */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
-    private void showProgress(final boolean show) {
-        /* On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
-         * for very easy animations. If available, use these APIs to fade-in
-         * the progress spinner.
-         */
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
-
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-            mLoginFormView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-                }
-            });
-
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mProgressView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-                }
-            });
-        } else {
-            /* The ViewPropertyAnimator APIs are not available, so simply show and hide the relevant UI components */
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-        }
     }
 
     /**
@@ -231,11 +193,11 @@ public class LDSAccountActivity extends AppCompatActivity {
             mPassword = password;
         }
 
-        protected void doInBackground(Void... params) {
+        private void doInBackground() {
             final List<Boolean> success = new ArrayList<>();
             success.add(0, false);
-            boolean hasChanges = SecurityUtil.decrypt(getApplicationContext(), sharedPreferences.getString("username", null)) != mUserName ||
-                                 SecurityUtil.decrypt(getApplicationContext(), sharedPreferences.getString("password", null)) != mPassword;
+            boolean hasChanges = !Objects.equals(SecurityUtil.decrypt(getApplicationContext(), sharedPreferences.getString("username", null)), mUserName) ||
+                    !Objects.equals(SecurityUtil.decrypt(getApplicationContext(), sharedPreferences.getString("password", null)), mPassword);
             dataManager.getUserInfo(mUserName, mPassword, hasChanges, new Response.Listener<LdsUser>() {
                 @Override
                 public void onResponse(LdsUser ldsUser) {
@@ -244,9 +206,9 @@ public class LDSAccountActivity extends AppCompatActivity {
             });
         }
 
-        protected void onPostExecute(final Boolean success) {
+        private void onPostExecute(final Boolean success) {
             mAuthTask = null;
-            showProgress(false);
+            Spinner.showProgress(false, mLoginFormView, mProgressView, getResources());
             setRefreshButton(success);
             if (success) {
                 if(isTaskRoot()) {
@@ -263,15 +225,15 @@ public class LDSAccountActivity extends AppCompatActivity {
         }
 
         /* Implement this if a cancel button is provided in the future. */
-        protected void onCancelled() {
+        /*protected void onCancelled() {
             mAuthTask = null;
-            showProgress(false);
-        }
+            Spinner.showProgress(false, mLoginFormView, mProgressView, getResources());
+        }*/
     }
 
     /* refresh Data Section */
     private void refreshDataEventHandler() {
-        showProgress(true);
+        Spinner.showProgress(true, mLoginFormView, mProgressView, getResources());
         dataManager.refreshLCROrgs(new Response.Listener<Boolean>() {
             @Override
             public void onResponse(Boolean response) {
@@ -280,7 +242,7 @@ public class LDSAccountActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(getApplicationContext(), "Failed to refresh data", Toast.LENGTH_SHORT).show();
                 }
-                showProgress(false);
+                Spinner.showProgress(false, mLoginFormView, mProgressView, getResources());
             }
         });
     }
@@ -302,7 +264,7 @@ public class LDSAccountActivity extends AppCompatActivity {
     }
 
     private void wireUpToolbar() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.lds_account_toolbar);
+        Toolbar toolbar = findViewById(R.id.lds_account_toolbar);
         setSupportActionBar(toolbar);
 
         // Show the Up button in the action bar.
