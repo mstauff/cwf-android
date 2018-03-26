@@ -7,6 +7,7 @@ import com.android.volley.toolbox.Volley;
 import dagger.Module;
 import dagger.Provides;
 
+import org.ldscd.callingworkflow.BuildConfig;
 import org.ldscd.callingworkflow.model.permissions.PermissionManager;
 import org.ldscd.callingworkflow.services.GoogleDriveService;
 import org.ldscd.callingworkflow.services.GoogleDriveServiceImpl;
@@ -17,6 +18,7 @@ import org.ldscd.callingworkflow.web.IWebResources;
 
 import org.ldscd.callingworkflow.web.CallingData;
 import org.ldscd.callingworkflow.web.MemberData;
+import org.ldscd.callingworkflow.web.WebResources;
 
 import javax.inject.Singleton;
 
@@ -32,7 +34,7 @@ public class NetModule {
     @Provides
     @Singleton
     IWebResources providesWebResources(Context context, RequestQueue requestQueue, SharedPreferences preferences) {
-        return new LocalFileResources(context, requestQueue);//new WebResources(context, requestQueue, preferences);
+        return BuildConfig.useLDSOrgData ? new WebResources(context, requestQueue, preferences) : new LocalFileResources(context, requestQueue);
     }
 
     @Provides
