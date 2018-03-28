@@ -1,8 +1,10 @@
 package org.ldscd.callingworkflow.display;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.app.AlertDialog;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -108,7 +110,8 @@ public class LDSAccountActivity extends AppCompatActivity {
             refreshDataButton.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    refreshDataEventHandler();
+                    AlertDialog dialog = getAlertDialog();
+                    dialog.show();
                 }
             });
         } else {
@@ -120,6 +123,23 @@ public class LDSAccountActivity extends AppCompatActivity {
                 }
             });
         }
+    }
+
+    private AlertDialog getAlertDialog() {
+        final android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+        builder.setMessage(R.string.lds_data_reset_dialog)
+                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        refreshDataEventHandler();
+                    }
+                })
+                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+
+                    }
+                });
+        // Create the AlertDialog object and return it
+        return builder.create();
     }
     /**
      * Attempts to sign in or register the account specified by the login form.
