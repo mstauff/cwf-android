@@ -7,9 +7,12 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import org.ldscd.callingworkflow.R;
+import org.ldscd.callingworkflow.constants.Operation;
+import org.ldscd.callingworkflow.display.ConflictInfoFragment;
 import org.ldscd.callingworkflow.display.ExpandableOrgsListActivity;
 import org.ldscd.callingworkflow.model.Org;
 
@@ -38,8 +41,7 @@ public class OrgListAdapter extends RecyclerView.Adapter<OrgListAdapter.ViewHold
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.orgItem = mValues.get(position);
         holder.orgTitleView.setText(mValues.get(position).getDefaultOrgName());
-
-        holder.view.setOnClickListener(new View.OnClickListener() {
+        holder.orgTitleView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 /*if (twoPane) {
@@ -59,6 +61,21 @@ public class OrgListAdapter extends RecyclerView.Adapter<OrgListAdapter.ViewHold
                 //}
             }
         });
+
+        if(holder.orgItem.getConflictCause() != null && holder.orgItem.getConflictCause().getConflictCause() != null && holder.orgItem.getConflictCause().getConflictCause().length() > 0 ) {
+            holder.conflictContainer.setVisibility(View.VISIBLE);
+            holder.conflictButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ConflictInfoFragment conflictInfo = new ConflictInfoFragment();
+                    conflictInfo.setOrg(holder.orgItem);
+                    conflictInfo.setOperation(Operation.DELETE);
+                    conflictInfo.show(fragmentManager, "ConflictInfo");
+                }
+            });
+        } else {
+            holder.conflictContainer.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -70,11 +87,15 @@ public class OrgListAdapter extends RecyclerView.Adapter<OrgListAdapter.ViewHold
         public final View view;
         public final TextView orgTitleView;
         public Org orgItem;
+        public ImageButton conflictButton;
+        public View conflictContainer;
 
         public ViewHolder(View view) {
             super(view);
             this.view = view;
-            orgTitleView = (TextView) view.findViewById(R.id.org_list_name);
+            orgTitleView = view.findViewById(R.id.org_list_name);
+            conflictButton = view.findViewById(R.id.org_conflict_icon);
+            conflictContainer = view.findViewById(R.id.org_list_conflict_container);
         }
 
         @Override

@@ -133,16 +133,16 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
                     .inflate(R.layout.list_org_item, parentView, false);
         }
 
-        TextView orgName = (TextView) convertView.findViewById(R.id.org_list_name);
-        ImageButton addButton = (ImageButton) convertView.findViewById(R.id.add_calling_button);
-        //final ImageView conflictIcon = (ImageView) convertView.findViewById(R.id.calling_conflict_icon);
+        TextView orgName = convertView.findViewById(R.id.org_list_name);
+        ImageButton addButton = convertView.findViewById(R.id.add_calling_button);
+        ImageButton conflictIcon = convertView.findViewById(R.id.org_conflict_icon);
 
         orgName.setText(groupOrg.getDefaultOrgName());
 
-        /* If the calling section has the ability to add a calling and
-                the user has permissions to add a calling to this org then show the
-                addButton in the list.
-             */
+        /*  If the calling section has the ability to add a calling and
+            the user has permissions to add a calling to this org then show the
+            addButton in the list.
+         */
         if(groupOrg.potentialNewPositions().size() > 0 && groupOrg.getCanView()) {
             addButton.setVisibility(View.VISIBLE);
             addButton.setFocusable(false);
@@ -158,30 +158,29 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
             addButton.setVisibility(View.GONE);
         }
 
+         /* Show the conflict icon if the org in lcr was deleted but wasn't in google. */
+        if(groupOrg.getConflictCause() != null) {
+            addButton.setVisibility(View.GONE);
+            conflictIcon.setVisibility(View.VISIBLE);
+            conflictIcon.setFocusable(false);
+            conflictIcon.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    ConflictInfoFragment conflictInfo = new ConflictInfoFragment();
+                    conflictInfo.setOrg(org);
+                    conflictInfo.show(fragmentManager, "ConflictInfo");
+                }
+            });
+        } else {
+            conflictIcon.setVisibility(View.GONE);
+        }
+
         if(childView) {
             convertView.setPadding(CHILD_INDENT, 0, 0, 0);
             convertView.setBackgroundColor(ContextCompat.getColor(ctx, R.color.light_grey));
         } else {
             convertView.setPadding(GROUP_INDENT, 0, 0, 0);
         }
-
-        //todo: this section was moved from the calling view section and needs adapted for use with Orgs
-        //Manage conflict icon
-        /*if(groupOrg.getConflictCause() != null) {
-            conflictIcon.setVisibility(View.VISIBLE);
-            convertView.getBackground().setColorFilter(ContextCompat.getColor(ctx, R.color.conflict_background), PorterDuff.Mode.MULTIPLY);
-            conflictIcon.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    ConflictInfoFragment conflictInfo = new ConflictInfoFragment();
-                    conflictInfo.setCalling(calling);
-                    conflictInfo.show(fragmentManager, "ConflictInfo");
-                }
-            });
-        } else {
-            conflictIcon.setVisibility(View.GONE);
-            convertView.getBackground().clearColorFilter();
-        }*/
 
         return convertView;
     }

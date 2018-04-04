@@ -109,8 +109,9 @@
     <string name="current_calling_with_duration">%1$s (%2$d months)</string>
     <string name="additional_lines_sum">%1$d more…</string>
     <string name="calling_changed_message">This calling has been changed in LCR. %1$s and likely should be deleted.</string>
-    <string name="equivalent_deleted_explanation"> It appears that this calling has been removed from LCR </string>
+    <string name="equivalent_deleted_explanation"> It appears that this calling has been removed from LCR</string>
     <string name="equivalent_potential_and_actual_explaination">It appears that this assignment has been finalized in LCR </string>
+    <string name="org_conflict_warning">This (class/org) no longer exists on lds.org and should be removed, but there are outstanding changes in some callings. If these proposed changes are no longer needed you can remove the class/org. If you want to review the proposed changes to see if they need to be recorded in another class/org or if they can be discarded you can choose "keep for now".</string>
 
     <!-- Strings related to settings -->
     <string name="title_activity_ldsaccount">LDS Account</string>
@@ -138,8 +139,8 @@
     <string name="title_activity_status_edit">Edit Status</string>
     <string name="manage_data">Manage Data</string>
     <string name="conflict_info_title">Sync Conflict</string>
-    <string name="conflict_info_delete_text">Remove</string>
-    <string name="conflict_info_dismiss_text">Keep</string>
+    <string name="conflict_info_delete_text">Remove Org</string>
+    <string name="conflict_info_dismiss_text">Keep for now</string>
     <string name="unknown_member">Unknown Member</string>
     <string name="resync_data">Refresh LDS Data</string>
     <string name="google_drive">Google Drive</string>
@@ -153,4 +154,5 @@
     <string name="confirm_reset_warning">This will delete all in process calling data for the selected organizations. It will not affect any data on lds.org. This action cannot be undone. Are you sure you want to proceed?</string>
     <string name="missing_requirement_warning">You have selected a member that does not meet the requirements for the calling selected. You may not be able to save these changes in LCR.</string>
     <string name="lds_data_reset_dialog">This will update your app with any changes that have been made on lds.org since the time you launched the app.  You should not need to do this on a regular basis, only if you know there has been a change made on lds.org that you are not seeing in the app yet.  Do you want to proceed?</string>
+    <string name="conflict_understand_agreement">I have read and understand the dangers</string>
 </resources>

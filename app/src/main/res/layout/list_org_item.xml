@@ -21,19 +21,21 @@
             android:fontFamily="@font/roboto"
             android:textAppearance="?attr/textAppearanceListItem" />
 
-        <!-- this was moved here from list_calling_item for future use -->
-        <!--<ImageView
-            android:id="@+id/calling_conflict_icon"
-            android:layout_width="@dimen/icon_width"
-            android:layout_height="match_parent"
-            android:layout_margin="@dimen/text_margin"
-            app:srcCompat="?android:attr/alertDialogIcon"
-            android:layout_gravity="center_vertical"/>-->
-
         <View
             android:layout_width="1dp"
             android:layout_height="match_parent"
             android:background="@color/light_grey" />
+
+        <!-- this was moved here from list_calling_item for future use -->
+        <android.support.v7.widget.AppCompatImageButton
+            android:id="@+id/org_conflict_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:scaleType="center"
+            android:fontFamily="@font/roboto"
+            app:backgroundTint="@android:color/transparent"
+            app:srcCompat="@drawable/ic_yellow_warning" />
+
         <android.support.v7.widget.AppCompatImageButton
             android:id="@+id/add_calling_button"
             android:layout_width="wrap_content"

@@ -341,7 +341,7 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
         return taskCompletionSource.getTask();
     }
     /* Delete a single Org file in google drive.  This will remove the file completely. */
-    private Task<Boolean> deleteOrg(Org org) {
+    public Task<Boolean> deleteOrg(Org org) {
         final TaskCompletionSource<Boolean> taskCompletionSource = new TaskCompletionSource<>();
         DriveId driveId = metaDriveMap.get(DataUtil.getOrgFileName(org));
         if(driveId != null) {
@@ -471,24 +471,18 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                     if(metadataBuffer != null && metadataBuffer.getCount() > 0) {
                         boolean hasUnitSettings = false;
                         metaDriveMap = new HashMap<>();
-                        Map<String, Org> lcrOrgNames = new HashMap<>();
-                        for(Org org : orgList) {
-                            lcrOrgNames.put(DataUtil.getOrgFileName(org), org);
-                        }
                         for (Metadata metadata : metadataBuffer) {
                             if (metadata.getFileExtension().equals("json")) {
                                 /* Check to see if there are duplicate files.  If so, remove
                                     the file that is newest and keep the oldest file.
                                 */
-                                if(lcrOrgNames.containsKey(metadata.getTitle())) {
-                                    DriveId existingDriveId = metaDriveMap.get(metadata.getTitle());
-                                    if (existingDriveId != null) {
-                                        metaDriveMap.put(metadata.getTitle(), metadata.getDriveId());
-                                        deleteDriveFile(existingDriveId.asDriveFile());
+                                DriveId existingDriveId = metaDriveMap.get(metadata.getTitle());
+                                if (existingDriveId != null) {
+                                    metaDriveMap.put(metadata.getTitle(), metadata.getDriveId());
+                                    deleteDriveFile(existingDriveId.asDriveFile());
 
-                                    } else {
-                                        metaDriveMap.put(metadata.getTitle(), metadata.getDriveId());
-                                    }
+                                } else {
+                                    metaDriveMap.put(metadata.getTitle(), metadata.getDriveId());
                                 }
                             } else if(metadata.getFileExtension().equals("config")) {
                                 if(!hasUnitSettings && metadata.getTitle().equals(DataUtil.getUnitFileName(orgList.get(0).getUnitNumber()))) {
@@ -635,14 +629,14 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
         return taskCompletionSource.getTask();
     }
     @Override
-    public Task<Boolean> saveUnitSettings(final UnitSettings updatedUnitSettings) {
+    public Task<Boolean> saveUnitSettings(Long unitNumber, final UnitSettings updatedUnitSettings) {
         final TaskCompletionSource<Boolean> taskCompletionSource = new TaskCompletionSource<>();
         /* Create Gson object to flatten the Unit Settings object. */
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.serializeNulls();
         String flattenedJson = gsonBuilder.create().toJson(updatedUnitSettings, UnitSettings.class);
         if(flattenedJson != null && flattenedJson.length() > 0) {
-            DriveId driveId = metaDriveMap.get(DataUtil.getUnitFileName(updatedUnitSettings.getUnitNumber()));
+            DriveId driveId = metaDriveMap.get(DataUtil.getUnitFileName(unitNumber));
             updateFileContent(driveId.asDriveFile(), flattenedJson)
                 .addOnSuccessListener(new OnSuccessListener<Boolean>() {
                     @Override

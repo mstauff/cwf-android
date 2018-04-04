@@ -63,7 +63,7 @@ public class OrgListActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         ((CWFApplication)getApplication()).getNetComponent().inject(this);
         setContentView(R.layout.activity_org_list);
-        fragmentManager = twoPane ? getSupportFragmentManager() : null;
+        fragmentManager = getSupportFragmentManager();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle(getString(R.string.navigation_drawer_orgs));

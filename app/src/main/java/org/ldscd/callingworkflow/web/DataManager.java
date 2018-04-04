@@ -34,6 +34,8 @@ public interface DataManager {
     Calling getCalling(String id);
     Org getOrg(long id);
     List<Org> getOrgs();
+    boolean removeSubOrg(Org org, long subOrgId);
+    Task<Boolean> updateOrg(Org org);
     void refreshGoogleDriveOrgs(List<Long> orgIds, Response.Listener<Boolean> listener);
     void refreshLCROrgs(Response.Listener<Boolean> listener);
     void loadOrgs(Response.Listener<Boolean> listener, ProgressBar progressBar, Activity activity);
@@ -56,6 +58,7 @@ public interface DataManager {
     void updateCalling(Response.Listener<Boolean> listener, Calling calling);
     void deleteCalling(Calling calling, Response.Listener<Boolean> listener, Response.ErrorListener errorListener);
     List<Calling> getUnfinalizedCallings();
+    Task<Boolean> deleteOrg(Org org);
     /* Unit Settings */
     void getUnitSettings(Response.Listener<UnitSettings> listener, boolean getCachedItems);
     void saveUnitSettings(Response.Listener<Boolean> listener, UnitSettings unitSettings);

@@ -6,6 +6,7 @@ import org.ldscd.callingworkflow.display.CallingDetailFragment;
 import org.ldscd.callingworkflow.display.CallingDetailSearchFragment;
 import org.ldscd.callingworkflow.display.CallingFiltersFragment;
 import org.ldscd.callingworkflow.display.CallingListActivity;
+import org.ldscd.callingworkflow.display.ConflictInfoFragment;
 import org.ldscd.callingworkflow.display.CreateCallingActivity;
 import org.ldscd.callingworkflow.display.CreateCallingFragment;
 import org.ldscd.callingworkflow.display.DirectoryActivity;
@@ -43,4 +44,5 @@ public interface NetComponent {
     void inject(GoogleDriveOptionsActivity activity);
     void inject(ResetDataActivity activity);
     void inject(LDSAccountActivity activity);
+    void inject(ConflictInfoFragment fragment);
 }

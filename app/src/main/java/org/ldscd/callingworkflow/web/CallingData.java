@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -118,6 +119,13 @@ public class CallingData {
                                                             }
                                                             pb.setProgress(pb.getProgress() + 10);
 
+                                                            /* Set the orgs that might need to deleted. */
+                                                            for(Org org: baseOrgsToRemove) {
+                                                                if(org.getConflictCause() != null && org.getConflictCause().getConflictCause().length() > 0) {
+                                                                    org.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
+                                                                }
+                                                            }
+                                                            /* Items to save */
                                                             Set<Org> baseOrgsToSave = new HashSet<>();
                                                             for(Org org: orgsToSave) {
                                                                 baseOrgsToSave.add(getBaseOrg(org.getId()));
@@ -843,6 +851,24 @@ public class CallingData {
                 }
             }
         }
+        return result;
+    }
+
+    public boolean removeSubOrg(Org org, long subOrgId) {
+        boolean result = false;
+        List<Org> childOrgs = org.getChildren();
+        for(Iterator<Org> orgIterator = childOrgs.iterator(); orgIterator.hasNext();) {
+            Org subOrg = orgIterator.next();
+            if(subOrg.getId() == subOrgId) {
+                childOrgs.remove(subOrg);
+                return true;
+            }
+            result = removeSubOrg(subOrg, subOrgId);
+            if(result) {
+                break;
+            }
+        }
+
         return result;
     }
 

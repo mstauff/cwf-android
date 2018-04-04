@@ -56,17 +56,17 @@ public class DataManagerImpl implements DataManager {
         this.permissionManager = permissionManager;
     }
     /* Methods */
+    @Override
     public PermissionManager getPermissionManager() {
         return this.permissionManager;
     }
     /* Google Drive */
+    @Override
     public boolean isGoogleDriveAuthenticated(Context context) {
         return googleDataService.isAuthenticated(context);
     }
-    public void signIn(Task<Boolean> signInTask, Activity activity) {
-        //googleDataService.signIn(signInTask, activity);
-    }
     /* User data */
+    @Override
     public LdsUser getCurrentUser() { return currentUser; }
     @Override
     public void getUserInfo(String userName, String password, boolean hasChanges, final Response.Listener<LdsUser> userListener) {
@@ -102,14 +102,30 @@ public class DataManagerImpl implements DataManager {
     public void getCallingStatus(Response.Listener<List<CallingStatus>> listener) {
         callingData.getCallingStatus(listener, getUnitNumber());
     }
+    @Override
     public Calling getCalling(String id) {
         return callingData.getCalling(id);
     }
+    @Override
     public Org getOrg(long id) {
         return callingData.getOrg(id);
     }
+    @Override
     public List<Org> getOrgs() {
         return callingData.getOrgs();
+    }
+    @Override
+    public boolean removeSubOrg(Org org, long subOrgId) {
+        if(org == null) {
+            org = callingData.getBaseOrg(subOrgId);
+        }
+        return callingData.removeSubOrg(org, subOrgId);
+    }
+    @Override
+    public Task<Boolean> updateOrg(Org org) {
+        Org parentOrg = callingData.getBaseOrg(org.getId());
+        org = null;
+        return googleDataService.saveOrgFile(parentOrg);
     }
     @Override
     public void refreshGoogleDriveOrgs(List<Long> orgIds, Response.Listener<Boolean> listener) {
@@ -127,35 +143,45 @@ public class DataManagerImpl implements DataManager {
             listener.onResponse(false);
         }
     }
+    @Override
     public void loadOrgs(Response.Listener<Boolean> listener, ProgressBar progressBar, Activity activity) {
         callingData.loadOrgs(listener, progressBar, activity, currentUser);
     }
+    @Override
     public void loadPositionMetadata() {
         callingData.loadPositionMetadata();
     }
+    @Override
     public void clearLocalOrgData() {
         callingData.clearLocalOrgData();
     }
+    @Override
     public void refreshOrg(Response.Listener<Org> listener, Long orgId) {
         callingData.refreshOrgFromGoogleDrive(listener, orgId, currentUser);
     }
+    @Override
     public List<PositionMetaData> getAllPositionMetadata() {
         return callingData.getAllPositionMetadata();
     }
+    @Override
     public PositionMetaData getPositionMetadata(int positionTypeId) {
         return callingData.getPositionMetadata(positionTypeId);
     }
+    @Override
     public void releaseLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.ErrorListener errorListener) throws JSONException {
         callingData.releaseLDSCalling(calling, callback, errorListener);
     }
+    @Override
     public void updateLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.ErrorListener errorListener) throws JSONException {
         callingData.updateLDSCalling(calling, callback, errorListener);
     }
+    @Override
     public void deleteLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.ErrorListener errorListener) throws JSONException {
         callingData.deleteLDSCalling(calling, callback, errorListener);
     }
 
     /* Member data. */
+    @Override
     public String getMemberName(Long id) {
         if(id != null) {
             return memberData.getMemberName(id);
@@ -163,13 +189,15 @@ public class DataManagerImpl implements DataManager {
             return "";
         }
     }
+    @Override
     public void getWardList(Response.Listener<List<Member>> listener) {
         memberData.getMembers(listener);
     }
-
+    @Override
     public Member getMember(Long id) {
         return memberData.getMember(id);
     }
+    @Override
     public void loadMembers(Response.Listener<Boolean> listener, ProgressBar progressBar) {
         if(permissionManager.hasPermission(currentUser.getUnitRoles(), Permission.ORG_INFO_READ)) {
             memberData.loadMembers(listener, progressBar);
@@ -285,7 +313,6 @@ public class DataManagerImpl implements DataManager {
             }
         });
     }
-
     private Task<Boolean> handleSaveCalling(final Org org, final Org newOrg,  final Calling calling, final Operation operation) {
         final TaskCompletionSource<Boolean> taskCompletionSource = new TaskCompletionSource<>();
         if(newOrg != null) {
@@ -331,17 +358,19 @@ public class DataManagerImpl implements DataManager {
         }
         return taskCompletionSource.getTask();
     }
-
     @Override
     public List<Calling> getUnfinalizedCallings() {
         return callingData.getUnfinalizedCallings();
     }
-
     @Override
     public boolean canDeleteCalling(Calling calling, Org org) {
         return callingData.canDeleteCalling(calling, org);
     }
-
+    @Override
+    public Task<Boolean> deleteOrg(Org org) {
+        return googleDataService.deleteOrg(org);
+    }
+    
     /* Unit Settings */
     @Override
     public void getUnitSettings(final Response.Listener<UnitSettings> listener, boolean getCachedItems) {
@@ -361,7 +390,7 @@ public class DataManagerImpl implements DataManager {
     }
     @Override
     public void saveUnitSettings(final Response.Listener<Boolean> listener, UnitSettings unitSettings) {
-        googleDataService.saveUnitSettings(unitSettings)
+        googleDataService.saveUnitSettings(getUnitNumber(), unitSettings)
             .addOnCompleteListener(new OnCompleteListener<Boolean>() {
                 @Override
                 public void onComplete(@NonNull Task<Boolean> task) {

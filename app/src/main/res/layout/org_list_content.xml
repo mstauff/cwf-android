@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/org_list_item"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -14,4 +15,27 @@
         android:layout_marginLeft="34dp"
         android:fontFamily="@font/roboto"
         android:textAppearance="?attr/textAppearanceListItem" />
+
+    <!-- Conflict section -->
+    <RelativeLayout
+        android:id="@+id/org_list_conflict_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@color/light_grey" />
+
+        <android.support.v7.widget.AppCompatImageButton
+            android:id="@+id/org_conflict_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:scaleType="center"
+            android:fontFamily="@font/roboto"
+            app:backgroundTint="@android:color/transparent"
+            app:srcCompat="@drawable/ic_yellow_warning" />
+
+    </RelativeLayout>
+
 </LinearLayout>
