@@ -191,9 +191,9 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
                     .inflate(R.layout.list_calling_item, parentView, false);
         }
 
-        TextView callingTitle = (TextView) convertView.findViewById(R.id.calling_item_title);
-        TextView current = (TextView) convertView.findViewById(R.id.calling_item_current);
-        TextView proposed = (TextView) convertView.findViewById(R.id.calling_item_proposed);
+        TextView callingTitle = convertView.findViewById(R.id.calling_item_title);
+        TextView current = convertView.findViewById(R.id.calling_item_current);
+        TextView proposed = convertView.findViewById(R.id.calling_item_proposed);
 
         //set calling name
         PositionMetaData metaData = dataManager.getPositionMetadata(calling.getPosition().getPositionTypeId());

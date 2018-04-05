@@ -59,6 +59,7 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     public static final String INDIVIDUAL_ID = "individualId";
     public static final String CALLING = "calling";
     public static final String CAN_VIEW = "canView";
+    public static final String HAS_CONFLICT = "hasConflict";
 
     private Member proposedMember;
     private Long individualId;
@@ -69,6 +70,7 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     private int statusPosition = 0;
     private boolean canView = true;
     private boolean canViewPriesthoodFilters = false;
+    private boolean hasConflict = false;
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -193,6 +195,7 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
             calling = (Calling)bundle.getSerializable(CALLING);
             individualId = bundle.getLong(INDIVIDUAL_ID);
             canView = bundle.getBoolean(CAN_VIEW);
+            hasConflict = bundle.getBoolean(HAS_CONFLICT);
             hydrateCalling();
             wireUpFinalizeButton(canView);
             wireUpStatusDropdown(canView);
@@ -205,18 +208,18 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     private void wireUpMemberSearch(boolean canView) {
         if(!canView) {
             /* Hide the member lookup button if the user doesn't have rights to see it. */
-            TableLayout tableLayout = (TableLayout) view.findViewById(R.id.member_lookup_button_layout_table);
+            TableLayout tableLayout = view.findViewById(R.id.member_lookup_button_layout_table);
             tableLayout.setVisibility(View.GONE);
-            TextView proposedNameLabel = (TextView) view.findViewById(R.id.label_calling_detail_proposed);
+            TextView proposedNameLabel = view.findViewById(R.id.label_calling_detail_proposed);
             proposedNameLabel.setVisibility(View.GONE);
         } else {
-            ImageView memberWarningIcon = (ImageView) view.findViewById(R.id.member_selection_warning);
+            ImageView memberWarningIcon = view.findViewById(R.id.member_selection_warning);
             memberWarningIcon.setVisibility(View.GONE);
             if (calling.getProposedIndId() != null && calling.getProposedIndId() != 0) {
                 this.proposedMember = dataManager.getMember(calling.getProposedIndId());
                 String formattedName = dataManager.getMemberName(calling.getProposedIndId());
                 if (formattedName != null) {
-                    TextView name = (TextView) view.findViewById(R.id.member_lookup_name);
+                    TextView name = view.findViewById(R.id.member_lookup_name);
                     name.setText(formattedName);
                     if (proposedMember != null && proposedMember.getIndividualId() > 0) {
                         name.setOnClickListener(new View.OnClickListener() {
@@ -233,7 +236,7 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
                                 @Override
                                 public void onClick(View view) {
                                     View dialogView = getActivity().getLayoutInflater().inflate(R.layout.warning_dialog_text, null);
-                                    TextView messageTextView = (TextView)dialogView.findViewById(R.id.warning_message);
+                                    TextView messageTextView = dialogView.findViewById(R.id.warning_message);
                                     messageTextView.setText(R.string.missing_requirement_warning);
                                     AlertDialog alertDialog = new AlertDialog.Builder(getContext())
                                             .setView(dialogView)
@@ -250,13 +253,17 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
                 }
             }
         }
-        ImageButton searchButton = (ImageButton) view.findViewById(R.id.member_lookup_button);
-        searchButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                createMemberLookupFragment();
-            }
-        });
+        ImageButton searchButton = view.findViewById(R.id.member_lookup_button);
+        if(!hasConflict) {
+            searchButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    createMemberLookupFragment();
+                }
+            });
+        } else {
+            searchButton.setEnabled(false);
+        }
     }
 
     public void createMemberLookupFragment() {
@@ -337,17 +344,21 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
                         statusDropdown.setSelection(statusPosition, true);
                         resetProposedStatus = false;
                     }
-                    statusDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                        @Override
-                        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                            submitOrgChanges();
-                        }
+                    if(!hasConflict) {
+                        statusDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                submitOrgChanges();
+                            }
 
-                        @Override
-                        public void onNothingSelected(AdapterView<?> parent) {
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
 
-                        }
-                    });
+                            }
+                        });
+                    } else {
+                        statusDropdown.setEnabled(false);
+                    }
                 }
             });
         }
@@ -357,7 +368,11 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
         if(!canView) {
             notes.setVisibility(View.GONE);
         } else {
-            notes.addTextChangedListener(textWatcherNotesListener);
+            if(!hasConflict) {
+                notes.addTextChangedListener(textWatcherNotesListener);
+            } else {
+                notes.setEnabled(false);
+            }
             notes.setText(calling.getNotes() != null && calling.getNotes().length() > 0 ? calling.getNotes() : "");
         }
     }
@@ -388,8 +403,8 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
 
     private void wireUpFinalizeButton(boolean canView) {
         /* Finalize calling button setup */
-        Button button = (Button) view.findViewById(R.id.button_finalize_calling);
-        if(!canView) {
+        Button button = view.findViewById(R.id.button_finalize_calling);
+        if(!canView || hasConflict) {
             button.setVisibility(View.GONE);
         } else {
             button.setOnClickListener(new View.OnClickListener() {

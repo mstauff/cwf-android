@@ -122,6 +122,10 @@ public class DataManagerImpl implements DataManager {
         return callingData.removeSubOrg(org, subOrgId);
     }
     @Override
+    public Task<Boolean> deleteOrg(Org org) {
+        return googleDataService.deleteOrg(org);
+    }
+    @Override
     public Task<Boolean> updateOrg(Org org) {
         Org parentOrg = callingData.getBaseOrg(org.getId());
         org = null;
@@ -365,10 +369,6 @@ public class DataManagerImpl implements DataManager {
     @Override
     public boolean canDeleteCalling(Calling calling, Org org) {
         return callingData.canDeleteCalling(calling, org);
-    }
-    @Override
-    public Task<Boolean> deleteOrg(Org org) {
-        return googleDataService.deleteOrg(org);
     }
     
     /* Unit Settings */

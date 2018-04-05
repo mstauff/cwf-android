@@ -122,7 +122,7 @@ public class CallingData {
                                                             /* Set the orgs that might need to deleted. */
                                                             for(Org org: baseOrgsToRemove) {
                                                                 if(org.getConflictCause() != null && org.getConflictCause().getConflictCause().length() > 0) {
-                                                                    org.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
+                                                                    setOrgConflict(org, ConflictCause.LDS_EQUIVALENT_DELETED);
                                                                 }
                                                             }
                                                             /* Items to save */
@@ -171,6 +171,15 @@ public class CallingData {
             });
     }
 
+    /* If an org has a conflict set the children orgs to conflicted as well. */
+    private void setOrgConflict(Org org, ConflictCause conflictCause) {
+        org.setConflictCause(conflictCause);
+        if(org.getChildren() != null) {
+            for(Org child : org.getChildren()) {
+                setOrgConflict(child, conflictCause);
+            }
+        }
+    }
     public void clearLocalOrgData() {
         memberData.removeAllMemberCallings();
         orgs = new ArrayList<>();
@@ -348,7 +357,7 @@ public class CallingData {
                             /* If the org is gone then the user will need to address this cwf org. */
                             if (!matchFound) {
                                 if (hasProposedData(cwfOrg)) {
-                                    cwfOrg.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
+                                    setOrgConflict(cwfOrg, ConflictCause.LDS_EQUIVALENT_DELETED);
                                     cwfOrgsToAdd.add(cwfOrg);
                                 } else {
                                     baseOrgsToRemove.add(cwfOrg);
@@ -396,7 +405,7 @@ public class CallingData {
                 if (!matchFound) {
                     //org exists in cwf but not lcr, if it has proposed data flag and add to list
                     if(hasProposedData(cwfSubOrg)) {
-                        cwfSubOrg.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
+                        setOrgConflict(cwfSubOrg, ConflictCause.LDS_EQUIVALENT_DELETED);
                         lcrOrg.getChildren().add(cwfSubOrg);
                     } else { //if it doesn't have proposed data don't add it and add org to the save list to remove missing subOrg from google drive
                         orgsToSave.add(lcrOrg);

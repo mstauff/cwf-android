@@ -16,6 +16,7 @@ import android.widget.Toast;
 import com.android.volley.Response;
 
 import org.ldscd.callingworkflow.R;
+import org.ldscd.callingworkflow.constants.ConflictCause;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.web.DataManager;
@@ -171,6 +172,7 @@ public class CallingDetailActivity
         args.putLong(CallingDetailFragment.ORG_ID, orgId);
         args.putLong(CallingDetailFragment.INDIVIDUAL_ID, calling.getProposedIndId() != null ? calling.getProposedIndId() : 0L);
         args.putBoolean(CallingDetailFragment.CAN_VIEW, org.getCanView());
+        args.putBoolean(CallingDetailFragment.HAS_CONFLICT, org.getConflictCause() != null && org.getConflictCause().equals(ConflictCause.LDS_EQUIVALENT_DELETED));
         callingDetailFragment.setArguments(args);
         /* Launch the fragment once the items have been created and initialized. */
         /* Be sure to pass in the TAG for quick lookup reference later. */
