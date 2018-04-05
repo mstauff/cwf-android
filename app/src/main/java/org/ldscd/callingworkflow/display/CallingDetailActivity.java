@@ -172,7 +172,9 @@ public class CallingDetailActivity
         args.putLong(CallingDetailFragment.ORG_ID, orgId);
         args.putLong(CallingDetailFragment.INDIVIDUAL_ID, calling.getProposedIndId() != null ? calling.getProposedIndId() : 0L);
         args.putBoolean(CallingDetailFragment.CAN_VIEW, org.getCanView());
-        args.putBoolean(CallingDetailFragment.HAS_CONFLICT, org.getConflictCause() != null && org.getConflictCause().equals(ConflictCause.LDS_EQUIVALENT_DELETED));
+        args.putBoolean(CallingDetailFragment.HAS_CONFLICT, org.getConflictCause() != null &&
+                        org.getConflictCause().equals(ConflictCause.LDS_EQUIVALENT_DELETED) ||
+                        org.getConflictCause().equals(ConflictCause.LDS_EQUIVALENT_PARENT_DELETED));
         callingDetailFragment.setArguments(args);
         /* Launch the fragment once the items have been created and initialized. */
         /* Be sure to pass in the TAG for quick lookup reference later. */

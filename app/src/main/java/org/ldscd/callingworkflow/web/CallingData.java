@@ -174,6 +174,9 @@ public class CallingData {
     /* If an org has a conflict set the children orgs to conflicted as well. */
     private void setOrgConflict(Org org, ConflictCause conflictCause) {
         org.setConflictCause(conflictCause);
+        if(conflictCause.equals(ConflictCause.LDS_EQUIVALENT_DELETED)) {
+            conflictCause = ConflictCause.LDS_EQUIVALENT_PARENT_DELETED;
+        }
         if(org.getChildren() != null) {
             for(Org child : org.getChildren()) {
                 setOrgConflict(child, conflictCause);

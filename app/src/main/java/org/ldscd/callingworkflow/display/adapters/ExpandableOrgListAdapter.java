@@ -15,6 +15,7 @@ import android.widget.TextView;
 
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.constants.CallingStatus;
+import org.ldscd.callingworkflow.constants.ConflictCause;
 import org.ldscd.callingworkflow.display.ConflictInfoFragment;
 import org.ldscd.callingworkflow.display.CreateCallingActivity;
 import org.ldscd.callingworkflow.model.Calling;
@@ -161,16 +162,20 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
          /* Show the conflict icon if the org in lcr was deleted but wasn't in google. */
         if(groupOrg.getConflictCause() != null) {
             addButton.setVisibility(View.GONE);
-            conflictIcon.setVisibility(View.VISIBLE);
-            conflictIcon.setFocusable(false);
-            conflictIcon.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    ConflictInfoFragment conflictInfo = new ConflictInfoFragment();
-                    conflictInfo.setOrg(org);
-                    conflictInfo.show(fragmentManager, "ConflictInfo");
-                }
-            });
+            if(groupOrg.getConflictCause().equals(ConflictCause.LDS_EQUIVALENT_DELETED)) {
+                conflictIcon.setVisibility(View.VISIBLE);
+                conflictIcon.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        ConflictInfoFragment conflictInfo = new ConflictInfoFragment();
+                        conflictInfo.setOrg(org);
+                        conflictInfo.show(fragmentManager, "ConflictInfo");
+                    }
+                });
+            } else {
+                conflictIcon.setEnabled(false);
+                conflictIcon.setFocusable(false);
+            }
         } else {
             conflictIcon.setVisibility(View.GONE);
         }
