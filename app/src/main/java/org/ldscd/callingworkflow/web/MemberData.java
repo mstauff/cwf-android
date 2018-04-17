@@ -25,9 +25,11 @@ public class MemberData {
     public MemberData(Context context, IWebResources webResources) {
         this.context = context;
         this.webResources = webResources;
+        members = Collections.emptyList();
+        membersByIndividualId = Collections.emptyMap();
     }
 
-    public void loadMembers(final Response.Listener<Boolean> membersCallback, final ProgressBar pb) {
+    public void loadMembers(final Response.Listener<Boolean> membersCallback, Response.Listener<WebResourcesException> errorCallback, final ProgressBar pb) {
         webResources.getWardList(new Response.Listener<List<Member>>() {
             @Override
             public void onResponse(List<Member> response) {
@@ -42,7 +44,7 @@ public class MemberData {
                 pb.setProgress(pb.getProgress() + 20);
                 membersCallback.onResponse(true);
             }
-        });
+        }, errorCallback);
     }
 
     public String getMemberName(long individualId) {

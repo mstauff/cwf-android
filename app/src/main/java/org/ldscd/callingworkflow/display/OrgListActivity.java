@@ -1,6 +1,8 @@
 package org.ldscd.callingworkflow.display;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
@@ -23,6 +25,7 @@ import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.display.adapters.OrgListAdapter;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.web.DataManager;
+import org.ldscd.callingworkflow.web.WebResourcesException;
 
 import java.util.List;
 
@@ -54,6 +57,7 @@ public class OrgListActivity extends AppCompatActivity
     AppCompatActivity activity = this;
     RecyclerView recyclerView;
     FragmentManager fragmentManager;
+    ProgressBar progressBar;
 
     @Inject
     DataManager dataManager;
@@ -94,7 +98,7 @@ public class OrgListActivity extends AppCompatActivity
     private void setupRecyclerView() {
         List<Org> orgs = dataManager.getOrgs();
         recyclerView.setAdapter(new OrgListAdapter(orgs, twoPane, fragmentManager));
-        if(orgs.isEmpty()) {
+        if(orgs == null || orgs.isEmpty()) {
             reloadData();
         }
     }
@@ -108,21 +112,21 @@ public class OrgListActivity extends AppCompatActivity
         reloadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final ProgressBar pb = findViewById(R.id.org_list_reload_data_progress);
-                pb.setVisibility(View.VISIBLE);
+                progressBar = findViewById(R.id.org_list_reload_data_progress);
+                progressBar.setVisibility(View.VISIBLE);
                 if(dataManager.isGoogleDriveAuthenticated(getApplicationContext())) {
                     dataManager.loadOrgs(new Response.Listener<Boolean>() {
                         @Override
                         public void onResponse(Boolean response) {
                             layout.setVisibility(GONE);
                             reloadButton.setVisibility(GONE);
-                            pb.setVisibility(GONE);
+                            progressBar.setVisibility(GONE);
                         }
-                    }, pb, activity);
+                    }, webErrorListener, progressBar, activity);
                 } else {
                     layout.setVisibility(GONE);
                     reloadButton.setVisibility(GONE);
-                    pb.setVisibility(GONE);
+                    progressBar.setVisibility(GONE);
                     Intent intent = new Intent(OrgListActivity.this, GoogleDriveOptionsActivity.class);
                     intent.putExtra("activity", "");
                     startActivity(intent);
@@ -171,4 +175,50 @@ public class OrgListActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+    private Response.Listener<WebResourcesException> webErrorListener = new Response.Listener<WebResourcesException>() {
+        @Override
+        public void onResponse(WebResourcesException error) {
+            View dialogView = getLayoutInflater().inflate(R.layout.warning_dialog_text, null);
+            TextView messageView = dialogView.findViewById(R.id.warning_message);
+            AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(activity);
+
+            switch (error.getExceptionType()) {
+                case LDS_AUTH_REQUIRED:
+                    messageView.setText(R.string.error_lds_auth_failed);
+                    dialogBuilder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialogInterface) {
+                            Intent intent = new Intent(OrgListActivity.this, LDSAccountActivity.class);
+                            startActivity(intent);
+                        }
+                    });
+                    break;
+                case GOOGLE_AUTH_REQUIRED:
+                    messageView.setText(R.string.error_google_auth_failed);
+                    dialogBuilder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialogInterface) {
+                            Intent intent = new Intent(OrgListActivity.this, GoogleDriveOptionsActivity.class);
+                            intent.putExtra("activity", "");
+                            startActivity(intent);
+                        }
+                    });
+                    break;
+                case NO_DATA_CONNECTION:
+                    messageView.setText(R.string.error_no_data_connection);
+                    break;
+                case SERVER_UNAVAILABLE:
+                    messageView.setText(R.string.error_lds_server_unavailable);
+                    break;
+                default:
+                    messageView.setText(R.string.error_generic_web);
+
+            }
+            dialogBuilder.setView(dialogView);
+            dialogBuilder.setPositiveButton(R.string.ok, null);
+            dialogBuilder.show();
+            progressBar.setVisibility(GONE);
+        }
+    };
 }

@@ -50,7 +50,7 @@ public class CreateCallingFragment extends Fragment implements MemberLookupFragm
     private Position position;
     private SubFragmentOpenListener subFragmentListener;
     boolean resetProposedStatus = false;
-    boolean canViewPriesthood;
+    boolean canViewPriesthood = false;
     Spinner positionDropdown;
     Spinner statusDropdown;
     EditText notesBox;
@@ -151,14 +151,10 @@ public class CreateCallingFragment extends Fragment implements MemberLookupFragm
             }
         });
 
-        dataManager.getUserInfo(null, null, false, new Response.Listener<LdsUser>() {
-            @Override
-            public void onResponse(LdsUser user) {
-                if(user != null) {
-                    canViewPriesthood = dataManager.getPermissionManager().hasPermission(user.getUnitRoles(), Permission.PRIESTHOOD_OFFICE_READ);
-                }
-            }
-        });
+        LdsUser user = dataManager.getCurrentUser();
+        if(user != null) {
+            canViewPriesthood = dataManager.getPermissionManager().hasPermission(user.getUnitRoles(), Permission.PRIESTHOOD_OFFICE_READ);
+        }
 
         return view;
 

@@ -1,13 +1,10 @@
 package org.ldscd.callingworkflow.display;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
@@ -25,6 +22,7 @@ import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.services.GoogleDriveService;
 import org.ldscd.callingworkflow.web.DataManager;
 import org.ldscd.callingworkflow.web.UI.Spinner;
+import org.ldscd.callingworkflow.web.WebResourcesException;
 
 import java.util.List;
 
@@ -89,7 +87,7 @@ public class ResetDataActivity extends AppCompatActivity {
                                             if(response)
                                                 finish();
                                         }
-                                    });
+                                    }, webErrorListener);
                                 }
                             })
                             .setNegativeButton(R.string.cancel, null)
@@ -98,6 +96,30 @@ public class ResetDataActivity extends AppCompatActivity {
             }
         });
     }
+
+    private Response.Listener<WebResourcesException> webErrorListener = new Response.Listener<WebResourcesException>() {
+        @Override
+        public void onResponse(WebResourcesException error) {
+            View dialogView = getLayoutInflater().inflate(R.layout.warning_dialog_text, null);
+            TextView messageView = dialogView.findViewById(R.id.warning_message);
+            AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(activity);
+
+            switch (error.getExceptionType()) {
+                case NO_DATA_CONNECTION:
+                    messageView.setText(R.string.error_no_data_connection);
+                    break;
+                case SERVER_UNAVAILABLE:
+                    messageView.setText(R.string.error_lds_server_unavailable);
+                    break;
+                default:
+                    messageView.setText(R.string.error_generic_web);
+
+            }
+            dialogBuilder.setView(dialogView);
+            dialogBuilder.setPositiveButton(R.string.ok, null);
+            dialogBuilder.show();
+        }
+    };
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

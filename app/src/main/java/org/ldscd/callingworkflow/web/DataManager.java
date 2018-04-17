@@ -27,7 +27,7 @@ public interface DataManager {
     boolean isGoogleDriveAuthenticated(Context context);
     /* User data */
     LdsUser getCurrentUser();
-    void getUserInfo(String userName, String password, boolean hasChanges, Response.Listener<LdsUser> userListener);
+    void getUserInfo(String userName, String password, boolean hasChanges, Response.Listener<LdsUser> userListener, Response.Listener<WebResourcesException> errorCallback);
     void getSharedPreferences(Response.Listener<SharedPreferences> listener);
     /* Calling data. */
     void getCallingStatus(Response.Listener<List<CallingStatus>> listener);
@@ -36,27 +36,27 @@ public interface DataManager {
     List<Org> getOrgs();
     boolean removeSubOrg(Org org, long subOrgId);
     Task<Boolean> updateOrg(Org org);
-    void refreshGoogleDriveOrgs(List<Long> orgIds, Response.Listener<Boolean> listener);
-    void refreshLCROrgs(Response.Listener<Boolean> listener);
-    void loadOrgs(Response.Listener<Boolean> listener, ProgressBar progressBar, Activity activity);
+    void refreshGoogleDriveOrgs(List<Long> orgIds, Response.Listener<Boolean> listener, Response.Listener<WebResourcesException> errorCallback);
+    void refreshLCROrgs(Response.Listener<Boolean> listener, Response.Listener<WebResourcesException> errorCallback);
+    void loadOrgs(Response.Listener<Boolean> listener, Response.Listener<WebResourcesException> errorCallback, ProgressBar progressBar, Activity activity);
     void loadPositionMetadata();
     void clearLocalOrgData();
     void refreshOrg(Response.Listener<Org> listener, Long orgId);
     List<PositionMetaData> getAllPositionMetadata();
     PositionMetaData getPositionMetadata(int positionTypeId);
-    void releaseLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.ErrorListener errorListener) throws JSONException;
-    void updateLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.ErrorListener errorListener) throws JSONException;
-    void deleteLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.ErrorListener errorListener) throws JSONException;
+    void releaseLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.Listener<WebResourcesException> errorListener);
+    void updateLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.Listener<WebResourcesException> errorListener);
+    void deleteLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.Listener<WebResourcesException> errorListener);
     boolean canDeleteCalling(Calling calling, Org org);
     /* Member data. */
     String getMemberName(Long id);
     Member getMember(Long id);
     void getWardList(Response.Listener<List<Member>> listener);
-    void loadMembers(Response.Listener<Boolean> listener, ProgressBar progressBar);
+    void loadMembers(Response.Listener<Boolean> listener, Response.Listener<WebResourcesException> errorCallback, ProgressBar progressBar);
     /* Google data. */
     void addCalling(Response.Listener<Boolean> listener, Calling calling);
     void updateCalling(Response.Listener<Boolean> listener, Calling calling);
-    void deleteCalling(Calling calling, Response.Listener<Boolean> listener, Response.ErrorListener errorListener);
+    void deleteCalling(Calling calling, Response.Listener<Boolean> listener, Response.Listener<WebResourcesException> errorListener);
     List<Calling> getUnfinalizedCallings();
     Task<Boolean> deleteOrg(Org org);
     /* Unit Settings */

@@ -32,8 +32,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static java.net.Proxy.Type.HTTP;
-
 /**
  * Service class to interact with assets files within application project.
  */
@@ -59,7 +57,7 @@ public class LocalFileResources implements IWebResources {
     }
 
     @Override
-    public void getConfigInfo(final Response.Listener<ConfigInfo> configCallback) {
+    public void getConfigInfo(final Response.Listener<ConfigInfo> configCallback, Response.Listener<WebResourcesException> errorCallback) {
         if(configInfo != null) {
             configCallback.onResponse(configInfo);
         } else {
@@ -89,7 +87,7 @@ public class LocalFileResources implements IWebResources {
         }
     }
 
-    public void getUserInfo(boolean getClean, Response.Listener<LdsUser> userCallback) {
+    public void getUserInfo(boolean getClean, Response.Listener<LdsUser> userCallback, Response.Listener<WebResourcesException> errorCallback) {
         try {
             if(configInfo == null) {
                 getConfigInfo(new Response.Listener<ConfigInfo>() {
@@ -97,7 +95,7 @@ public class LocalFileResources implements IWebResources {
                     public void onResponse(ConfigInfo response) {
                         configInfo = response;
                     }
-                });
+                }, errorCallback);
             }
             JSONObject json = new JSONObject(getJSONFromAssets("user-info.json"));
             Log.i(TAG, "User call successful");
@@ -122,7 +120,7 @@ public class LocalFileResources implements IWebResources {
         }
     }
 
-    public void getOrgs(boolean getCleanCopy, Response.Listener<List<Org>> orgsCallback) {
+    public void getOrgs(boolean getCleanCopy, Response.Listener<List<Org>> orgsCallback, Response.Listener<WebResourcesException> errorCallback) {
         OrgCallingBuilder orgCallingBuilder = new OrgCallingBuilder();
         List<Org> orgs = new ArrayList<>();
         try {
@@ -135,7 +133,7 @@ public class LocalFileResources implements IWebResources {
         orgsCallback.onResponse(orgs);
     }
 
-    public void getWardList(Response.Listener<List<Member>> wardCallback) {
+    public void getWardList(Response.Listener<List<Member>> wardCallback, Response.Listener<WebResourcesException> errorCallback) {
         MemberListRequest memberListRequest = new MemberListRequest(null, null, null, null);
         List<Member> allMembers = memberListRequest.getMembers(getJSONFromAssets("member-objects.json"));
         List<Member> members = new ArrayList<>();
@@ -167,7 +165,7 @@ public class LocalFileResources implements IWebResources {
         return json;
     }
 
-    public void updateCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback) throws JSONException {
+    public void updateCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback, Response.Listener<WebResourcesException> errorCallback) {
         /*
         json: {
          "unitNumber": 56030,
@@ -182,51 +180,55 @@ public class LocalFileResources implements IWebResources {
          ]
          */
         org.json.JSONObject json = new org.json.JSONObject();
-        json.put("unitNumber", unitNumber);
-        json.put("subOrgTypeId", orgTypeId);
-        json.put("subOrgId", calling.getParentOrg());
-        json.put("positionTypeId", calling.getPosition().getPositionTypeId());
-        json.put("position", calling.getPosition().getName());
-        json.put("memberId", calling.getProposedIndId());
-        LocalDate date = LocalDate.now();
-        DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMd");
-        json.put("releaseDate", date.toString(fmt));
-        JSONArray positionIds = new JSONArray();
-        positionIds.put(calling.getId());
-        json.put("releasePositionIds", positionIds);
-        Map<String, String> header = new HashMap<String, String>();
-        header.put("Content-Type", "application/json");
-        GsonRequest<String> gsonRequest = new GsonRequest<String>(
-            Request.Method.POST,
-            configInfo.getUpdateCallingUrl(),
-            String.class,
-            header,
-            json,
-            new Response.Listener<String>() {
-                @Override
-                public void onResponse(String response) {
-                    try {
-                        callback.onResponse(new JSONObject(response));
-                    } catch (JSONException e) {
-                        Log.e("Json Parse LDS update", e.getMessage());
+        try {
+            json.put("unitNumber", unitNumber);
+            json.put("subOrgTypeId", orgTypeId);
+            json.put("subOrgId", calling.getParentOrg());
+            json.put("positionTypeId", calling.getPosition().getPositionTypeId());
+            json.put("position", calling.getPosition().getName());
+            json.put("memberId", calling.getProposedIndId());
+            LocalDate date = LocalDate.now();
+            DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMd");
+            json.put("releaseDate", date.toString(fmt));
+            JSONArray positionIds = new JSONArray();
+            positionIds.put(calling.getId());
+            json.put("releasePositionIds", positionIds);
+            Map<String, String> header = new HashMap<String, String>();
+            header.put("Content-Type", "application/json");
+            GsonRequest<String> gsonRequest = new GsonRequest<String>(
+                    Request.Method.POST,
+                    configInfo.getUpdateCallingUrl(),
+                    String.class,
+                    header,
+                    json,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            try {
+                                callback.onResponse(new JSONObject(response));
+                            } catch (JSONException e) {
+                                Log.e("Json Parse LDS update", e.getMessage());
+                            }
+                        }
+                    },
+                    new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.e("Network", error.getMessage());
+                        }
                     }
-                }
-            },
-            new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    Log.e("Network", error.getMessage());
-                }
-            }
-        );
-        requestQueue.add(gsonRequest);
+            );
+            requestQueue.add(gsonRequest);
+        } catch(JSONException e) {
+            errorCallback.onResponse(new WebResourcesException(ExceptionType.PARSING_ERROR, e));
+        }
     }
 
-    public void releaseCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback) throws JSONException {
+    public void releaseCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback, Response.Listener<WebResourcesException> errorCallback) {
 
     }
 
-    public void deleteCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback) throws JSONException {
+    public void deleteCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback, Response.Listener<WebResourcesException> errorCallback) {
 
     }
 

@@ -1,6 +1,7 @@
 package org.ldscd.callingworkflow.display;
 
 import android.app.Dialog;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -9,22 +10,14 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.BottomSheetDialogFragment;
 import android.support.design.widget.CoordinatorLayout;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.PopupMenu;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.json.JSONException;
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.constants.Operation;
-import org.ldscd.callingworkflow.model.Calling;
 
 /**
  * <p>A fragment that shows a list of items as a modal bottom sheet.</p>

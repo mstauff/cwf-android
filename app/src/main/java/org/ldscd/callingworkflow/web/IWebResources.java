@@ -4,7 +4,6 @@ import android.content.SharedPreferences;
 
 import com.android.volley.Response;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.ConfigInfo;
@@ -24,19 +23,19 @@ public interface IWebResources {
 
     void getSharedPreferences(Response.Listener<SharedPreferences> listener);
 
-    void getConfigInfo(Response.Listener<ConfigInfo> configCallback);
+    void getConfigInfo(Response.Listener<ConfigInfo> configCallback, Response.Listener<WebResourcesException> errorCallback);
 
-    void getUserInfo(boolean getClean, Response.Listener<LdsUser> userCallback);
+    void getUserInfo(boolean getClean, Response.Listener<LdsUser> userCallback, Response.Listener<WebResourcesException> errorCallback);
 
-    void getOrgs(boolean getCleanCopy, Response.Listener<List<Org>> orgsCallback);
+    void getOrgs(boolean getCleanCopy, Response.Listener<List<Org>> orgsCallback, Response.Listener<WebResourcesException> errorCallback);
 
-    void getWardList(Response.Listener<List<Member>> wardCallback);
+    void getWardList(Response.Listener<List<Member>> wardCallback, Response.Listener<WebResourcesException> errorCallback);
 
     void getPositionMetaData(Response.Listener<String> callback);
 
-    void releaseCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback) throws JSONException;
+    void releaseCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback, Response.Listener<WebResourcesException> errorCallback);
 
-    void updateCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback) throws JSONException;
+    void updateCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback, Response.Listener<WebResourcesException> errorCallback);
 
-    void deleteCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback) throws JSONException;
+    void deleteCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback, Response.Listener<WebResourcesException> errorCallback);
 }

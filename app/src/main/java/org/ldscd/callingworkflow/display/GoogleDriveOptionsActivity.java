@@ -1,7 +1,6 @@
 package org.ldscd.callingworkflow.display;
 
 import android.app.Activity;
-import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -33,6 +32,7 @@ import org.ldscd.callingworkflow.BuildConfig;
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.services.GoogleDriveService;
 import org.ldscd.callingworkflow.web.DataManager;
+import org.ldscd.callingworkflow.web.WebResourcesException;
 
 import javax.inject.Inject;
 
@@ -46,6 +46,7 @@ public class GoogleDriveOptionsActivity extends AppCompatActivity implements Vie
     private GoogleSignInClient mGoogleSignInClient;
     private TextView mStatusTextView;
     private GoogleSignInOptions gso;
+    private ProgressBar progressBar;
     /** Properties */
     @Inject
     GoogleDriveService googleDataService;
@@ -111,11 +112,16 @@ public class GoogleDriveOptionsActivity extends AppCompatActivity implements Vie
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
         if (account != null && GoogleSignIn.hasPermissions(account, gso.getScopeArray())) {
             updateUI(account);
-            /* Go back to the splash screen once login was successful */
-            if(getIntent().getStringExtra("activity") != null && getIntent().getStringExtra("activity").equals(SPLASH_ACTIVITY)) {
-                /* Transition to splash screen or directory view depending on which view invoiced this page. */
-                Intent intent = new Intent(this, SplashActivity.class);
-                startActivity(intent);
+            /* Transition to calling activity if user didn't navigate to this screen normally */
+            if(getIntent().getStringExtra("activity") != null) {
+                String callingActivity = getIntent().getStringExtra("activity");
+                if(callingActivity.equals(SPLASH_ACTIVITY)) {
+                    Intent intent = new Intent(this, SplashActivity.class);
+                    startActivity(intent);
+                } else if(callingActivity.equals(LDSAccountActivity.LDS_ACCOUNT_ACTIVITY)) {
+                    Intent intent = new Intent(this, LDSAccountActivity.class);
+                    startActivity(intent);
+                }
             }
         } else {
             updateUI(null);
@@ -168,17 +174,51 @@ public class GoogleDriveOptionsActivity extends AppCompatActivity implements Vie
             Intent intent = new Intent(this, SplashActivity.class);
             startActivity(intent);
         } else {
-            final ProgressBar pb = findViewById(R.id.google_sign_in_progress);
-            pb.setVisibility(View.VISIBLE);
+            progressBar = findViewById(R.id.google_sign_in_progress);
+            progressBar.setVisibility(View.VISIBLE);
             dataManager.loadOrgs(new Response.Listener<Boolean>() {
                 @Override
                 public void onResponse(Boolean response) {
-                    pb.setVisibility(View.GONE);
+                    progressBar.setVisibility(View.GONE);
                     finish();
                 }
-            }, pb, this);
+            }, webErrorListener, progressBar, this);
         }
     }
+    private Response.Listener<WebResourcesException> webErrorListener = new Response.Listener<WebResourcesException>() {
+        @Override
+        public void onResponse(WebResourcesException error) {
+            View dialogView = getLayoutInflater().inflate(R.layout.warning_dialog_text, null);
+            TextView messageView = dialogView.findViewById(R.id.warning_message);
+            AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(activity);
+
+            switch (error.getExceptionType()) {
+                case LDS_AUTH_REQUIRED:
+                    messageView.setText(R.string.error_lds_auth_failed);
+                    dialogBuilder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialogInterface) {
+                            Intent intent = new Intent(GoogleDriveOptionsActivity.this, LDSAccountActivity.class);
+                            startActivity(intent);
+                        }
+                    });
+                    break;
+                case NO_DATA_CONNECTION:
+                    messageView.setText(R.string.error_no_data_connection);
+                    break;
+                case SERVER_UNAVAILABLE:
+                    messageView.setText(R.string.error_lds_server_unavailable);
+                    break;
+                default:
+                    messageView.setText(R.string.error_generic_web);
+
+            }
+            dialogBuilder.setView(dialogView);
+            dialogBuilder.setPositiveButton(R.string.ok, null);
+            dialogBuilder.show();
+            progressBar.setVisibility(View.GONE);
+        }
+    };
     /* [END handleSignInResult] */
 
     /* [START signIn] */

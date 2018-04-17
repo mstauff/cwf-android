@@ -1,10 +1,10 @@
 package org.ldscd.callingworkflow.display;
 
+import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.app.AlertDialog;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -26,7 +26,9 @@ import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.model.LdsUser;
 import org.ldscd.callingworkflow.utils.SecurityUtil;
 import org.ldscd.callingworkflow.web.DataManager;
+import org.ldscd.callingworkflow.web.ExceptionType;
 import org.ldscd.callingworkflow.web.UI.Spinner;
+import org.ldscd.callingworkflow.web.WebResourcesException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +40,7 @@ import javax.inject.Inject;
  * A login screen that offers login via email/password.
  */
 public class LDSAccountActivity extends AppCompatActivity {
+    public static final String LDS_ACCOUNT_ACTIVITY = "LDSAccountActivity";
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
@@ -96,12 +99,8 @@ public class LDSAccountActivity extends AppCompatActivity {
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
 
-        dataManager.getUserInfo(null, null, false, new Response.Listener<LdsUser>() {
-            @Override
-            public void onResponse(LdsUser user) {
-                setRefreshButton(user != null);
-            }
-        });
+        LdsUser user = dataManager.getCurrentUser();
+        setRefreshButton(user != null);
     }
 
     private void setRefreshButton(boolean canUpdate) {
@@ -118,7 +117,7 @@ public class LDSAccountActivity extends AppCompatActivity {
             refreshDataButton.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Toast.makeText(getApplicationContext(), "Please login before trying to refresh your data.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), R.string.login_before_refresh, Toast.LENGTH_SHORT).show();
 
                 }
             });
@@ -126,7 +125,7 @@ public class LDSAccountActivity extends AppCompatActivity {
     }
 
     private AlertDialog getAlertDialog() {
-        final android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage(R.string.lds_data_reset_dialog)
                 .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
@@ -223,7 +222,7 @@ public class LDSAccountActivity extends AppCompatActivity {
                 public void onResponse(LdsUser ldsUser) {
                     onPostExecute(ldsUser != null && ldsUser.getIndividualId() > 0);
                 }
-            });
+            }, loginErrorListener);
         }
 
         private void onPostExecute(final Boolean success) {
@@ -231,10 +230,10 @@ public class LDSAccountActivity extends AppCompatActivity {
             Spinner.showProgress(false, mLoginFormView, mProgressView, getResources());
             setRefreshButton(success);
             if (success) {
-                if(isTaskRoot()) {
+                if (isTaskRoot()) {
                 /* Transition to splash screen or directory view depending on which view invoiced this page. */
-                Intent intent = new Intent(LDSAccountActivity.this, SplashActivity.class);
-                startActivity(intent);
+                    Intent intent = new Intent(LDSAccountActivity.this, SplashActivity.class);
+                    startActivity(intent);
                 } else {
                     finish();
                 }
@@ -249,6 +248,34 @@ public class LDSAccountActivity extends AppCompatActivity {
             mAuthTask = null;
             Spinner.showProgress(false, mLoginFormView, mProgressView, getResources());
         }*/
+
+        private Response.Listener<WebResourcesException> loginErrorListener = new Response.Listener<WebResourcesException>() {
+            @Override
+            public void onResponse(WebResourcesException error) {
+                if(error.getExceptionType() == ExceptionType.LDS_AUTH_REQUIRED) {
+                    onPostExecute(false);
+                } else {
+                    View dialogView = getLayoutInflater().inflate(R.layout.warning_dialog_text, null);
+                    TextView messageView = dialogView.findViewById(R.id.warning_message);
+                    AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(LDSAccountActivity.this);
+
+                    switch (error.getExceptionType()) {
+                        case NO_DATA_CONNECTION:
+                            messageView.setText(R.string.error_no_data_connection);
+                            break;
+                        case SERVER_UNAVAILABLE:
+                            messageView.setText(R.string.error_lds_server_unavailable);
+                            break;
+                        default:
+                            messageView.setText(R.string.error_generic_web);
+                    }
+                    dialogBuilder.setView(dialogView);
+                    dialogBuilder.setPositiveButton(R.string.ok, null);
+                    dialogBuilder.show();
+                    Spinner.showProgress(false, mLoginFormView, mProgressView, getResources());
+                }
+            }
+        };
     }
 
     /* refresh Data Section */
@@ -264,8 +291,44 @@ public class LDSAccountActivity extends AppCompatActivity {
                 }
                 Spinner.showProgress(false, mLoginFormView, mProgressView, getResources());
             }
-        });
+        }, refreshDataErrorListener);
     }
+
+    private Response.Listener<WebResourcesException> refreshDataErrorListener = new Response.Listener<WebResourcesException>() {
+        @Override
+        public void onResponse(WebResourcesException error) {
+            View dialogView = getLayoutInflater().inflate(R.layout.warning_dialog_text, null);
+            TextView messageView = dialogView.findViewById(R.id.warning_message);
+            AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(LDSAccountActivity.this);
+
+            switch (error.getExceptionType()) {
+                case GOOGLE_AUTH_REQUIRED:
+                    messageView.setText(R.string.error_google_auth_failed);
+                    dialogBuilder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialogInterface) {
+                            Intent intent = new Intent(LDSAccountActivity.this, GoogleDriveOptionsActivity.class);
+                            intent.putExtra("activity", LDS_ACCOUNT_ACTIVITY);
+                            startActivity(intent);
+                        }
+                    });
+                    break;
+                case NO_DATA_CONNECTION:
+                    messageView.setText(R.string.error_no_data_connection);
+                    break;
+                case SERVER_UNAVAILABLE:
+                    messageView.setText(R.string.error_lds_server_unavailable);
+                    break;
+                default:
+                    messageView.setText(R.string.error_generic_web);
+
+            }
+            dialogBuilder.setView(dialogView);
+            dialogBuilder.setPositiveButton(R.string.ok, null);
+            dialogBuilder.show();
+            Spinner.showProgress(false, mLoginFormView, mProgressView, getResources());
+        }
+    };
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

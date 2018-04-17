@@ -15,12 +15,19 @@ public class AuthenticationRequest extends Request<String> {
     private Map<String, String> params;
 
 
-    public AuthenticationRequest(String userName, String password, String url, Response.Listener<String> listener, Response.ErrorListener errorListener) {
-        super(Method.POST, url, errorListener);
+    public AuthenticationRequest(String userName, String password, String url, Response.Listener<String> listener, final Response.Listener<WebResourcesException> errorListener) {
+        super(Method.POST, url, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                //all exceptions should be of type WebResourcesException, we'll cast it here so we don't have to everywhere else
+                errorListener.onResponse((WebResourcesException) error);
+            }
+        });
         this.params = new HashMap<>(2);
         this.params.put("username", userName);
         this.params.put("password", password);
         this.listener = listener;
+        this.setShouldCache(false);
     }
 
     @Override
@@ -35,6 +42,9 @@ public class AuthenticationRequest extends Request<String> {
 
     @Override
     protected Response<String> parseNetworkResponse(NetworkResponse response) {
+        if(WebResourcesException.isWebsiteDownResponse(getUrl())) {
+            return Response.error(new WebResourcesException(ExceptionType.SERVER_UNAVAILABLE, response));
+        }
         String sessionCookie = null;
         if(response.headers.containsKey("Set-Cookie")) {
             String[] cookies = response.headers.get("Set-Cookie").split(";");
@@ -48,16 +58,17 @@ public class AuthenticationRequest extends Request<String> {
         if(sessionCookie != null) {
             return Response.success(sessionCookie, HttpHeaderParser.parseCacheHeaders(response));
         } else {
-            return Response.error(new VolleyError("Error while Authenticating"));
+            return Response.error(new WebResourcesException(ExceptionType.UNKNOWN_EXCEPTION, response));
         }
     }
 
     @Override
     protected VolleyError parseNetworkError(VolleyError volleyError) {
-        if(volleyError.networkResponse != null && volleyError.networkResponse.data != null && volleyError.networkResponse.statusCode==412) {
-            volleyError = new VolleyError(new String(volleyError.networkResponse.data));
+        if(volleyError.networkResponse != null && volleyError.networkResponse.data != null) {
+            if(volleyError.networkResponse.statusCode == 403) {
+                return new WebResourcesException(ExceptionType.LDS_AUTH_REQUIRED, volleyError.networkResponse);
+            }
         }
-
-        return volleyError;
+        return new WebResourcesException(ExceptionType.UNKNOWN_EXCEPTION, volleyError.networkResponse);
     }
 }

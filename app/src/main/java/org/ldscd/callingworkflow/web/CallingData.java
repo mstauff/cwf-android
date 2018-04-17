@@ -88,7 +88,7 @@ public class CallingData {
 
     /* Org Data */
 
-    public void loadOrgs(final Response.Listener<Boolean> orgsCallback, final ProgressBar pb, Activity activity, final LdsUser currentUser) {
+    public void loadOrgs(final Response.Listener<Boolean> orgsCallback, final Response.Listener<WebResourcesException> errorCallback, final ProgressBar pb, Activity activity, final LdsUser currentUser) {
         googleDriveService.init(activity)
             .addOnCompleteListener(new OnCompleteListener<Boolean>() {
                 @Override
@@ -163,7 +163,7 @@ public class CallingData {
                                         }
                                     });
                             }
-                        });
+                        }, errorCallback);
                     } else {
                         orgsCallback.onResponse(false);
                     }
@@ -191,7 +191,7 @@ public class CallingData {
         baseOrgByOrgId = new HashMap<>();
     }
 
-    public void refreshLCROrgs(final Response.Listener<Boolean> listener, final LdsUser currentUser) {
+    public void refreshLCROrgs(final Response.Listener<Boolean> listener, Response.Listener<WebResourcesException> errorCallback, final LdsUser currentUser) {
         webResources.getOrgs(true, new Response.Listener<List<Org>>() {
             @Override
             public void onResponse(List<Org> lcrOrgs) {
@@ -257,11 +257,11 @@ public class CallingData {
                         });
                 }
             }
-        });
+        }, errorCallback);
     }
 
     /* Removes and replaces the data in google drive with the latest data from LCR.  All pending callings will be removed. */
-    public void refreshGoogleDriveOrgs(final Response.Listener<Boolean> listener, final LdsUser currentUser, List<Long> orgIds) {
+    public void refreshGoogleDriveOrgs(final Response.Listener<Boolean> listener, final Response.Listener<WebResourcesException> errorListener, final LdsUser currentUser, List<Long> orgIds) {
        /* Reset all cached items. */
        List<Org> orgList = new ArrayList<>(orgIds.size());
        for(Long orgId : orgIds) {
@@ -277,7 +277,7 @@ public class CallingData {
                     public void onComplete(@NonNull Task<Boolean> task) {
                         if(task.getResult()) {
                             memberData.removeAllMemberCallings();
-                            refreshLCROrgs(listener, currentUser);
+                            refreshLCROrgs(listener, errorListener, currentUser);
                         }
                     }
                 });
@@ -652,31 +652,77 @@ public class CallingData {
         }
     }
 
-    public void releaseLDSCalling(final Calling calling, final Response.Listener<Boolean> callback, final Response.ErrorListener errorListener) throws JSONException {
+    public void releaseLDSCalling(final Calling calling, final Response.Listener<Boolean> callback, final Response.Listener<WebResourcesException> errorListener) {
         webResources.releaseCalling(calling, getOrg(calling.getParentOrg()).getUnitNumber(),  getOrg(calling.getParentOrg()).getOrgTypeId(),  new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject jsonObject) {
-                if (jsonObject != null) {
-                    try {
-                        if(jsonObject.has("errors") && jsonObject.getJSONObject("errors").length() > 0) {
-                            errorListener.onErrorResponse(hydrateErrorListener(jsonObject, Operation.RELEASE));
-                        } else {
-                            calling.setId(null);
+                try {
+                    if(jsonObject.has("errors") && jsonObject.getJSONObject("errors").length() > 0) {
+                        errorListener.onResponse(hydrateErrorListener(jsonObject, Operation.RELEASE));
+                    } else {
+                        calling.setId(null);
+                        calling.setNotes("");
+                        calling.setExistingStatus(null);
+                        calling.setProposedIndId(null);
+                        calling.setProposedStatus(CallingStatus.NONE);
+                        calling.setActiveDate(null);
+                        calling.setActiveDateTime(null);
+                        calling.setCwfId(UUID.randomUUID().toString());
+                        calling.setMemberId(null);
+                        calling.setConflictCause(null);
+                        Task<Boolean> saveOrgFile = googleDriveService.saveOrgFile(getBaseOrg(calling.getParentOrg()));
+                        saveOrgFile
+                            .continueWithTask(new Continuation<Boolean, Task<Void>>() {
+                                @Override
+                                public Task<Void> then(@NonNull Task<Boolean> task) throws Exception {
+                                    if(task.getResult()) {
+                                        callback.onResponse(true);
+                                    } else {
+                                        callback.onResponse(false);
+                                    }
+                                    return null;
+                                }
+                            });
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    errorListener.onResponse(new WebResourcesException(ExceptionType.PARSING_ERROR, e));
+                }
+            }
+        }, errorListener);
+    }
+
+    public void updateLDSCalling(final Calling calling, final Response.Listener<Boolean> callback, final Response.Listener<WebResourcesException> errorListener) {
+        webResources.updateCalling(calling, getOrg(calling.getParentOrg()).getUnitNumber(), getOrg(calling.getParentOrg()).getOrgTypeId(), new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject jsonObject) {
+                try {
+                    if(jsonObject.has("errors") && jsonObject.getJSONObject("errors").length() > 0) {
+                        errorListener.onResponse(hydrateErrorListener(jsonObject, Operation.UPDATE));
+                    } else {
+                        try {
+                            if(jsonObject.has("positionId")) {
+                                calling.setId(jsonObject.getLong("positionId"));
+                            }
                             calling.setNotes("");
                             calling.setExistingStatus(null);
                             calling.setProposedIndId(null);
                             calling.setProposedStatus(CallingStatus.NONE);
-                            calling.setActiveDate(null);
-                            calling.setActiveDateTime(null);
-                            calling.setCwfId(UUID.randomUUID().toString());
-                            calling.setMemberId(null);
+                            calling.setActiveDate(DateTime.now());
+                            calling.setActiveDateTime(DateTime.now());
+                            calling.setCwfId("");
+                            calling.setMemberId(jsonObject.getLong("memberId"));
                             calling.setConflictCause(null);
+                            if(calling.isCwfOnly()) {
+                                calling.setCwfOnly(false);
+                            }
                             Task<Boolean> saveOrgFile = googleDriveService.saveOrgFile(getBaseOrg(calling.getParentOrg()));
                             saveOrgFile
                                 .continueWithTask(new Continuation<Boolean, Task<Void>>() {
                                     @Override
                                     public Task<Void> then(@NonNull Task<Boolean> task) throws Exception {
                                         if(task.getResult()) {
+                                            callingsById.put(calling.getCallingId(), calling);
                                             callback.onResponse(true);
                                         } else {
                                             callback.onResponse(false);
@@ -684,78 +730,29 @@ public class CallingData {
                                         return null;
                                     }
                                 });
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            errorListener.onResponse(new WebResourcesException(ExceptionType.PARSING_ERROR, e));
                         }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
                     }
-                } else {
-                    callback.onResponse(false);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    errorListener.onResponse(new WebResourcesException(ExceptionType.PARSING_ERROR, e));
                 }
             }
-        });
-    }
-
-    public void updateLDSCalling(final Calling calling, final Response.Listener<Boolean> callback, final Response.ErrorListener errorListener) throws JSONException {
-        webResources.updateCalling(calling, getOrg(calling.getParentOrg()).getUnitNumber(), getOrg(calling.getParentOrg()).getOrgTypeId(), new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject jsonObject) {
-                if (jsonObject != null) {
-                    try {
-                        if(jsonObject.has("errors") && jsonObject.getJSONObject("errors").length() > 0) {
-                            errorListener.onErrorResponse(hydrateErrorListener(jsonObject, Operation.UPDATE));
-                        } else {
-                            try {
-                                if(jsonObject.has("positionId")) {
-                                    calling.setId(jsonObject.getLong("positionId"));
-                                }
-                                calling.setNotes("");
-                                calling.setExistingStatus(null);
-                                calling.setProposedIndId(null);
-                                calling.setProposedStatus(CallingStatus.NONE);
-                                calling.setActiveDate(DateTime.now());
-                                calling.setActiveDateTime(DateTime.now());
-                                calling.setCwfId("");
-                                calling.setMemberId(jsonObject.getLong("memberId"));
-                                calling.setConflictCause(null);
-                                if(calling.isCwfOnly()) {
-                                    calling.setCwfOnly(false);
-                                }
-                                Task<Boolean> saveOrgFile = googleDriveService.saveOrgFile(getBaseOrg(calling.getParentOrg()));
-                                saveOrgFile
-                                    .continueWithTask(new Continuation<Boolean, Task<Void>>() {
-                                        @Override
-                                        public Task<Void> then(@NonNull Task<Boolean> task) throws Exception {
-                                            if(task.getResult()) {
-                                                callingsById.put(calling.getCallingId(), calling);
-                                                callback.onResponse(true);
-                                            } else {
-                                                callback.onResponse(false);
-                                            }
-                                            return null;
-                                        }
-                                    });
-
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
+        }, errorListener);
     }
 
     /* Removes the calling from LCR then from google drive */
-    public void deleteLDSCalling(final Calling calling, final Response.Listener listener, final Response.ErrorListener errorListener) throws JSONException {
+    public void deleteLDSCalling(final Calling calling, final Response.Listener listener, final Response.Listener<WebResourcesException> errorListener) {
         final Org originalOrg = getOrg(calling.getParentOrg());
         webResources.deleteCalling(calling, originalOrg.getUnitNumber(), originalOrg.getOrgTypeId(), new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject jsonObject) {
                 try {
                     if(jsonObject != null && jsonObject.has("errors") && jsonObject.getJSONObject("errors").length() > 0) {
-                        errorListener.onErrorResponse(hydrateErrorListener(jsonObject, Operation.DELETE));
+                        errorListener.onResponse(hydrateErrorListener(jsonObject, Operation.DELETE));
                     } else {
                         /* Get Latest org changes from google drive. */
                         Task<Org> getOrgDataTask = googleDriveService.getOrgData(getBaseOrg(originalOrg.getId()));
@@ -794,13 +791,14 @@ public class CallingData {
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
+                    errorListener.onResponse(new WebResourcesException(ExceptionType.PARSING_ERROR, e));
                 }
             }
-        });
+        }, errorListener);
     }
 
-    private VolleyError hydrateErrorListener(JSONObject json, Operation action) {
-        VolleyError error = null;
+    private WebResourcesException hydrateErrorListener(JSONObject json, Operation action) {
+        WebResourcesException error = new WebResourcesException(ExceptionType.UNKNOWN_EXCEPTION);
         try {
             switch(action) {
                 case CREATE:
@@ -808,7 +806,11 @@ public class CallingData {
                 case READ:
                     break;
                 case UPDATE:
-                    error = new VolleyError(json.getJSONObject("errors").getString("memberId").replace("[", "").replace("]", ""));
+                    VolleyError volleyError = null;
+                    if(json.getJSONObject("errors").has("memberId")) {
+                        volleyError = new VolleyError(json.getJSONObject("errors").getString("memberId").replace("[", "").replace("]", ""));
+                    }
+                    error.setException(new WebResourcesException(ExceptionType.UNKNOWN_EXCEPTION, volleyError));
                     break;
                 case DELETE:
                     break;
@@ -818,7 +820,7 @@ public class CallingData {
                     break;
             }
         } catch (JSONException e) {
-            error = new VolleyError("An internal error occurred");
+            error = new WebResourcesException(ExceptionType.PARSING_ERROR, e);
         }
         return error;
     }

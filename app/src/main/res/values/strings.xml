@@ -155,4 +155,12 @@
     <string name="missing_requirement_warning">You have selected a member that does not meet the requirements for the calling selected. You may not be able to save these changes in LCR.</string>
     <string name="lds_data_reset_dialog">This will update your app with any changes that have been made on lds.org since the time you launched the app.  You should not need to do this on a regular basis, only if you know there has been a change made on lds.org that you are not seeing in the app yet.  Do you want to proceed?</string>
     <string name="conflict_understand_agreement">I have read and understand the dangers</string>
+
+    <!-- Web Error messages -->
+    <string name="error_lds_auth_failed">Authentication with LDS.org failed. Please enter your LDS user information to connect.</string>
+    <string name="error_google_auth_failed">Authentication with Google drive failed. Please enter your google account information to connect.</string>
+    <string name="error_no_data_connection">No data connection available. Please enable an internet connection on your device and retry.</string>
+    <string name="error_lds_server_unavailable">Connection to needed church services is currently unavailable. Please try again later.</string>
+    <string name="error_generic_web">An unexpected error has occurred while attempting to retrieve your data. Please try again later.</string>
+    <string name="login_before_refresh">Please login before trying to refresh your data.</string>
 </resources>

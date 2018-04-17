@@ -3,6 +3,8 @@ package org.ldscd.callingworkflow.display;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -36,6 +38,7 @@ import org.ldscd.callingworkflow.model.PositionMetaData;
 import org.ldscd.callingworkflow.model.PositionRequirements;
 import org.ldscd.callingworkflow.model.permissions.constants.Permission;
 import org.ldscd.callingworkflow.web.DataManager;
+import org.ldscd.callingworkflow.web.WebResourcesException;
 
 import java.util.List;
 
@@ -66,6 +69,7 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     private Calling calling;
     private View view;
     private OnCallingDetailFragmentListener mListener;
+    private ProgressDialog progressDialog;
     private boolean resetProposedStatus = false;
     private int statusPosition = 0;
     private boolean canView = true;
@@ -117,10 +121,10 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
 
     @Override
     public void onLeaderClerkResourceFragmentInteraction(Operation operation) throws JSONException {
-        ProgressDialog pd = new ProgressDialog(getContext());
-        pd.setMessage("Please Wait...");
-        pd.setCancelable(false);
-        pd.show();
+        progressDialog = new ProgressDialog(getContext());
+        progressDialog.setMessage("Please Wait...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
         if(operation == Operation.RELEASE) {
             dataManager.releaseLDSCalling(calling, LCRResponse, errorListener);
         } else if(operation == Operation.UPDATE) {
@@ -142,10 +146,30 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
         }
     };
 
-    protected Response.ErrorListener errorListener = new Response.ErrorListener() {
+    protected Response.Listener<WebResourcesException> errorListener = new Response.Listener<WebResourcesException>() {
         @Override
-        public void onErrorResponse(VolleyError error) {
-            Toast.makeText(getContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
+        public void onResponse(WebResourcesException error) {
+            View dialogView = getLayoutInflater().inflate(R.layout.warning_dialog_text, null);
+            TextView messageView = dialogView.findViewById(R.id.warning_message);
+            AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getContext());
+
+            switch (error.getExceptionType()) {
+                case NO_DATA_CONNECTION:
+                    messageView.setText(R.string.error_no_data_connection);
+                    break;
+                case SERVER_UNAVAILABLE:
+                    messageView.setText(R.string.error_lds_server_unavailable);
+                    break;
+                default:
+                    messageView.setText(R.string.error_generic_web);
+
+            }
+            dialogBuilder.setView(dialogView);
+            dialogBuilder.setPositiveButton(R.string.ok, null);
+            dialogBuilder.create().show();
+            if(progressDialog != null) {
+                progressDialog.dismiss();
+            }
         }
     };
 
@@ -169,14 +193,10 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
         super.onCreate(savedInstanceState);
         ((CWFApplication)getActivity().getApplication()).getNetComponent().inject(this);
 
-        dataManager.getUserInfo(null, null, false, new Response.Listener<LdsUser>() {
-            @Override
-            public void onResponse(LdsUser user) {
-                if(user != null) {
-                    canViewPriesthoodFilters = dataManager.getPermissionManager().hasPermission(user.getUnitRoles(), Permission.PRIESTHOOD_OFFICE_READ);
-                }
-            }
-        });
+        LdsUser user = dataManager.getCurrentUser();
+        if(user != null) {
+            canViewPriesthoodFilters = dataManager.getPermissionManager().hasPermission(user.getUnitRoles(), Permission.PRIESTHOOD_OFFICE_READ);
+        }
     }
 
     @Override

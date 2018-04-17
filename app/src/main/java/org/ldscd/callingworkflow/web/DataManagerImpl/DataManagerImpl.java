@@ -34,6 +34,7 @@ import org.ldscd.callingworkflow.web.CallingData;
 import org.ldscd.callingworkflow.web.DataManager;
 import org.ldscd.callingworkflow.web.IWebResources;
 import org.ldscd.callingworkflow.web.MemberData;
+import org.ldscd.callingworkflow.web.WebResourcesException;
 
 import java.util.List;
 
@@ -69,7 +70,7 @@ public class DataManagerImpl implements DataManager {
     @Override
     public LdsUser getCurrentUser() { return currentUser; }
     @Override
-    public void getUserInfo(String userName, String password, boolean hasChanges, final Response.Listener<LdsUser> userListener) {
+    public void getUserInfo(String userName, String password, boolean hasChanges, final Response.Listener<LdsUser> userListener, Response.Listener<WebResourcesException> errorCallback) {
 
         if(currentUser == null || hasChanges) {
             if(hasChanges) {
@@ -87,7 +88,7 @@ public class DataManagerImpl implements DataManager {
                     }
                     userListener.onResponse(currentUser);
                 }
-            });
+            }, errorCallback);
         } else {
             userListener.onResponse(currentUser);
         }
@@ -132,24 +133,24 @@ public class DataManagerImpl implements DataManager {
         return googleDataService.saveOrgFile(parentOrg);
     }
     @Override
-    public void refreshGoogleDriveOrgs(List<Long> orgIds, Response.Listener<Boolean> listener) {
+    public void refreshGoogleDriveOrgs(List<Long> orgIds, Response.Listener<Boolean> listener, Response.Listener<WebResourcesException> errorCallback) {
         if(currentUser != null && !orgIds.isEmpty()) {
-            callingData.refreshGoogleDriveOrgs(listener, currentUser, orgIds);
+            callingData.refreshGoogleDriveOrgs(listener, errorCallback, currentUser, orgIds);
         } else {
             listener.onResponse(false);
         }
     }
     @Override
-    public void refreshLCROrgs(Response.Listener<Boolean> listener) {
+    public void refreshLCROrgs(Response.Listener<Boolean> listener, Response.Listener<WebResourcesException> errorCallback) {
         if(currentUser != null) {
-            callingData.refreshLCROrgs(listener, currentUser);
+            callingData.refreshLCROrgs(listener, errorCallback, currentUser);
         } else {
             listener.onResponse(false);
         }
     }
     @Override
-    public void loadOrgs(Response.Listener<Boolean> listener, ProgressBar progressBar, Activity activity) {
-        callingData.loadOrgs(listener, progressBar, activity, currentUser);
+    public void loadOrgs(Response.Listener<Boolean> listener, Response.Listener<WebResourcesException> errorCallback, ProgressBar progressBar, Activity activity) {
+        callingData.loadOrgs(listener, errorCallback, progressBar, activity, currentUser);
     }
     @Override
     public void loadPositionMetadata() {
@@ -172,15 +173,15 @@ public class DataManagerImpl implements DataManager {
         return callingData.getPositionMetadata(positionTypeId);
     }
     @Override
-    public void releaseLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.ErrorListener errorListener) throws JSONException {
+    public void releaseLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.Listener<WebResourcesException> errorListener) {
         callingData.releaseLDSCalling(calling, callback, errorListener);
     }
     @Override
-    public void updateLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.ErrorListener errorListener) throws JSONException {
+    public void updateLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.Listener<WebResourcesException> errorListener) {
         callingData.updateLDSCalling(calling, callback, errorListener);
     }
     @Override
-    public void deleteLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.ErrorListener errorListener) throws JSONException {
+    public void deleteLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.Listener<WebResourcesException> errorListener) {
         callingData.deleteLDSCalling(calling, callback, errorListener);
     }
 
@@ -202,9 +203,9 @@ public class DataManagerImpl implements DataManager {
         return memberData.getMember(id);
     }
     @Override
-    public void loadMembers(Response.Listener<Boolean> listener, ProgressBar progressBar) {
+    public void loadMembers(Response.Listener<Boolean> listener, Response.Listener<WebResourcesException> errorCallback, ProgressBar progressBar) {
         if(permissionManager.hasPermission(currentUser.getUnitRoles(), Permission.ORG_INFO_READ)) {
-            memberData.loadMembers(listener, progressBar);
+            memberData.loadMembers(listener, errorCallback, progressBar);
         }
     }
 
@@ -232,7 +233,7 @@ public class DataManagerImpl implements DataManager {
         }
     }
     @Override
-    public void deleteCalling(final Calling calling, final Response.Listener<Boolean> listener, Response.ErrorListener errorListener) {
+    public void deleteCalling(final Calling calling, final Response.Listener<Boolean> listener, Response.Listener<WebResourcesException> errorListener) {
         final Org org = callingData.getBaseOrg(calling.getParentOrg());
         if(permissionManager.isAuthorized(currentUser.getUnitRoles(),
                 Permission.POTENTIAL_CALLING_DELETE,
@@ -370,7 +371,7 @@ public class DataManagerImpl implements DataManager {
     public boolean canDeleteCalling(Calling calling, Org org) {
         return callingData.canDeleteCalling(calling, org);
     }
-    
+
     /* Unit Settings */
     @Override
     public void getUnitSettings(final Response.Listener<UnitSettings> listener, boolean getCachedItems) {

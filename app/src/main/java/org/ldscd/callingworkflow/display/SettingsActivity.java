@@ -36,14 +36,7 @@ public class SettingsActivity extends AppCompatActivity {
         ((CWFApplication)getApplication()).getNetComponent().inject(this);
         setContentView(R.layout.activity_settings);
         /* Acquire the current user for security purposes */
-        if(currentUser == null) {
-            dataManager.getUserInfo(null, null, false, new Response.Listener<LdsUser>() {
-                @Override
-                public void onResponse(LdsUser user) {
-                    currentUser = user;
-                }
-            });
-        }
+        currentUser = dataManager.getCurrentUser();
         /* Acquire Permission Manager for security checks */
         if(permissionManager == null) {
             permissionManager = dataManager.getPermissionManager();
@@ -99,7 +92,7 @@ public class SettingsActivity extends AppCompatActivity {
         });
         TextView editCallingStatusLink = (TextView) findViewById(R.id.settings_edit_calling_status_link);
         /* If the current user is not a Unit Admin they cannot edit the statuses */
-        if(permissionManager.hasPermission(currentUser.getUnitRoles(), Permission.UNIT_GOOGLE_ACCOUNT_CREATE)) {
+        if(currentUser != null && permissionManager.hasPermission(currentUser.getUnitRoles(), Permission.UNIT_GOOGLE_ACCOUNT_CREATE)) {
             editCallingStatusLink.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

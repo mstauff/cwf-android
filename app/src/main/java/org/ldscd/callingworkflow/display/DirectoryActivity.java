@@ -33,7 +33,7 @@ public class DirectoryActivity extends AppCompatActivity
 
     AppCompatActivity activity = this;
     DirectoryAdapter adapter;
-    private boolean canViewPriesthood;
+    private boolean canViewPriesthood = false;
 
     @Inject
     DataManager dataManager;
@@ -62,14 +62,10 @@ public class DirectoryActivity extends AppCompatActivity
         assert recyclerView != null;
         setupRecyclerView((RecyclerView) recyclerView);
 
-        dataManager.getUserInfo(null, null, false, new Response.Listener<LdsUser>() {
-            @Override
-            public void onResponse(LdsUser user) {
-                if(user != null) {
-                    canViewPriesthood = dataManager.getPermissionManager().hasPermission(user.getUnitRoles(), Permission.PRIESTHOOD_OFFICE_READ);
-                }
-            }
-        });
+        LdsUser user = dataManager.getCurrentUser();
+        if (user != null) {
+            canViewPriesthood = dataManager.getPermissionManager().hasPermission(user.getUnitRoles(), Permission.PRIESTHOOD_OFFICE_READ);
+        }
 
     }
 
