@@ -81,7 +81,7 @@
     <string name="warning_update_release_message">This will record %1$s and release %2$s as %3$s in LCR. This will make the change official and public.  This should only be done after the individuals have been sustained and released in Sacrament Meeting. Do you want to record the release on lds.org?</string>
     <string name="warning_release_message">%1$s will be released as %2$s on lds.org (LCR). This will make the release public (it will appear in lds.org sites, LDS Tools, etc.). Generally this should only be done after the individual has been released in Sacrament Meeting. Do you want to record the release on lds.org?</string>
     <string name="warning_delete_lcr_message">%1$s will be released as %2$s and delete the calling on lds.org (LCR). This will make the release public (it will appear in lds.org sites, LDS Tools, etc.). Generally this should only be done after the individual has been released in Sacrament Meeting. Do you want to record the release on lds.org?</string>
-    <string name="warning_delete_message">This will remove the workflow item from the callings list. Do you want to continue?</string>
+    <string name="warning_delete_message">This will delete the calling. Do you want to continue?</string>
     <string name="error_update_Message">You have selected a member that does not meet the requirements for the calling selected.  You may not be able to save these changes in LCR</string>
     <string name="error_saving_changes">There was an error saving the changes.  Would you like to undo all your changes and return to the calling list?</string>
     <string name="account_unit_number_no_match">The Unit Number was found in the google account you selected.  Please use or create an account that has your unit number in the email address. i.e. callingworkflow.12345@gmail.com</string>
@@ -111,7 +111,6 @@
     <string name="calling_changed_message">This calling has been changed in LCR. %1$s and likely should be deleted.</string>
     <string name="equivalent_deleted_explanation"> It appears that this calling has been removed from LCR</string>
     <string name="equivalent_potential_and_actual_explaination">It appears that this assignment has been finalized in LCR </string>
-    <string name="org_conflict_warning">This (class/org) no longer exists on lds.org and should be removed, but there are outstanding changes in some callings. If these proposed changes are no longer needed you can remove the class/org. If you want to review the proposed changes to see if they need to be recorded in another class/org or if they can be discarded you can choose "keep for now".</string>
 
     <!-- Strings related to settings -->
     <string name="title_activity_ldsaccount">LDS Account</string>
@@ -138,9 +137,11 @@
     <string name="calling_status_edit_disclaimer">Please select the statuses you want to be displayed for the calling edit and create status options. If you do not have any selected, the system will use all of them by default.</string>
     <string name="title_activity_status_edit">Edit Status</string>
     <string name="manage_data">Manage Data</string>
-    <string name="conflict_info_title">Sync Conflict</string>
+    <string name="conflict_info_title">Missing Organization</string>
     <string name="conflict_info_delete_text">Remove Org</string>
     <string name="conflict_info_dismiss_text">Keep for now</string>
+    <string name="conflict_understand_agreement">This organization can be removed.</string>
+    <string name="org_conflict_warning">%1$s no longer exists on lds.org and should be removed, but there are outstanding changes in some callings. If these proposed changes are no longer needed you can remove the organization with the "Remove" button.  If you want to review the callings with outstanding changes you can choose "keep for now".</string>
     <string name="unknown_member">Unknown Member</string>
     <string name="resync_data">Refresh LDS Data</string>
     <string name="google_drive">Google Drive</string>
@@ -154,7 +155,6 @@
     <string name="confirm_reset_warning">This will delete all in process calling data for the selected organizations. It will not affect any data on lds.org. This action cannot be undone. Are you sure you want to proceed?</string>
     <string name="missing_requirement_warning">You have selected a member that does not meet the requirements for the calling selected. You may not be able to save these changes in LCR.</string>
     <string name="lds_data_reset_dialog">This will update your app with any changes that have been made on lds.org since the time you launched the app.  You should not need to do this on a regular basis, only if you know there has been a change made on lds.org that you are not seeing in the app yet.  Do you want to proceed?</string>
-    <string name="conflict_understand_agreement">I have read and understand the dangers</string>
 
     <!-- Web Error messages -->
     <string name="error_lds_auth_failed">Authentication with LDS.org failed. Please enter your LDS user information to connect.</string>
