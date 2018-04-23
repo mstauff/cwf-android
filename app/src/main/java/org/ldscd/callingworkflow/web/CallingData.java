@@ -660,6 +660,7 @@ public class CallingData {
                     if(jsonObject.has("errors") && jsonObject.getJSONObject("errors").length() > 0) {
                         errorListener.onResponse(hydrateErrorListener(jsonObject, Operation.RELEASE));
                     } else {
+                        callingsById.remove(calling);
                         calling.setId(null);
                         calling.setNotes("");
                         calling.setExistingStatus(null);
@@ -670,6 +671,7 @@ public class CallingData {
                         calling.setCwfId(UUID.randomUUID().toString());
                         calling.setMemberId(null);
                         calling.setConflictCause(null);
+                        callingsById.put(calling.getCallingId(), calling);
                         Task<Boolean> saveOrgFile = googleDriveService.saveOrgFile(getBaseOrg(calling.getParentOrg()));
                         saveOrgFile
                             .continueWithTask(new Continuation<Boolean, Task<Void>>() {
