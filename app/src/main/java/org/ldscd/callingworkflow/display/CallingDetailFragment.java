@@ -141,6 +141,7 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     protected Response.Listener<Boolean> LCRResponse = new Response.Listener<Boolean>() {
         @Override
         public void onResponse(Boolean response) {
+            progressDialog.dismiss();
             getActivity().finish();
             Toast.makeText(getContext(), getResources().getString(R.string.items_saved), Toast.LENGTH_SHORT).show();
         }

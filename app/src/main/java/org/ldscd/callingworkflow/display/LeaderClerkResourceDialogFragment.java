@@ -1,5 +1,6 @@
 package org.ldscd.callingworkflow.display;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -143,7 +144,7 @@ public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment
             updateButton.setVisibility(View.GONE);
         }
 
-        TextView deleteButton = (TextView)v.findViewById(R.id.button_delete_calling_in_lcr);
+        TextView deleteButton = v.findViewById(R.id.button_delete_calling_in_lcr);
         if(canDelete) {
             deleteButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -173,7 +174,7 @@ public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment
             deleteButton.setVisibility(View.GONE);
         }
 
-        TextView cancelOption = (TextView)v.findViewById(R.id.button_cancel_update_lds_org);
+        TextView cancelOption = v.findViewById(R.id.button_cancel_update_lds_org);
         cancelOption.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -220,6 +221,7 @@ public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment
         }
     };
 
+    @SuppressLint("RestrictedApi")
     @Override
     public void setupDialog(Dialog dialog, int style) {
         super.setupDialog(dialog, style);
@@ -229,7 +231,7 @@ public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment
         CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) ((View) contentView.getParent()).getLayoutParams();
         CoordinatorLayout.Behavior behavior = params.getBehavior();
 
-        if( behavior != null && behavior instanceof BottomSheetBehavior) {
+        if(behavior != null && behavior instanceof BottomSheetBehavior) {
             ((BottomSheetBehavior) behavior).setBottomSheetCallback(mBottomSheetBehaviorCallback);
         }
     }
