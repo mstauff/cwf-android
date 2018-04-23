@@ -126,23 +126,24 @@ public class CreateCallingFragment extends Fragment implements MemberLookupFragm
             public void onResponse(List<CallingStatus> statusOptions) {
                 if(statusOptions != null) {
                     statusOptions.remove(CallingStatus.UNKNOWN);
-                    statusDropdown = (Spinner) view.findViewById(R.id.new_calling_status_dropdown);
+                    statusDropdown = view.findViewById(R.id.new_calling_status_dropdown);
                     ArrayAdapter statusAdapter = new ArrayAdapter<CallingStatus>(getActivity(), android.R.layout.simple_list_item_1, statusOptions);
                     statusDropdown.setAdapter(statusAdapter);
+                    statusDropdown.setSelection(1);
                 }
             }
         });
 
         //notes editbox
-        notesBox = (EditText) view.findViewById(R.id.new_calling_notes);
+        notesBox = view.findViewById(R.id.new_calling_notes);
 
         //Member Lookup
         if(proposedMember != null) {
-            TextView proposedMemberTextView = (TextView) view.findViewById(R.id.member_lookup_name);
+            TextView proposedMemberTextView = view.findViewById(R.id.member_lookup_name);
             proposedMemberTextView.setText(proposedMember.getFormattedName());
         }
         checkPositionRequirements();
-        ImageButton searchButton = (ImageButton) view.findViewById(R.id.member_lookup_button);
+        ImageButton searchButton = view.findViewById(R.id.member_lookup_button);
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -161,7 +162,7 @@ public class CreateCallingFragment extends Fragment implements MemberLookupFragm
     }
 
     private void checkPositionRequirements() {
-        ImageView memberWarningIcon = (ImageView) view.findViewById(R.id.member_selection_warning);
+        ImageView memberWarningIcon = view.findViewById(R.id.member_selection_warning);
         memberWarningIcon.setVisibility(View.GONE);
         if(proposedMember != null) {
             PositionMetaData metaData = dataManager.getPositionMetadata(position.getPositionTypeId());
