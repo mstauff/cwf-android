@@ -72,7 +72,7 @@ public class ConflictInfoFragment extends DialogFragment {
                             .addOnSuccessListener(new OnSuccessListener<Boolean>() {
                                 @Override
                                 public void onSuccess(Boolean aBoolean) {
-                                    Toast.makeText(getContext(), "The org what delete successfully.", Toast.LENGTH_LONG);
+                                    Toast.makeText(getContext(), "The org was delete successfully.", Toast.LENGTH_LONG);
                                     dismiss();
                                 }
                             })
@@ -83,7 +83,20 @@ public class ConflictInfoFragment extends DialogFragment {
                                 }
                             });
                 } else {
-                    dataManager.updateOrg(org);
+                    dataManager.updateOrg(org)
+                            .addOnSuccessListener(new OnSuccessListener<Boolean>() {
+                                @Override
+                                public void onSuccess(Boolean aBoolean) {
+                                    Toast.makeText(getContext(), "The org was updated successfully.", Toast.LENGTH_LONG);
+                                    dismiss();
+                                }
+                            })
+                            .addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Toast.makeText(getContext(), "The org failed to update.", Toast.LENGTH_LONG);
+                                }
+                            });;
                 }
             }
         });

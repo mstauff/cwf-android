@@ -15,12 +15,12 @@ public class AuthenticationRequest extends Request<String> {
     private Map<String, String> params;
 
 
-    public AuthenticationRequest(String userName, String password, String url, Response.Listener<String> listener, final Response.Listener<WebResourcesException> errorListener) {
+    public AuthenticationRequest(String userName, String password, String url, Response.Listener<String> listener, final Response.Listener<WebException> errorListener) {
         super(Method.POST, url, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                //all exceptions should be of type WebResourcesException, we'll cast it here so we don't have to everywhere else
-                errorListener.onResponse((WebResourcesException) error);
+                //all exceptions should be of type WebException, we'll cast it here so we don't have to everywhere else
+                errorListener.onResponse((WebException) error);
             }
         });
         this.params = new HashMap<>(2);
@@ -42,8 +42,8 @@ public class AuthenticationRequest extends Request<String> {
 
     @Override
     protected Response<String> parseNetworkResponse(NetworkResponse response) {
-        if(WebResourcesException.isWebsiteDownResponse(getUrl())) {
-            return Response.error(new WebResourcesException(ExceptionType.SERVER_UNAVAILABLE, response));
+        if(WebException.isWebsiteDownResponse(getUrl())) {
+            return Response.error(new WebException(ExceptionType.SERVER_UNAVAILABLE, response));
         }
         String sessionCookie = null;
         if(response.headers.containsKey("Set-Cookie")) {
@@ -58,7 +58,7 @@ public class AuthenticationRequest extends Request<String> {
         if(sessionCookie != null) {
             return Response.success(sessionCookie, HttpHeaderParser.parseCacheHeaders(response));
         } else {
-            return Response.error(new WebResourcesException(ExceptionType.UNKNOWN_EXCEPTION, response));
+            return Response.error(new WebException(ExceptionType.UNKNOWN_EXCEPTION, response));
         }
     }
 
@@ -66,9 +66,9 @@ public class AuthenticationRequest extends Request<String> {
     protected VolleyError parseNetworkError(VolleyError volleyError) {
         if(volleyError.networkResponse != null && volleyError.networkResponse.data != null) {
             if(volleyError.networkResponse.statusCode == 403) {
-                return new WebResourcesException(ExceptionType.LDS_AUTH_REQUIRED, volleyError.networkResponse);
+                return new WebException(ExceptionType.LDS_AUTH_REQUIRED, volleyError.networkResponse);
             }
         }
-        return new WebResourcesException(ExceptionType.UNKNOWN_EXCEPTION, volleyError.networkResponse);
+        return new WebException(ExceptionType.UNKNOWN_EXCEPTION, volleyError.networkResponse);
     }
 }

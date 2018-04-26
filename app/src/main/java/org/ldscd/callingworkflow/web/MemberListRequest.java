@@ -47,12 +47,12 @@ public class MemberListRequest extends Request<List<Member>> {
     private final Response.Listener<List<Member>> listener;
     private Map<String, String> headers;
 
-    public MemberListRequest(String url, Map<String, String> headers, Response.Listener<List<Member>> listener, final Response.Listener<WebResourcesException> errorListener) {
+    public MemberListRequest(String url, Map<String, String> headers, Response.Listener<List<Member>> listener, final Response.Listener<WebException> errorListener) {
         super(Request.Method.GET, url, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 //all exceptions should be of type WebResourceException at this point for use in the rest of the app
-                errorListener.onResponse((WebResourcesException)error);
+                errorListener.onResponse((WebException)error);
             }
         });
         this.headers = headers;
@@ -71,16 +71,16 @@ public class MemberListRequest extends Request<List<Member>> {
 
     @Override
     protected Response<List<Member>> parseNetworkResponse(NetworkResponse response) {
-        if(WebResourcesException.isSessionExpiredResponse(getUrl())) {
-            return Response.error(new WebResourcesException(ExceptionType.SESSION_EXPIRED, response));
-        } else if(WebResourcesException.isWebsiteDownResponse(getUrl())) {
-            return Response.error(new WebResourcesException(ExceptionType.SERVER_UNAVAILABLE, response));
+        if(WebException.isSessionExpiredResponse(getUrl())) {
+            return Response.error(new WebException(ExceptionType.SESSION_EXPIRED, response));
+        } else if(WebException.isWebsiteDownResponse(getUrl())) {
+            return Response.error(new WebException(ExceptionType.SERVER_UNAVAILABLE, response));
         } else {
             List<Member> memberList;
             try {
                 memberList = getMembers(new String(response.data, HttpHeaderParser.parseCharset(response.headers)));
             } catch (Exception e) {
-                return Response.error(new WebResourcesException(ExceptionType.PARSING_ERROR, e));
+                return Response.error(new WebException(ExceptionType.PARSING_ERROR, e));
             }
             return Response.success(memberList, HttpHeaderParser.parseCacheHeaders(response));
         }
@@ -89,9 +89,9 @@ public class MemberListRequest extends Request<List<Member>> {
     @Override
     protected VolleyError parseNetworkError(VolleyError volleyError) {
         if(volleyError.networkResponse.statusCode == 403) {
-            return new WebResourcesException(ExceptionType.LDS_AUTH_REQUIRED, volleyError.networkResponse);
+            return new WebException(ExceptionType.LDS_AUTH_REQUIRED, volleyError.networkResponse);
         } else {
-            return new WebResourcesException(ExceptionType.UNKNOWN_EXCEPTION, volleyError.networkResponse);
+            return new WebException(ExceptionType.UNKNOWN_EXCEPTION, volleyError.networkResponse);
         }
     }
 

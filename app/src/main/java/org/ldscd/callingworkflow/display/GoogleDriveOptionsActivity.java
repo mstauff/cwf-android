@@ -32,7 +32,7 @@ import org.ldscd.callingworkflow.BuildConfig;
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.services.GoogleDriveService;
 import org.ldscd.callingworkflow.web.DataManager;
-import org.ldscd.callingworkflow.web.WebResourcesException;
+import org.ldscd.callingworkflow.web.WebException;
 
 import javax.inject.Inject;
 
@@ -185,9 +185,9 @@ public class GoogleDriveOptionsActivity extends AppCompatActivity implements Vie
             }, webErrorListener, progressBar, this);
         }
     }
-    private Response.Listener<WebResourcesException> webErrorListener = new Response.Listener<WebResourcesException>() {
+    private Response.Listener<WebException> webErrorListener = new Response.Listener<WebException>() {
         @Override
-        public void onResponse(WebResourcesException error) {
+        public void onResponse(WebException error) {
             View dialogView = getLayoutInflater().inflate(R.layout.warning_dialog_text, null);
             TextView messageView = dialogView.findViewById(R.id.warning_message);
             AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(activity);
@@ -208,6 +208,9 @@ public class GoogleDriveOptionsActivity extends AppCompatActivity implements Vie
                     break;
                 case SERVER_UNAVAILABLE:
                     messageView.setText(R.string.error_lds_server_unavailable);
+                    break;
+                case UNKOWN_GOOGLE_EXCEPTION:
+                    messageView.setText(R.string.error_google_drive);
                     break;
                 default:
                     messageView.setText(R.string.error_generic_web);

@@ -4,11 +4,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
-import android.util.Log;
 import android.widget.ProgressBar;
 
 import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -16,7 +14,6 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskCompletionSource;
 
-import org.json.JSONException;
 import org.ldscd.callingworkflow.constants.CallingStatus;
 import org.ldscd.callingworkflow.constants.Operation;
 import org.ldscd.callingworkflow.constants.UnitLevelOrgType;
@@ -32,9 +29,10 @@ import org.ldscd.callingworkflow.model.permissions.constants.Permission;
 import org.ldscd.callingworkflow.services.GoogleDriveService;
 import org.ldscd.callingworkflow.web.CallingData;
 import org.ldscd.callingworkflow.web.DataManager;
+import org.ldscd.callingworkflow.web.ExceptionType;
 import org.ldscd.callingworkflow.web.IWebResources;
 import org.ldscd.callingworkflow.web.MemberData;
-import org.ldscd.callingworkflow.web.WebResourcesException;
+import org.ldscd.callingworkflow.web.WebException;
 
 import java.util.List;
 
@@ -70,7 +68,7 @@ public class DataManagerImpl implements DataManager {
     @Override
     public LdsUser getCurrentUser() { return currentUser; }
     @Override
-    public void getUserInfo(String userName, String password, boolean hasChanges, final Response.Listener<LdsUser> userListener, Response.Listener<WebResourcesException> errorCallback) {
+    public void getUserInfo(String userName, String password, boolean hasChanges, final Response.Listener<LdsUser> userListener, Response.Listener<WebException> errorCallback) {
 
         if(currentUser == null || hasChanges) {
             if(hasChanges) {
@@ -100,8 +98,8 @@ public class DataManagerImpl implements DataManager {
 
     /* calling data. */
     @Override
-    public void getCallingStatus(Response.Listener<List<CallingStatus>> listener) {
-        callingData.getCallingStatus(listener, getUnitNumber());
+    public void getCallingStatus(Response.Listener<List<CallingStatus>> listener, Response.Listener<WebException> errorListener) {
+        callingData.getCallingStatus(listener, errorListener, getUnitNumber());
     }
     @Override
     public Calling getCalling(String id) {
@@ -133,7 +131,7 @@ public class DataManagerImpl implements DataManager {
         return googleDataService.saveOrgFile(parentOrg);
     }
     @Override
-    public void refreshGoogleDriveOrgs(List<Long> orgIds, Response.Listener<Boolean> listener, Response.Listener<WebResourcesException> errorCallback) {
+    public void refreshGoogleDriveOrgs(List<Long> orgIds, Response.Listener<Boolean> listener, Response.Listener<WebException> errorCallback) {
         if(currentUser != null && !orgIds.isEmpty()) {
             callingData.refreshGoogleDriveOrgs(listener, errorCallback, currentUser, orgIds);
         } else {
@@ -141,7 +139,7 @@ public class DataManagerImpl implements DataManager {
         }
     }
     @Override
-    public void refreshLCROrgs(Response.Listener<Boolean> listener, Response.Listener<WebResourcesException> errorCallback) {
+    public void refreshLCROrgs(Response.Listener<Boolean> listener, Response.Listener<WebException> errorCallback) {
         if(currentUser != null) {
             callingData.refreshLCROrgs(listener, errorCallback, currentUser);
         } else {
@@ -149,7 +147,7 @@ public class DataManagerImpl implements DataManager {
         }
     }
     @Override
-    public void loadOrgs(Response.Listener<Boolean> listener, Response.Listener<WebResourcesException> errorCallback, ProgressBar progressBar, Activity activity) {
+    public void loadOrgs(Response.Listener<Boolean> listener, Response.Listener<WebException> errorCallback, ProgressBar progressBar, Activity activity) {
         callingData.loadOrgs(listener, errorCallback, progressBar, activity, currentUser);
     }
     @Override
@@ -161,8 +159,8 @@ public class DataManagerImpl implements DataManager {
         callingData.clearLocalOrgData();
     }
     @Override
-    public void refreshOrg(Response.Listener<Org> listener, Long orgId) {
-        callingData.refreshOrgFromGoogleDrive(listener, orgId, currentUser);
+    public void refreshOrg(Response.Listener<Org> listener, Response.Listener<WebException> errorListener, Long orgId) {
+        callingData.refreshOrgFromGoogleDrive(listener, errorListener, orgId, currentUser);
     }
     @Override
     public List<PositionMetaData> getAllPositionMetadata() {
@@ -173,15 +171,15 @@ public class DataManagerImpl implements DataManager {
         return callingData.getPositionMetadata(positionTypeId);
     }
     @Override
-    public void releaseLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.Listener<WebResourcesException> errorListener) {
+    public void releaseLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.Listener<WebException> errorListener) {
         callingData.releaseLDSCalling(calling, callback, errorListener);
     }
     @Override
-    public void updateLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.Listener<WebResourcesException> errorListener) {
+    public void updateLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.Listener<WebException> errorListener) {
         callingData.updateLDSCalling(calling, callback, errorListener);
     }
     @Override
-    public void deleteLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.Listener<WebResourcesException> errorListener) {
+    public void deleteLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.Listener<WebException> errorListener) {
         callingData.deleteLDSCalling(calling, callback, errorListener);
     }
 
@@ -203,7 +201,7 @@ public class DataManagerImpl implements DataManager {
         return memberData.getMember(id);
     }
     @Override
-    public void loadMembers(Response.Listener<Boolean> listener, Response.Listener<WebResourcesException> errorCallback, ProgressBar progressBar) {
+    public void loadMembers(Response.Listener<Boolean> listener, Response.Listener<WebException> errorCallback, ProgressBar progressBar) {
         if(permissionManager.hasPermission(currentUser.getUnitRoles(), Permission.ORG_INFO_READ)) {
             memberData.loadMembers(listener, errorCallback, progressBar);
         }
@@ -211,29 +209,29 @@ public class DataManagerImpl implements DataManager {
 
     /* Google data. */
     @Override
-    public void addCalling(Response.Listener<Boolean> listener, Calling calling) {
+    public void addCalling(Response.Listener<Boolean> listener, Response.Listener<WebException> errorListener, Calling calling) {
         Org org = callingData.getBaseOrg(calling.getParentOrg());
         if(permissionManager.isAuthorized(currentUser.getUnitRoles(),
                 Permission.POTENTIAL_CALLING_CREATE,
                 new AuthorizableOrg(org.getUnitNumber(), UnitLevelOrgType.get(org.getOrgTypeId()), org.getOrgTypeId())))
         {
             callingData.addNewCalling(calling);
-            saveCalling(listener, org, calling, Operation.CREATE);
+            saveCalling(listener, errorListener, org, calling, Operation.CREATE);
         } else {
             listener.onResponse(false);
         }
     }
     @Override
-    public void updateCalling(Response.Listener<Boolean> listener, Calling calling) {
+    public void updateCalling(Response.Listener<Boolean> listener, Response.Listener<WebException> errorListener, Calling calling) {
         Org baseOrg = callingData.getBaseOrg(calling.getParentOrg());
         if(permissionManager.isAuthorized(currentUser.getUnitRoles(),
                 Permission.POTENTIAL_CALLING_UPDATE,
                 new AuthorizableOrg(baseOrg.getUnitNumber(), UnitLevelOrgType.get(baseOrg.getOrgTypeId()), baseOrg.getOrgTypeId()))) {
-            saveCalling(listener, baseOrg, calling, Operation.UPDATE);
+            saveCalling(listener, errorListener, baseOrg, calling, Operation.UPDATE);
         }
     }
     @Override
-    public void deleteCalling(final Calling calling, final Response.Listener<Boolean> listener, Response.Listener<WebResourcesException> errorListener) {
+    public void deleteCalling(final Calling calling, final Response.Listener<Boolean> listener, final Response.Listener<WebException> errorListener) {
         final Org org = callingData.getBaseOrg(calling.getParentOrg());
         if(permissionManager.isAuthorized(currentUser.getUnitRoles(),
                 Permission.POTENTIAL_CALLING_DELETE,
@@ -283,11 +281,21 @@ public class DataManagerImpl implements DataManager {
                                             getMember(originalCalling.getProposedIndId()).removeProposedCalling(calling);
                                         }
                                     }
-                                });
+                                }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    errorListener.onResponse(ensureWebException(e));
+                                }
+                            });
                         } else {
                             listener.onResponse(false);
                         }
                         return null;
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        errorListener.onResponse(ensureWebException(e));
                     }
                 });
             } else {
@@ -297,7 +305,7 @@ public class DataManagerImpl implements DataManager {
     }
 
     /* Calling and Google Data */
-    private void saveCalling(final Response.Listener<Boolean> listener, final Org org, final Calling calling, final Operation operation) {
+    private void saveCalling(final Response.Listener<Boolean> listener, final Response.Listener<WebException> errorListener, final Org org, final Calling calling, final Operation operation) {
         Task<Org> getOrgDataTask = googleDataService.getOrgData(org);
         getOrgDataTask.continueWithTask(new Continuation<Org, Task<Boolean>>() {
             @Override
@@ -314,7 +322,7 @@ public class DataManagerImpl implements DataManager {
         .addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-                listener.onResponse(false);
+                errorListener.onResponse(ensureWebException(e));
             }
         });
     }
@@ -374,7 +382,7 @@ public class DataManagerImpl implements DataManager {
 
     /* Unit Settings */
     @Override
-    public void getUnitSettings(final Response.Listener<UnitSettings> listener, boolean getCachedItems) {
+    public void getUnitSettings(final Response.Listener<UnitSettings> listener, final Response.Listener<WebException> errorListener, boolean getCachedItems) {
         googleDataService.getUnitSettings(getUnitNumber(), getCachedItems)
             .addOnSuccessListener(new OnSuccessListener<UnitSettings>() {
                 @Override
@@ -385,21 +393,30 @@ public class DataManagerImpl implements DataManager {
             .addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
-                    listener.onResponse(null);
+                    errorListener.onResponse(ensureWebException(e));
                 }
             });
     }
     @Override
-    public void saveUnitSettings(final Response.Listener<Boolean> listener, UnitSettings unitSettings) {
+    public void saveUnitSettings(final Response.Listener<Boolean> listener, final Response.Listener<WebException> errorListener, UnitSettings unitSettings) {
         googleDataService.saveUnitSettings(getUnitNumber(), unitSettings)
             .addOnCompleteListener(new OnCompleteListener<Boolean>() {
                 @Override
                 public void onComplete(@NonNull Task<Boolean> task) {
-                    listener.onResponse(task.getResult());
+                    if(task.isSuccessful()) {
+                        listener.onResponse(task.getResult());
+                    } else {
+                        errorListener.onResponse(ensureWebException(task.getException()));
+                    }
                 }
             });
     }
+
     private Long getUnitNumber() {
         return currentUser != null ? currentUser.getUnitNumber() : 0L;
+    }
+
+    private WebException ensureWebException(Exception exception) {
+        return exception instanceof WebException ? (WebException) exception : new WebException(ExceptionType.UNKOWN_GOOGLE_EXCEPTION, exception);
     }
 }

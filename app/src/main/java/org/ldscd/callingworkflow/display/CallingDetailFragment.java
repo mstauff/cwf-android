@@ -25,7 +25,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Response;
-import com.android.volley.VolleyError;
 
 import org.json.JSONException;
 import org.ldscd.callingworkflow.R;
@@ -38,7 +37,7 @@ import org.ldscd.callingworkflow.model.PositionMetaData;
 import org.ldscd.callingworkflow.model.PositionRequirements;
 import org.ldscd.callingworkflow.model.permissions.constants.Permission;
 import org.ldscd.callingworkflow.web.DataManager;
-import org.ldscd.callingworkflow.web.WebResourcesException;
+import org.ldscd.callingworkflow.web.WebException;
 
 import java.util.List;
 
@@ -126,14 +125,14 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
         progressDialog.setCancelable(false);
         progressDialog.show();
         if(operation == Operation.RELEASE) {
-            dataManager.releaseLDSCalling(calling, LCRResponse, errorListener);
+            dataManager.releaseLDSCalling(calling, LCRResponse, webErrorListener);
         } else if(operation == Operation.UPDATE) {
-            dataManager.updateLDSCalling(calling, LCRResponse, errorListener);
+            dataManager.updateLDSCalling(calling, LCRResponse, webErrorListener);
         } else if(operation == Operation.DELETE) {
             if (calling.isCwfOnly()) {
-                dataManager.deleteCalling(calling, LCRResponse, errorListener);
+                dataManager.deleteCalling(calling, LCRResponse, webErrorListener);
             } else {
-                dataManager.deleteLDSCalling(calling, LCRResponse, errorListener);
+                dataManager.deleteLDSCalling(calling, LCRResponse, webErrorListener);
             }
         }
     }
@@ -147,19 +146,25 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
         }
     };
 
-    protected Response.Listener<WebResourcesException> errorListener = new Response.Listener<WebResourcesException>() {
+    protected Response.Listener<WebException> webErrorListener = new Response.Listener<WebException>() {
         @Override
-        public void onResponse(WebResourcesException error) {
+        public void onResponse(WebException error) {
             View dialogView = getLayoutInflater().inflate(R.layout.warning_dialog_text, null);
             TextView messageView = dialogView.findViewById(R.id.warning_message);
             AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getContext());
 
             switch (error.getExceptionType()) {
+                case GOOGLE_AUTH_REQUIRED:
+                    messageView.setText(R.string.error_google_auth_failed);
+                    break;
                 case NO_DATA_CONNECTION:
                     messageView.setText(R.string.error_no_data_connection);
                     break;
                 case SERVER_UNAVAILABLE:
                     messageView.setText(R.string.error_lds_server_unavailable);
+                    break;
+                case UNKOWN_GOOGLE_EXCEPTION:
+                    messageView.setText(R.string.error_google_drive);
                     break;
                 default:
                     messageView.setText(R.string.error_generic_web);
@@ -381,7 +386,7 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
                         statusDropdown.setEnabled(false);
                     }
                 }
-            });
+            }, webErrorListener);
         }
     }
 

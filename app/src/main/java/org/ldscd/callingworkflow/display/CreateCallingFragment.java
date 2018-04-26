@@ -1,6 +1,8 @@
 package org.ldscd.callingworkflow.display;
 
 import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -30,6 +32,7 @@ import org.ldscd.callingworkflow.model.PositionMetaData;
 import org.ldscd.callingworkflow.model.PositionRequirements;
 import org.ldscd.callingworkflow.model.permissions.constants.Permission;
 import org.ldscd.callingworkflow.web.DataManager;
+import org.ldscd.callingworkflow.web.WebException;
 
 import java.util.List;
 
@@ -132,7 +135,7 @@ public class CreateCallingFragment extends Fragment implements MemberLookupFragm
                     statusDropdown.setSelection(1);
                 }
             }
-        });
+        }, webErrorListener);
 
         //notes editbox
         notesBox = view.findViewById(R.id.new_calling_notes);
@@ -213,4 +216,31 @@ public class CreateCallingFragment extends Fragment implements MemberLookupFragm
             resetProposedStatus = true;
         }
     }
+
+    private Response.Listener<WebException> webErrorListener = new Response.Listener<WebException>() {
+        @Override
+        public void onResponse(WebException error) {
+            View dialogView = getLayoutInflater().inflate(R.layout.warning_dialog_text, null);
+            TextView messageView = dialogView.findViewById(R.id.warning_message);
+            AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity());
+
+            switch (error.getExceptionType()) {
+                case GOOGLE_AUTH_REQUIRED:
+                    messageView.setText(R.string.error_google_auth_failed);
+                    break;
+                case NO_DATA_CONNECTION:
+                    messageView.setText(R.string.error_no_data_connection);
+                    break;
+                case UNKOWN_GOOGLE_EXCEPTION:
+                    messageView.setText(R.string.error_google_drive);
+                    break;
+                default:
+                    messageView.setText(R.string.error_generic_web);
+
+            }
+            dialogBuilder.setView(dialogView);
+            dialogBuilder.setPositiveButton(R.string.ok, null);
+            dialogBuilder.show();
+        }
+    };
 }

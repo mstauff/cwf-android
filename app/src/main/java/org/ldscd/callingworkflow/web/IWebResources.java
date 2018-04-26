@@ -23,19 +23,19 @@ public interface IWebResources {
 
     void getSharedPreferences(Response.Listener<SharedPreferences> listener);
 
-    void getConfigInfo(Response.Listener<ConfigInfo> configCallback, Response.Listener<WebResourcesException> errorCallback);
+    void getConfigInfo(Response.Listener<ConfigInfo> configCallback, Response.Listener<WebException> errorCallback);
 
-    void getUserInfo(boolean getClean, Response.Listener<LdsUser> userCallback, Response.Listener<WebResourcesException> errorCallback);
+    void getUserInfo(boolean getClean, Response.Listener<LdsUser> userCallback, Response.Listener<WebException> errorCallback);
 
-    void getOrgs(boolean getCleanCopy, Response.Listener<List<Org>> orgsCallback, Response.Listener<WebResourcesException> errorCallback);
+    void getOrgs(boolean getCleanCopy, Response.Listener<List<Org>> orgsCallback, Response.Listener<WebException> errorCallback);
 
-    void getWardList(Response.Listener<List<Member>> wardCallback, Response.Listener<WebResourcesException> errorCallback);
+    void getWardList(Response.Listener<List<Member>> wardCallback, Response.Listener<WebException> errorCallback);
 
     void getPositionMetaData(Response.Listener<String> callback);
 
-    void releaseCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback, Response.Listener<WebResourcesException> errorCallback);
+    void releaseCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback, Response.Listener<WebException> errorCallback);
 
-    void updateCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback, Response.Listener<WebResourcesException> errorCallback);
+    void updateCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback, Response.Listener<WebException> errorCallback);
 
-    void deleteCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback, Response.Listener<WebResourcesException> errorCallback);
+    void deleteCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback, Response.Listener<WebException> errorCallback);
 }

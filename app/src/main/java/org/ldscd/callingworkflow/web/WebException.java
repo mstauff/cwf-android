@@ -4,21 +4,21 @@ package org.ldscd.callingworkflow.web;
 import com.android.volley.NetworkResponse;
 import com.android.volley.VolleyError;
 
-public class WebResourcesException  extends VolleyError {
+public class WebException extends VolleyError {
     private ExceptionType exceptionType;
     private Exception exception;
 
-    public WebResourcesException(ExceptionType exceptionType) {
+    public WebException(ExceptionType exceptionType) {
         super();
         this.exceptionType = exceptionType;
     }
 
-    public WebResourcesException(ExceptionType exceptionType, Exception exception) {
+    public WebException(ExceptionType exceptionType, Exception exception) {
         this.exception = exception;
         this.exceptionType = exceptionType;
     }
 
-    public WebResourcesException(ExceptionType exceptionType, NetworkResponse networkResponse) {
+    public WebException(ExceptionType exceptionType, NetworkResponse networkResponse) {
         super(networkResponse);
         this.exceptionType = exceptionType;
     }

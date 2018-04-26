@@ -57,7 +57,7 @@ public class LocalFileResources implements IWebResources {
     }
 
     @Override
-    public void getConfigInfo(final Response.Listener<ConfigInfo> configCallback, Response.Listener<WebResourcesException> errorCallback) {
+    public void getConfigInfo(final Response.Listener<ConfigInfo> configCallback, Response.Listener<WebException> errorCallback) {
         if(configInfo != null) {
             configCallback.onResponse(configInfo);
         } else {
@@ -87,7 +87,7 @@ public class LocalFileResources implements IWebResources {
         }
     }
 
-    public void getUserInfo(boolean getClean, Response.Listener<LdsUser> userCallback, Response.Listener<WebResourcesException> errorCallback) {
+    public void getUserInfo(boolean getClean, Response.Listener<LdsUser> userCallback, Response.Listener<WebException> errorCallback) {
         try {
             if(configInfo == null) {
                 getConfigInfo(new Response.Listener<ConfigInfo>() {
@@ -120,7 +120,7 @@ public class LocalFileResources implements IWebResources {
         }
     }
 
-    public void getOrgs(boolean getCleanCopy, Response.Listener<List<Org>> orgsCallback, Response.Listener<WebResourcesException> errorCallback) {
+    public void getOrgs(boolean getCleanCopy, Response.Listener<List<Org>> orgsCallback, Response.Listener<WebException> errorCallback) {
         OrgCallingBuilder orgCallingBuilder = new OrgCallingBuilder();
         List<Org> orgs = new ArrayList<>();
         try {
@@ -133,7 +133,7 @@ public class LocalFileResources implements IWebResources {
         orgsCallback.onResponse(orgs);
     }
 
-    public void getWardList(Response.Listener<List<Member>> wardCallback, Response.Listener<WebResourcesException> errorCallback) {
+    public void getWardList(Response.Listener<List<Member>> wardCallback, Response.Listener<WebException> errorCallback) {
         MemberListRequest memberListRequest = new MemberListRequest(null, null, null, null);
         List<Member> allMembers = memberListRequest.getMembers(getJSONFromAssets("member-objects.json"));
         List<Member> members = new ArrayList<>();
@@ -165,7 +165,7 @@ public class LocalFileResources implements IWebResources {
         return json;
     }
 
-    public void updateCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback, Response.Listener<WebResourcesException> errorCallback) {
+    public void updateCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback, Response.Listener<WebException> errorCallback) {
         /*
         json: {
          "unitNumber": 56030,
@@ -220,15 +220,15 @@ public class LocalFileResources implements IWebResources {
             );
             requestQueue.add(gsonRequest);
         } catch(JSONException e) {
-            errorCallback.onResponse(new WebResourcesException(ExceptionType.PARSING_ERROR, e));
+            errorCallback.onResponse(new WebException(ExceptionType.PARSING_ERROR, e));
         }
     }
 
-    public void releaseCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback, Response.Listener<WebResourcesException> errorCallback) {
+    public void releaseCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback, Response.Listener<WebException> errorCallback) {
 
     }
 
-    public void deleteCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback, Response.Listener<WebResourcesException> errorCallback) {
+    public void deleteCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback, Response.Listener<WebException> errorCallback) {
 
     }
 

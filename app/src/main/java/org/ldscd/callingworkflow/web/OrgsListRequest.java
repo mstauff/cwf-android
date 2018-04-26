@@ -18,12 +18,12 @@ public class OrgsListRequest extends Request<List<Org>> {
     private final Response.Listener<List<Org>> listener;
     private Map<String, String> headers;
 
-    public OrgsListRequest(String url, Map<String, String> headers, Response.Listener<List<Org>> listener, final Response.Listener<WebResourcesException> errorListener) {
+    public OrgsListRequest(String url, Map<String, String> headers, Response.Listener<List<Org>> listener, final Response.Listener<WebException> errorListener) {
         super(Request.Method.GET, url, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                //all errors should be of type WebResourcesException at this point, so we'll cast it for use in the rest of the app
-                errorListener.onResponse((WebResourcesException)error);
+                //all errors should be of type WebException at this point, so we'll cast it for use in the rest of the app
+                errorListener.onResponse((WebException)error);
             }
         });
         this.headers = headers;
@@ -42,10 +42,10 @@ public class OrgsListRequest extends Request<List<Org>> {
 
     @Override
     protected Response<List<Org>> parseNetworkResponse(NetworkResponse response) {
-        if(WebResourcesException.isSessionExpiredResponse(getUrl())) {
-            return Response.error(new WebResourcesException(ExceptionType.SESSION_EXPIRED, response));
-        } else if(WebResourcesException.isWebsiteDownResponse(getUrl())) {
-            return Response.error(new WebResourcesException(ExceptionType.SERVER_UNAVAILABLE, response));
+        if(WebException.isSessionExpiredResponse(getUrl())) {
+            return Response.error(new WebException(ExceptionType.SESSION_EXPIRED, response));
+        } else if(WebException.isWebsiteDownResponse(getUrl())) {
+            return Response.error(new WebException(ExceptionType.SERVER_UNAVAILABLE, response));
         } else {
             List<Org> orgsList;
             try {
@@ -54,7 +54,7 @@ public class OrgsListRequest extends Request<List<Org>> {
                 OrgCallingBuilder orgCallingBuilder = new OrgCallingBuilder();
                 orgsList = orgCallingBuilder.extractOrgs(orgs);
             } catch (Exception e) {
-                return Response.error(new WebResourcesException(ExceptionType.PARSING_ERROR, e));
+                return Response.error(new WebException(ExceptionType.PARSING_ERROR, e));
             }
             return Response.success(orgsList, HttpHeaderParser.parseCacheHeaders(response));
         }
@@ -63,9 +63,9 @@ public class OrgsListRequest extends Request<List<Org>> {
     @Override
     protected VolleyError parseNetworkError(VolleyError volleyError) {
         if(volleyError.networkResponse.statusCode == 403) {
-            return new WebResourcesException(ExceptionType.LDS_AUTH_REQUIRED, volleyError.networkResponse);
+            return new WebException(ExceptionType.LDS_AUTH_REQUIRED, volleyError.networkResponse);
         } else {
-            return new WebResourcesException(ExceptionType.UNKNOWN_EXCEPTION, volleyError.networkResponse);
+            return new WebException(ExceptionType.UNKNOWN_EXCEPTION, volleyError.networkResponse);
         }
     }
 }

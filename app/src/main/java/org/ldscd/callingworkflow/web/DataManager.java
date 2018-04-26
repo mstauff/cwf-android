@@ -8,7 +8,6 @@ import android.widget.ProgressBar;
 import com.android.volley.Response;
 import com.google.android.gms.tasks.Task;
 
-import org.json.JSONException;
 import org.ldscd.callingworkflow.constants.CallingStatus;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.LdsUser;
@@ -27,39 +26,39 @@ public interface DataManager {
     boolean isGoogleDriveAuthenticated(Context context);
     /* User data */
     LdsUser getCurrentUser();
-    void getUserInfo(String userName, String password, boolean hasChanges, Response.Listener<LdsUser> userListener, Response.Listener<WebResourcesException> errorCallback);
+    void getUserInfo(String userName, String password, boolean hasChanges, Response.Listener<LdsUser> userListener, Response.Listener<WebException> errorCallback);
     void getSharedPreferences(Response.Listener<SharedPreferences> listener);
     /* Calling data. */
-    void getCallingStatus(Response.Listener<List<CallingStatus>> listener);
+    void getCallingStatus(Response.Listener<List<CallingStatus>> listener, Response.Listener<WebException> errorListener);
     Calling getCalling(String id);
     Org getOrg(long id);
     List<Org> getOrgs();
     boolean removeSubOrg(Org org, long subOrgId);
     Task<Boolean> updateOrg(Org org);
-    void refreshGoogleDriveOrgs(List<Long> orgIds, Response.Listener<Boolean> listener, Response.Listener<WebResourcesException> errorCallback);
-    void refreshLCROrgs(Response.Listener<Boolean> listener, Response.Listener<WebResourcesException> errorCallback);
-    void loadOrgs(Response.Listener<Boolean> listener, Response.Listener<WebResourcesException> errorCallback, ProgressBar progressBar, Activity activity);
+    void refreshGoogleDriveOrgs(List<Long> orgIds, Response.Listener<Boolean> listener, Response.Listener<WebException> errorCallback);
+    void refreshLCROrgs(Response.Listener<Boolean> listener, Response.Listener<WebException> errorCallback);
+    void loadOrgs(Response.Listener<Boolean> listener, Response.Listener<WebException> errorCallback, ProgressBar progressBar, Activity activity);
     void loadPositionMetadata();
     void clearLocalOrgData();
-    void refreshOrg(Response.Listener<Org> listener, Long orgId);
+    void refreshOrg(Response.Listener<Org> listener, Response.Listener<WebException> errorListener, Long orgId);
     List<PositionMetaData> getAllPositionMetadata();
     PositionMetaData getPositionMetadata(int positionTypeId);
-    void releaseLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.Listener<WebResourcesException> errorListener);
-    void updateLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.Listener<WebResourcesException> errorListener);
-    void deleteLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.Listener<WebResourcesException> errorListener);
+    void releaseLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.Listener<WebException> errorListener);
+    void updateLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.Listener<WebException> errorListener);
+    void deleteLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.Listener<WebException> errorListener);
     boolean canDeleteCalling(Calling calling, Org org);
     /* Member data. */
     String getMemberName(Long id);
     Member getMember(Long id);
     void getWardList(Response.Listener<List<Member>> listener);
-    void loadMembers(Response.Listener<Boolean> listener, Response.Listener<WebResourcesException> errorCallback, ProgressBar progressBar);
+    void loadMembers(Response.Listener<Boolean> listener, Response.Listener<WebException> errorCallback, ProgressBar progressBar);
     /* Google data. */
-    void addCalling(Response.Listener<Boolean> listener, Calling calling);
-    void updateCalling(Response.Listener<Boolean> listener, Calling calling);
-    void deleteCalling(Calling calling, Response.Listener<Boolean> listener, Response.Listener<WebResourcesException> errorListener);
+    void addCalling(Response.Listener<Boolean> listener, Response.Listener<WebException> errorListener, Calling calling);
+    void updateCalling(Response.Listener<Boolean> listener, Response.Listener<WebException> errorListener, Calling calling);
+    void deleteCalling(Calling calling, Response.Listener<Boolean> listener, Response.Listener<WebException> errorListener);
     List<Calling> getUnfinalizedCallings();
     Task<Boolean> deleteOrg(Org org);
     /* Unit Settings */
-    void getUnitSettings(Response.Listener<UnitSettings> listener, boolean getCachedItems);
-    void saveUnitSettings(Response.Listener<Boolean> listener, UnitSettings unitSettings);
+    void getUnitSettings(Response.Listener<UnitSettings> listener, Response.Listener<WebException> errorListener, boolean getCachedItems);
+    void saveUnitSettings(Response.Listener<Boolean> listener, Response.Listener<WebException> errorListener, UnitSettings unitSettings);
 }

@@ -2,6 +2,8 @@ package org.ldscd.callingworkflow.web;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.util.Log;
 
 import com.android.volley.DefaultRetryPolicy;
@@ -33,6 +35,7 @@ import java.net.HttpCookie;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +56,7 @@ public class WebResources implements IWebResources {
 
     private RequestQueue requestQueue;
     private SharedPreferences preferences;
+    private NetworkInfo networkInfo;
 
     private ConfigInfo configInfo = null;
     private String authCookie = null;
@@ -82,6 +86,14 @@ public class WebResources implements IWebResources {
         }
     }
 
+    private boolean isDataConnected() {
+        if(networkInfo == null) {
+            ConnectivityManager connectivityManager =(ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            networkInfo = connectivityManager.getActiveNetworkInfo();
+        }
+        return networkInfo != null && networkInfo.isConnected();
+    }
+
     //load username and password which has been set previously
     private void loadCredentials() {
         String cryptUser = preferences.getString(prefUsername, null);
@@ -104,10 +116,10 @@ public class WebResources implements IWebResources {
     }
 
     @Override
-    public void getConfigInfo(final Response.Listener<ConfigInfo> configCallback, final Response.Listener<WebResourcesException> errorCallback) {
+    public void getConfigInfo(final Response.Listener<ConfigInfo> configCallback, final Response.Listener<WebException> errorCallback) {
         if(configInfo != null) {
             configCallback.onResponse(configInfo);
-        } else {
+        } else if(isDataConnected()) {
             GsonRequest<ConfigInfo> configRequest = new GsonRequest<>(
                 Request.Method.GET,
                 CONFIG_URL,
@@ -127,20 +139,22 @@ public class WebResources implements IWebResources {
                     public void onErrorResponse(VolleyError error) {
                         Log.e(TAG, "load config error");
                         error.printStackTrace();
-                        errorCallback.onResponse(new WebResourcesException(ExceptionType.UNKNOWN_EXCEPTION, error.networkResponse));
+                        errorCallback.onResponse(new WebException(ExceptionType.UNKNOWN_EXCEPTION, error.networkResponse));
                     }
                 }
             );
             configRequest.setRetryPolicy(getRetryPolicy());
             requestQueue.add(configRequest);
+        } else {
+            errorCallback.onResponse(new WebException(ExceptionType.NO_DATA_CONNECTION));
         }
     }
 
     @Override
-    public void getUserInfo(final boolean getClean, final Response.Listener<LdsUser> userCallback, final Response.Listener<WebResourcesException> errorCallback) {
+    public void getUserInfo(final boolean getClean, final Response.Listener<LdsUser> userCallback, final Response.Listener<WebException> errorCallback) {
         if(userInfo != null && !getClean) {
             userCallback.onResponse(userInfo);
-        } else {
+        } else if(isDataConnected()) {
             /* Get config info because it has the URL strings */
             getConfigInfo(new Response.Listener<ConfigInfo>() {
                 @Override
@@ -151,7 +165,7 @@ public class WebResources implements IWebResources {
                     }
                     /* re-check credentials.  If invalid return null LdsUser. */
                     if(userName == null || userName.length() == 0 || password == null || password.length() == 0) {
-                        errorCallback.onResponse(new WebResourcesException(ExceptionType.LDS_AUTH_REQUIRED));
+                        errorCallback.onResponse(new WebException(ExceptionType.LDS_AUTH_REQUIRED));
                     } else {
                         /* get the cookie because it has the information for the rest headers */
                         getAuthCookie(new Response.Listener<String>() {
@@ -163,9 +177,9 @@ public class WebResources implements IWebResources {
                                     public void onResponse(Boolean response) {
                                         userCallback.onResponse(userInfo);
                                     }
-                                }, new Response.Listener<WebResourcesException>() {
+                                }, new Response.Listener<WebException>() {
                                     @Override
-                                    public void onResponse(WebResourcesException error) {
+                                    public void onResponse(WebException error) {
                                         Log.e(TAG, "load user error");
                                         error.printStackTrace();
                                         if(error.getExceptionType() == ExceptionType.SESSION_EXPIRED && attemptSessionRefresh) {
@@ -182,10 +196,12 @@ public class WebResources implements IWebResources {
                     }
                 }
             }, errorCallback);
+        } else {
+            errorCallback.onResponse(new WebException(ExceptionType.NO_DATA_CONNECTION));
         }
     }
 
-    private void getAuthCookie(final Response.Listener<String> authCallback, final Response.Listener<WebResourcesException> errorCallback) {
+    private void getAuthCookie(final Response.Listener<String> authCallback, final Response.Listener<WebException> errorCallback) {
         /* Capture the cookie info stored in preferences as well check to verify it's not expired. */
         if(preferences.contains("Cookie") && httpCookie != null && !httpCookie.hasExpired()) {
             authCookie = preferences.getString("Cookie", null);
@@ -217,9 +233,9 @@ public class WebResources implements IWebResources {
                             authCallback.onResponse(authCookie);
                         }
                     },
-                    new Response.Listener<WebResourcesException>() {
+                    new Response.Listener<WebException>() {
                         @Override
-                        public void onResponse(WebResourcesException error) {
+                        public void onResponse(WebException error) {
                             Log.e(TAG, "auth error");
                             error.printStackTrace();
                             errorCallback.onResponse(error);
@@ -231,12 +247,12 @@ public class WebResources implements IWebResources {
         }
     }
 
-    private void getUser(final String authCookie, final Response.Listener<Boolean> userCallback, final Response.Listener<WebResourcesException> errorCallback) {
-        /* Create a list of calling(s)/Positions(s) for the current user. */
+    private void getUser(final String authCookie, final Response.Listener<Boolean> userCallback, final Response.Listener<WebException> errorCallback) {
+        // Create a list of calling(s)/Positions(s) for the current user.
         final List<Position> positions = new ArrayList<Position>();
         Map<String, String> headers = new HashMap<>();
         headers.put("Cookie", authCookie);
-        /* Make a rest call to the lds church to capture the last information on the specified user. */
+        // Make a rest call to the lds church to capture the last information on the specified user.
         LcrJsonRequest userRequest = new LcrJsonRequest(
                 Request.Method.GET,
                 configInfo.getUserDataUrl(),
@@ -249,26 +265,25 @@ public class WebResources implements IWebResources {
                         Log.i(TAG, "User call successful");
                         Log.i(TAG, json.toString());
                         try {
-                            /* Parse out the returned json to capture the positions occupied by this person. */
+                            // Parse out the returned json to capture the positions occupied by this person.
                             JSONArray assignments = json.getJSONArray("memberAssignments");
                             OrgCallingBuilder builder = new OrgCallingBuilder();
                             for(int i = 0; i < assignments.length(); i++) {
                                 positions.add(builder.extractPosition((JSONObject) assignments.get(i)));
                             }
-                            /* Gets the Unit Number for this person by way of the position they hold.
-                            *  Currently we are only storing the unit number for the first calling we get.
-                            *  If they have callings in multiple units this will not be supported.
-                            */
+                            // Gets the Unit Number for this person by way of the position they hold.
+                            //  Currently we are only storing the unit number for the first calling we get.
+                            //  If they have callings in multiple units this will not be supported.
                             unitNumber = json.getJSONArray("memberAssignments").getJSONObject(0).getString("unitNo");
                             long individualId = json.getLong("individualId");
                             user = new LdsUser(individualId, positions);
                         } catch (JSONException e) {
                             e.printStackTrace();
-                            errorCallback.onResponse(new WebResourcesException(ExceptionType.PARSING_ERROR, e));
+                            errorCallback.onResponse(new WebException(ExceptionType.PARSING_ERROR, e));
                         }
-                        /* Set the class level user to the newly established user. */
+                        // Set the class level user to the newly established user.
                         userInfo = user;
-                        /* Returns true when all is done. */
+                        // Returns true when all is done.
                         userCallback.onResponse(true);
                     }
                 },
@@ -278,10 +293,10 @@ public class WebResources implements IWebResources {
     }
 
     @Override
-    public void getOrgs(final boolean getCleanCopy, final Response.Listener<List<Org>> orgsCallback, final Response.Listener<WebResourcesException> errorCallback) {
+    public void getOrgs(final boolean getCleanCopy, final Response.Listener<List<Org>> orgsCallback, final Response.Listener<WebException> errorCallback) {
         if(orgsInfo != null && !getCleanCopy) {
             orgsCallback.onResponse(orgsInfo);
-        } else {
+        } else if(isDataConnected()) {
             getUserInfo(false, new Response.Listener<LdsUser>() {
                 @Override
                 public void onResponse(LdsUser ldsUser) {
@@ -301,9 +316,9 @@ public class WebResources implements IWebResources {
                                     orgsCallback.onResponse(orgsInfo);
                                 }
                             },
-                            new Response.Listener<WebResourcesException>() {
+                            new Response.Listener<WebException>() {
                                 @Override
-                                public void onResponse(WebResourcesException error) {
+                                public void onResponse(WebException error) {
                                     Log.e(TAG, "load Orgs list error");
                                     error.printStackTrace();
                                     if(error.getExceptionType() == ExceptionType.SESSION_EXPIRED && attemptSessionRefresh) {
@@ -321,14 +336,16 @@ public class WebResources implements IWebResources {
                 }
             }, errorCallback);
 
+        } else {
+            errorCallback.onResponse(new WebException(ExceptionType.NO_DATA_CONNECTION));
         }
     }
 
     @Override
-    public void getWardList(final Response.Listener<List<Member>> wardCallback, final Response.Listener<WebResourcesException> errorCallback) {
+    public void getWardList(final Response.Listener<List<Member>> wardCallback, final Response.Listener<WebException> errorCallback) {
         if(wardMemberList != null) {
             wardCallback.onResponse(wardMemberList);
-        } else {
+        } else if(isDataConnected()) {
             getUserInfo(false, new Response.Listener<LdsUser>() {
                 @Override
                 public void onResponse(LdsUser ldsUser) {
@@ -348,9 +365,9 @@ public class WebResources implements IWebResources {
                                     wardCallback.onResponse(wardMemberList);
                                 }
                             },
-                            new Response.Listener<WebResourcesException>() {
+                            new Response.Listener<WebException>() {
                                 @Override
-                                public void onResponse(WebResourcesException error) {
+                                public void onResponse(WebException error) {
                                     Log.e(TAG, "load ward list error");
                                     error.printStackTrace();
                                     if(error.getExceptionType() == ExceptionType.SESSION_EXPIRED && attemptSessionRefresh) {
@@ -369,6 +386,8 @@ public class WebResources implements IWebResources {
                 }
             }, errorCallback);
 
+        } else {
+            errorCallback.onResponse(new WebException(ExceptionType.NO_DATA_CONNECTION));
         }
     }
 
@@ -393,7 +412,7 @@ public class WebResources implements IWebResources {
     }
 
     @Override
-    public void updateCalling(final Calling calling, final Long unitNumber, final int orgTypeId, final Response.Listener<JSONObject> callback, final Response.Listener<WebResourcesException> errorCallback) {
+    public void updateCalling(final Calling calling, final Long unitNumber, final int orgTypeId, final Response.Listener<JSONObject> callback, final Response.Listener<WebException> errorCallback) {
         /*
         json: {
          "unitNumber": 56030,
@@ -407,74 +426,78 @@ public class WebResources implements IWebResources {
          38816970
          ]
          */
-        org.json.JSONObject json = new org.json.JSONObject();
-        try {
-            json.put("unitNumber", unitNumber);
-            json.put("subOrgTypeId", orgTypeId);
-            json.put("subOrgId", calling.getParentOrg());
-            json.put("positionTypeId", calling.getPosition().getPositionTypeId());
-            json.put("position", calling.getPosition().getName());
-            json.put("memberId", calling.getProposedIndId());
+        if(isDataConnected()) {
+            org.json.JSONObject json = new org.json.JSONObject();
+            try {
+                json.put("unitNumber", unitNumber);
+                json.put("subOrgTypeId", orgTypeId);
+                json.put("subOrgId", calling.getParentOrg());
+                json.put("positionTypeId", calling.getPosition().getPositionTypeId());
+                json.put("position", calling.getPosition().getName());
+                json.put("memberId", calling.getProposedIndId());
 
-            if (calling.getId() != null && calling.getId() > 0) {
-                LocalDate date = LocalDate.now();
-                DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
-                json.put("releaseDate", date.toString(fmt));
-                JSONArray positionIds = new JSONArray();
-                positionIds.put(calling.getId());
-                json.put("releasePositionIds", positionIds);
-            }
-            Map<String, String> headers = new HashMap<String, String>();
-            headers.put("Cookie", authCookie);
-            headers.put("Accept", "application/json");
-            LcrJsonRequest updateCallingRequest = new LcrJsonRequest(
-                    Request.Method.POST,
-                    configInfo.getUpdateCallingUrl(),
-                    headers,
-                    json,
-                    new Response.Listener<JSONObject>() {
-                        @Override
-                        public void onResponse(JSONObject response) {
-                            if (response != null) {
-                                callback.onResponse(response);
-                            } else {
-                                errorCallback.onResponse(new WebResourcesException(ExceptionType.UNKNOWN_EXCEPTION));
+                if (calling.getId() != null && calling.getId() > 0) {
+                    LocalDate date = LocalDate.now();
+                    DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
+                    json.put("releaseDate", date.toString(fmt));
+                    JSONArray positionIds = new JSONArray();
+                    positionIds.put(calling.getId());
+                    json.put("releasePositionIds", positionIds);
+                }
+                Map<String, String> headers = new HashMap<String, String>();
+                headers.put("Cookie", authCookie);
+                headers.put("Accept", "application/json");
+                LcrJsonRequest updateCallingRequest = new LcrJsonRequest(
+                        Request.Method.POST,
+                        configInfo.getUpdateCallingUrl(),
+                        headers,
+                        json,
+                        new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                if (response != null) {
+                                    callback.onResponse(response);
+                                } else {
+                                    errorCallback.onResponse(new WebException(ExceptionType.UNKNOWN_EXCEPTION));
+                                }
                             }
-                        }
-                    }, new Response.Listener<WebResourcesException>() {
-                        @Override
-                        public void onResponse(WebResourcesException error) {
-                            //if the error is from expired session try to refresh once, return error if it fails twice
-                            if(error.getExceptionType() == ExceptionType.SESSION_EXPIRED && attemptSessionRefresh) {
-                                httpCookie = null;
-                                attemptSessionRefresh = false;
-                                getAuthCookie(new Response.Listener<String>() {
-                                    @Override
-                                    public void onResponse(String response) {
-                                        updateCalling(calling, unitNumber, orgTypeId, callback, errorCallback);
-                                    }
-                                }, errorCallback);
-                            } else {
-                                errorCallback.onResponse(error);
-                            }
+                        }, new Response.Listener<WebException>() {
+                    @Override
+                    public void onResponse(WebException error) {
+                        //if the error is from expired session try to refresh once, return error if it fails twice
+                        if (error.getExceptionType() == ExceptionType.SESSION_EXPIRED && attemptSessionRefresh) {
+                            httpCookie = null;
+                            attemptSessionRefresh = false;
+                            getAuthCookie(new Response.Listener<String>() {
+                                @Override
+                                public void onResponse(String response) {
+                                    updateCalling(calling, unitNumber, orgTypeId, callback, errorCallback);
+                                }
+                            }, errorCallback);
+                        } else {
+                            errorCallback.onResponse(error);
                         }
                     }
-            );
-            updateCallingRequest.setRetryPolicy(
-                    new DefaultRetryPolicy(
-                            0,
-                            DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                            DefaultRetryPolicy.DEFAULT_BACKOFF_MULT)
-            );
-            requestQueue.add(updateCallingRequest);
+                }
+                );
+                updateCallingRequest.setRetryPolicy(
+                        new DefaultRetryPolicy(
+                                0,
+                                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT)
+                );
+                requestQueue.add(updateCallingRequest);
 
-        } catch (JSONException exception) {
-            errorCallback.onResponse(new WebResourcesException(ExceptionType.PARSING_ERROR, exception));
+            } catch (JSONException exception) {
+                errorCallback.onResponse(new WebException(ExceptionType.PARSING_ERROR, exception));
+            }
+        } else {
+            errorCallback.onResponse(new WebException(ExceptionType.NO_DATA_CONNECTION));
         }
     }
 
     @Override
-    public void releaseCalling(final Calling calling, final Long unitNumber, final int orgTypeId, final Response.Listener<JSONObject> callback, final Response.Listener<WebResourcesException> errorCallback) {
+    public void releaseCalling(final Calling calling, final Long unitNumber, final int orgTypeId, final Response.Listener<JSONObject> callback, final Response.Listener<WebException> errorCallback) {
         /*
         "unitNumber": 56030,
         "subOrgTypeId": 1252,
@@ -484,68 +507,72 @@ public class WebResources implements IWebResources {
         "positionTypeId":208,
         "releaseDate": "20170801"
          */
-        org.json.JSONObject json = new org.json.JSONObject();
-        try {
-            json.put("unitNumber", unitNumber);
-            json.put("subOrgTypeId", orgTypeId);
-            json.put("subOrgId", calling.getParentOrg());
-            json.put("position", calling.getPosition().getName());
-            json.put("positionId", calling.getId());
-            json.put("positionTypeId", calling.getPosition().getPositionTypeId());
-            LocalDate date = LocalDate.now();
-            DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
-            json.put("releaseDate", date.toString(fmt));
+        if(isDataConnected()) {
+            org.json.JSONObject json = new org.json.JSONObject();
+            try {
+                json.put("unitNumber", unitNumber);
+                json.put("subOrgTypeId", orgTypeId);
+                json.put("subOrgId", calling.getParentOrg());
+                json.put("position", calling.getPosition().getName());
+                json.put("positionId", calling.getId());
+                json.put("positionTypeId", calling.getPosition().getPositionTypeId());
+                LocalDate date = LocalDate.now();
+                DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
+                json.put("releaseDate", date.toString(fmt));
 
-            Map<String, String> headers = new HashMap<String, String>();
-            headers.put("Cookie", authCookie);
-            headers.put("Accept", "application/json");
-            LcrJsonRequest releaseCallingRequest = new LcrJsonRequest(
-                    Request.Method.POST,
-                    configInfo.getUpdateCallingUrl(),
-                    headers,
-                    json,
-                    new Response.Listener<JSONObject>() {
-                        @Override
-                        public void onResponse(JSONObject response) {
-                            if(response != null) {
-                                callback.onResponse(response);
-                            } else {
-                                errorCallback.onResponse(new WebResourcesException(ExceptionType.UNKNOWN_EXCEPTION));
+                Map<String, String> headers = new HashMap<String, String>();
+                headers.put("Cookie", authCookie);
+                headers.put("Accept", "application/json");
+                LcrJsonRequest releaseCallingRequest = new LcrJsonRequest(
+                        Request.Method.POST,
+                        configInfo.getUpdateCallingUrl(),
+                        headers,
+                        json,
+                        new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                if (response != null) {
+                                    callback.onResponse(response);
+                                } else {
+                                    errorCallback.onResponse(new WebException(ExceptionType.UNKNOWN_EXCEPTION));
+                                }
                             }
-                        }
-                    }, new Response.Listener<WebResourcesException>() {
-                        @Override
-                        public void onResponse(WebResourcesException error) {
-                            //if the error is from expired session try to refresh once, return error if it fails twice
-                            if(error.getExceptionType() == ExceptionType.SESSION_EXPIRED && attemptSessionRefresh) {
-                                httpCookie = null;
-                                attemptSessionRefresh = false;
-                                getAuthCookie(new Response.Listener<String>() {
-                                    @Override
-                                    public void onResponse(String response) {
-                                        releaseCalling(calling, unitNumber, orgTypeId, callback, errorCallback);
-                                    }
-                                }, errorCallback);
-                            } else {
-                                errorCallback.onResponse(error);
-                            }
+                        }, new Response.Listener<WebException>() {
+                    @Override
+                    public void onResponse(WebException error) {
+                        //if the error is from expired session try to refresh once, return error if it fails twice
+                        if (error.getExceptionType() == ExceptionType.SESSION_EXPIRED && attemptSessionRefresh) {
+                            httpCookie = null;
+                            attemptSessionRefresh = false;
+                            getAuthCookie(new Response.Listener<String>() {
+                                @Override
+                                public void onResponse(String response) {
+                                    releaseCalling(calling, unitNumber, orgTypeId, callback, errorCallback);
+                                }
+                            }, errorCallback);
+                        } else {
+                            errorCallback.onResponse(error);
                         }
                     }
-            );
-            releaseCallingRequest.setRetryPolicy(
-                    new DefaultRetryPolicy(
-                            0,
-                            DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                            DefaultRetryPolicy.DEFAULT_BACKOFF_MULT)
-            );
-            requestQueue.add(releaseCallingRequest);
-        } catch(JSONException exception) {
-            errorCallback.onResponse(new WebResourcesException(ExceptionType.PARSING_ERROR, exception));
+                }
+                );
+                releaseCallingRequest.setRetryPolicy(
+                        new DefaultRetryPolicy(
+                                0,
+                                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT)
+                );
+                requestQueue.add(releaseCallingRequest);
+            } catch (JSONException exception) {
+                errorCallback.onResponse(new WebException(ExceptionType.PARSING_ERROR, exception));
+            }
+        } else {
+            errorCallback.onResponse(new WebException(ExceptionType.NO_DATA_CONNECTION));
         }
     }
 
     @Override
-    public void deleteCalling(final Calling calling, final Long unitNumber, final int orgTypeId, final Response.Listener<JSONObject> callback, final Response.Listener<WebResourcesException> errorCallback) {
+    public void deleteCalling(final Calling calling, final Long unitNumber, final int orgTypeId, final Response.Listener<JSONObject> callback, final Response.Listener<WebException> errorCallback) {
         /*
          "unitNumber": 56030,
          "subOrgTypeId": 1252,
@@ -564,65 +591,68 @@ public class WebResources implements IWebResources {
          "position": "does not matter",
          "hidden" : true
          */
+        if(isDataConnected()) {
+            org.json.JSONObject json = new org.json.JSONObject();
+            try {
+                json.put("unitNumber", unitNumber);
+                json.put("subOrgTypeId", orgTypeId);
+                json.put("subOrgId", calling.getParentOrg());
+                json.put("position", calling.getPosition().getName());
+                if (calling.getId() != null && calling.getId() > 0 && calling.getMemberId() > 0) {
+                    json.put("positionId", calling.getId());
+                    LocalDate date = LocalDate.now();
+                    DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
+                    json.put("releaseDate", date.toString(fmt));
+                } else {
+                    json.put("positionTypeId", calling.getPosition().getPositionTypeId());
+                }
 
-        org.json.JSONObject json = new org.json.JSONObject();
-        try {
-            json.put("unitNumber", unitNumber);
-            json.put("subOrgTypeId", orgTypeId);
-            json.put("subOrgId", calling.getParentOrg());
-            json.put("position", calling.getPosition().getName());
-            if (calling.getId() != null && calling.getId() > 0 && calling.getMemberId() > 0) {
-                json.put("positionId", calling.getId());
-                LocalDate date = LocalDate.now();
-                DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
-                json.put("releaseDate", date.toString(fmt));
-            } else {
-                json.put("positionTypeId", calling.getPosition().getPositionTypeId());
-            }
+                json.put("hidden", true);
 
-            json.put("hidden", true);
-
-            Map<String, String> headers = new HashMap<String, String>();
-            headers.put("Cookie", authCookie);
-            headers.put("Accept", "application/json");
-            LcrJsonRequest deleteCallingRequest = new LcrJsonRequest(
-                    Request.Method.POST,
-                    configInfo.getUpdateCallingUrl(),
-                    headers,
-                    json,
-                    new Response.Listener<JSONObject>() {
-                        @Override
-                        public void onResponse(JSONObject response) {
-                            callback.onResponse(response);
-                        }
-                    }, new Response.Listener<WebResourcesException>() {
-                        @Override
-                        public void onResponse(WebResourcesException error) {
-                            //if the error is from expired session try to refresh once, return error if it fails twice
-                            if(error.getExceptionType() == ExceptionType.SESSION_EXPIRED && attemptSessionRefresh) {
-                                httpCookie = null;
-                                attemptSessionRefresh = false;
-                                getAuthCookie(new Response.Listener<String>() {
-                                    @Override
-                                    public void onResponse(String response) {
-                                        deleteCalling(calling, unitNumber, orgTypeId, callback, errorCallback);
-                                    }
-                                }, errorCallback);
-                            } else {
-                                errorCallback.onResponse(error);
+                Map<String, String> headers = new HashMap<String, String>();
+                headers.put("Cookie", authCookie);
+                headers.put("Accept", "application/json");
+                LcrJsonRequest deleteCallingRequest = new LcrJsonRequest(
+                        Request.Method.POST,
+                        configInfo.getUpdateCallingUrl(),
+                        headers,
+                        json,
+                        new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                callback.onResponse(response);
                             }
+                        }, new Response.Listener<WebException>() {
+                    @Override
+                    public void onResponse(WebException error) {
+                        //if the error is from expired session try to refresh once, return error if it fails twice
+                        if (error.getExceptionType() == ExceptionType.SESSION_EXPIRED && attemptSessionRefresh) {
+                            httpCookie = null;
+                            attemptSessionRefresh = false;
+                            getAuthCookie(new Response.Listener<String>() {
+                                @Override
+                                public void onResponse(String response) {
+                                    deleteCalling(calling, unitNumber, orgTypeId, callback, errorCallback);
+                                }
+                            }, errorCallback);
+                        } else {
+                            errorCallback.onResponse(error);
                         }
                     }
-            );
-            deleteCallingRequest.setRetryPolicy(
-                    new DefaultRetryPolicy(
-                            0,
-                            DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                            DefaultRetryPolicy.DEFAULT_BACKOFF_MULT)
-            );
-            requestQueue.add(deleteCallingRequest);
-        } catch(JSONException exception) {
-            errorCallback.onResponse(new WebResourcesException(ExceptionType.PARSING_ERROR, exception));
+                }
+                );
+                deleteCallingRequest.setRetryPolicy(
+                        new DefaultRetryPolicy(
+                                0,
+                                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT)
+                );
+                requestQueue.add(deleteCallingRequest);
+            } catch (JSONException exception) {
+                errorCallback.onResponse(new WebException(ExceptionType.PARSING_ERROR, exception));
+            }
+        } else {
+            errorCallback.onResponse(new WebException(ExceptionType.NO_DATA_CONNECTION));
         }
     }
 

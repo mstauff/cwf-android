@@ -161,6 +161,7 @@
     <string name="error_google_auth_failed">Authentication with Google drive failed. Please enter your google account information to connect.</string>
     <string name="error_no_data_connection">No data connection available. Please enable an internet connection on your device and retry.</string>
     <string name="error_lds_server_unavailable">Connection to needed church services is currently unavailable. Please try again later.</string>
+    <string name="error_google_drive">An unexpected error has occurred while attempting to retrieve your data from google drive. Please try again later.</string>
     <string name="error_generic_web">An unexpected error has occurred while attempting to retrieve your data. Please try again later.</string>
     <string name="login_before_refresh">Please login before trying to refresh your data.</string>
 </resources>

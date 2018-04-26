@@ -1,5 +1,6 @@
 package org.ldscd.callingworkflow.display;
 
+import android.app.AlertDialog;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -7,6 +8,8 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Response;
@@ -15,6 +18,7 @@ import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.web.DataManager;
+import org.ldscd.callingworkflow.web.WebException;
 
 import javax.inject.Inject;
 
@@ -86,7 +90,7 @@ public class CreateCallingActivity extends AppCompatActivity implements CreateCa
                         toast.show();
                     }
                 }
-            }, calling);
+            }, webErrorListener, calling);
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -111,4 +115,31 @@ public class CreateCallingActivity extends AppCompatActivity implements CreateCa
             actionBarMenu.setGroupVisible(0, false);
         }
     }
+
+    private Response.Listener<WebException> webErrorListener = new Response.Listener<WebException>() {
+        @Override
+        public void onResponse(WebException error) {
+            View dialogView = getLayoutInflater().inflate(R.layout.warning_dialog_text, null);
+            TextView messageView = dialogView.findViewById(R.id.warning_message);
+            AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(CreateCallingActivity.this);
+
+            switch (error.getExceptionType()) {
+                case GOOGLE_AUTH_REQUIRED:
+                    messageView.setText(R.string.error_google_auth_failed);
+                    break;
+                case NO_DATA_CONNECTION:
+                    messageView.setText(R.string.error_no_data_connection);
+                    break;
+                case UNKOWN_GOOGLE_EXCEPTION:
+                    messageView.setText(R.string.error_google_drive);
+                    break;
+                default:
+                    messageView.setText(R.string.error_generic_web);
+
+            }
+            dialogBuilder.setView(dialogView);
+            dialogBuilder.setPositiveButton(R.string.ok, null);
+            dialogBuilder.show();
+        }
+    };
 }

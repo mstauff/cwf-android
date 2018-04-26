@@ -1,6 +1,8 @@
 package org.ldscd.callingworkflow.display;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -15,6 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
+import android.widget.TextView;
 
 import com.android.volley.Response;
 
@@ -22,8 +25,11 @@ import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.display.adapters.ExpandableOrgListAdapter;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.web.DataManager;
+import org.ldscd.callingworkflow.web.WebException;
 
 import javax.inject.Inject;
+
+import static android.view.View.GONE;
 
 /**
  * An activity representing a list of Callings. This activity
@@ -75,7 +81,7 @@ public class ExpandableOrgsListActivity extends AppCompatActivity {
                         assert orgsListView != null;
                         setupListView(orgsListView, response);
                     }
-                }, org.getId());
+                }, webErrorListener, org.getId());
 
                 getSupportActionBar().setTitle(org.getDefaultOrgName());
                 getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -203,4 +209,39 @@ public class ExpandableOrgsListActivity extends AppCompatActivity {
             member_information_fragment.show(getSupportFragmentManager(), null);
         }
     }
+
+    private Response.Listener<WebException> webErrorListener = new Response.Listener<WebException>() {
+        @Override
+        public void onResponse(WebException error) {
+            View dialogView = getLayoutInflater().inflate(R.layout.warning_dialog_text, null);
+            TextView messageView = dialogView.findViewById(R.id.warning_message);
+            AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(activity);
+
+            switch (error.getExceptionType()) {
+                case GOOGLE_AUTH_REQUIRED:
+                    messageView.setText(R.string.error_google_auth_failed);
+                    dialogBuilder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialogInterface) {
+                            Intent intent = new Intent(ExpandableOrgsListActivity.this, GoogleDriveOptionsActivity.class);
+                            intent.putExtra("activity", "");
+                            startActivity(intent);
+                        }
+                    });
+                    break;
+                case NO_DATA_CONNECTION:
+                    messageView.setText(R.string.error_no_data_connection);
+                    break;
+                case UNKOWN_GOOGLE_EXCEPTION:
+                    messageView.setText(R.string.error_google_drive);
+                    break;
+                default:
+                    messageView.setText(R.string.error_generic_web);
+
+            }
+            dialogBuilder.setView(dialogView);
+            dialogBuilder.setPositiveButton(R.string.ok, null);
+            dialogBuilder.show();
+        }
+    };
 }

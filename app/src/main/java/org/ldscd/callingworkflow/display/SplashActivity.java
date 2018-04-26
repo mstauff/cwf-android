@@ -14,7 +14,7 @@ import com.android.volley.Response;
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.model.LdsUser;
 import org.ldscd.callingworkflow.web.DataManager;
-import org.ldscd.callingworkflow.web.WebResourcesException;
+import org.ldscd.callingworkflow.web.WebException;
 
 import javax.inject.Inject;
 
@@ -94,9 +94,9 @@ public class SplashActivity extends AppCompatActivity {
         }
     };
 
-    private Response.Listener<WebResourcesException> webErrorListener = new Response.Listener<WebResourcesException>() {
+    private Response.Listener<WebException> webErrorListener = new Response.Listener<WebException>() {
         @Override
-        public void onResponse(WebResourcesException error) {
+        public void onResponse(WebException error) {
             View dialogView = getLayoutInflater().inflate(R.layout.warning_dialog_text, null);
             TextView messageView = dialogView.findViewById(R.id.warning_message);
             AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(activity);
@@ -134,6 +134,15 @@ public class SplashActivity extends AppCompatActivity {
                     break;
                 case SERVER_UNAVAILABLE:
                     messageView.setText(R.string.error_lds_server_unavailable);
+                    dialogBuilder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialogInterface) {
+                            startApplication();
+                        }
+                    });
+                    break;
+                case UNKOWN_GOOGLE_EXCEPTION:
+                    messageView.setText(R.string.error_google_drive);
                     dialogBuilder.setOnDismissListener(new DialogInterface.OnDismissListener() {
                         @Override
                         public void onDismiss(DialogInterface dialogInterface) {

@@ -29,7 +29,7 @@ public class MemberData {
         membersByIndividualId = Collections.emptyMap();
     }
 
-    public void loadMembers(final Response.Listener<Boolean> membersCallback, Response.Listener<WebResourcesException> errorCallback, final ProgressBar pb) {
+    public void loadMembers(final Response.Listener<Boolean> membersCallback, Response.Listener<WebException> errorCallback, final ProgressBar pb) {
         webResources.getWardList(new Response.Listener<List<Member>>() {
             @Override
             public void onResponse(List<Member> response) {

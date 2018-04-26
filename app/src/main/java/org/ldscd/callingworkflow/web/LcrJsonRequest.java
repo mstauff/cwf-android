@@ -17,15 +17,15 @@ import java.util.Map;
 public class LcrJsonRequest extends JsonObjectRequest {
     private Map<String, String> headers;
 
-    public LcrJsonRequest(int method, String url, Map<String, String> headers, JSONObject jsonRequest, Listener<JSONObject> listener, final Listener<WebResourcesException> errorListener) {
+    public LcrJsonRequest(int method, String url, Map<String, String> headers, JSONObject jsonRequest, Listener<JSONObject> listener, final Listener<WebException> errorListener) {
         super(method, url, jsonRequest, listener, new ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 //We wrap all volley errors in a webResourcesException for use in the rest of the app
-                if(error instanceof WebResourcesException) {
-                    errorListener.onResponse((WebResourcesException) error);
+                if(error instanceof WebException) {
+                    errorListener.onResponse((WebException) error);
                 } else {
-                    errorListener.onResponse(new WebResourcesException(ExceptionType.PARSING_ERROR, error));
+                    errorListener.onResponse(new WebException(ExceptionType.PARSING_ERROR, error));
                 }
             }
         });
@@ -45,10 +45,10 @@ public class LcrJsonRequest extends JsonObjectRequest {
         } catch (UnsupportedEncodingException e) {
             responseBody = "";
         }
-        if(WebResourcesException.isSessionExpiredResponse(responseBody)) {
-        return Response.error(new WebResourcesException(ExceptionType.SESSION_EXPIRED, response));
-        } else if(WebResourcesException.isWebsiteDownResponse(responseBody)) {
-            return Response.error(new WebResourcesException(ExceptionType.UNKNOWN_EXCEPTION, response));
+        if(WebException.isSessionExpiredResponse(responseBody)) {
+        return Response.error(new WebException(ExceptionType.SESSION_EXPIRED, response));
+        } else if(WebException.isWebsiteDownResponse(responseBody)) {
+            return Response.error(new WebException(ExceptionType.UNKNOWN_EXCEPTION, response));
         } else {
             return super.parseNetworkResponse(response);
         }
@@ -57,9 +57,9 @@ public class LcrJsonRequest extends JsonObjectRequest {
     @Override
     protected VolleyError parseNetworkError(VolleyError volleyError) {
         if(volleyError.networkResponse.statusCode == 403) {
-            return new WebResourcesException(ExceptionType.LDS_AUTH_REQUIRED, volleyError.networkResponse);
+            return new WebException(ExceptionType.LDS_AUTH_REQUIRED, volleyError.networkResponse);
         } else {
-            return new WebResourcesException(ExceptionType.UNKNOWN_EXCEPTION, volleyError.networkResponse);
+            return new WebException(ExceptionType.UNKNOWN_EXCEPTION, volleyError.networkResponse);
         }
     }
 }

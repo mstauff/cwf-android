@@ -28,7 +28,7 @@ import org.ldscd.callingworkflow.utils.SecurityUtil;
 import org.ldscd.callingworkflow.web.DataManager;
 import org.ldscd.callingworkflow.web.ExceptionType;
 import org.ldscd.callingworkflow.web.UI.Spinner;
-import org.ldscd.callingworkflow.web.WebResourcesException;
+import org.ldscd.callingworkflow.web.WebException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -249,9 +249,9 @@ public class LDSAccountActivity extends AppCompatActivity {
             Spinner.showProgress(false, mLoginFormView, mProgressView, getResources());
         }*/
 
-        private Response.Listener<WebResourcesException> loginErrorListener = new Response.Listener<WebResourcesException>() {
+        private Response.Listener<WebException> loginErrorListener = new Response.Listener<WebException>() {
             @Override
-            public void onResponse(WebResourcesException error) {
+            public void onResponse(WebException error) {
                 if(error.getExceptionType() == ExceptionType.LDS_AUTH_REQUIRED) {
                     onPostExecute(false);
                 } else {
@@ -294,9 +294,9 @@ public class LDSAccountActivity extends AppCompatActivity {
         }, refreshDataErrorListener);
     }
 
-    private Response.Listener<WebResourcesException> refreshDataErrorListener = new Response.Listener<WebResourcesException>() {
+    private Response.Listener<WebException> refreshDataErrorListener = new Response.Listener<WebException>() {
         @Override
-        public void onResponse(WebResourcesException error) {
+        public void onResponse(WebException error) {
             View dialogView = getLayoutInflater().inflate(R.layout.warning_dialog_text, null);
             TextView messageView = dialogView.findViewById(R.id.warning_message);
             AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(LDSAccountActivity.this);

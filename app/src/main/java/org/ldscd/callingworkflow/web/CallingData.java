@@ -88,7 +88,7 @@ public class CallingData {
 
     /* Org Data */
 
-    public void loadOrgs(final Response.Listener<Boolean> orgsCallback, final Response.Listener<WebResourcesException> errorCallback, final ProgressBar pb, Activity activity, final LdsUser currentUser) {
+    public void loadOrgs(final Response.Listener<Boolean> orgsCallback, final Response.Listener<WebException> errorCallback, final ProgressBar pb, Activity activity, final LdsUser currentUser) {
         googleDriveService.init(activity)
             .addOnCompleteListener(new OnCompleteListener<Boolean>() {
                 @Override
@@ -105,10 +105,10 @@ public class CallingData {
                                 baseOrgByOrgId = new HashMap<>();
                                 pb.setProgress(pb.getProgress() + 20);
                                 googleDriveService.syncDriveIds(getAuthorizableOrgs(orgs, currentUser))
-                                    .continueWithTask(new Continuation<Boolean, Task<Void>>() {
+                                    .addOnSuccessListener(new OnSuccessListener<Boolean>() {
                                         @Override
-                                        public Task<Void> then(@NonNull Task<Boolean> task) throws Exception {
-                                            if(task.getResult()) {
+                                        public void onSuccess(Boolean result) {
+                                            if(result) {
                                                 pb.setProgress(pb.getProgress() + 15);
                                                 importAndMergeGoogleData(new Response.Listener<Boolean>(){
                                                     @Override
@@ -136,9 +136,9 @@ public class CallingData {
                                                                 saveOrgFileTasks.add(googleDriveService.saveOrgFile(org));
                                                             }
                                                             Tasks.whenAllComplete(saveOrgFileTasks)
-                                                                .continueWithTask(new Continuation<List<Task<?>>, Task<Void>>() {
+                                                                .addOnSuccessListener(new OnSuccessListener<List<Task<?>>>() {
                                                                     @Override
-                                                                    public Task<Void> then(@NonNull Task<List<Task<?>>> task) throws Exception {
+                                                                    public void onSuccess(List<Task<?>> tasks) {
                                                                         for(Task<Boolean> results : saveOrgFileTasks) {
                                                                             if(!results.getResult()) {
                                                                                 orgsCallback.onResponse(false);
@@ -146,26 +146,35 @@ public class CallingData {
                                                                             }
                                                                         }
                                                                         orgsCallback.onResponse(true);
-                                                                        return null;
                                                                     }
-                                                                });
+                                                                }).addOnFailureListener(new OnFailureListener() {
+                                                                @Override
+                                                                public void onFailure(@NonNull Exception e) {
+                                                                    errorCallback.onResponse(ensureWebException(e));
+                                                                }
+                                                            });
                                                         } else {
                                                             Log.e(TAG, "failed to merge cwf file data");
                                                             orgsCallback.onResponse(false);
                                                         }
                                                     }
-                                                }, currentUser);
+                                                }, errorCallback, currentUser);
                                             } else {
                                                 Log.e(TAG, "failed to sync drive Ids");
-                                                orgsCallback.onResponse(false);
+                                                errorCallback.onResponse(new WebException(ExceptionType.UNKOWN_GOOGLE_EXCEPTION));
                                             }
-                                            return null;
                                         }
-                                    });
+                                    }).addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Log.e(TAG, "failed to sync drive Ids");
+                                        errorCallback.onResponse(ensureWebException(e));
+                                    }
+                                });
                             }
                         }, errorCallback);
                     } else {
-                        orgsCallback.onResponse(false);
+                        errorCallback.onResponse(ensureWebException(task.getException()));
                     }
                 }
             });
@@ -191,7 +200,7 @@ public class CallingData {
         baseOrgByOrgId = new HashMap<>();
     }
 
-    public void refreshLCROrgs(final Response.Listener<Boolean> listener, Response.Listener<WebResourcesException> errorCallback, final LdsUser currentUser) {
+    public void refreshLCROrgs(final Response.Listener<Boolean> listener, final Response.Listener<WebException> errorCallback, final LdsUser currentUser) {
         webResources.getOrgs(true, new Response.Listener<List<Org>>() {
             @Override
             public void onResponse(List<Org> lcrOrgs) {
@@ -202,34 +211,33 @@ public class CallingData {
                     callingsById = new HashMap<String, Calling>();
                     baseOrgByOrgId = new HashMap<Long, Org>();
                     Task<Boolean> syncDriveIdsTask = googleDriveService.syncDriveIds(getAuthorizableOrgs(lcrOrgs, currentUser));
-                    syncDriveIdsTask
-                        .continueWithTask(new Continuation<Boolean, Task<Org>>() {
-                            @Override
-                            public Task<Org> then(@NonNull Task<Boolean> task) throws Exception {
-                                if(task.getResult()) {
-                                    importAndMergeGoogleData(new Response.Listener<Boolean>() {
-                                        @Override
-                                        public void onResponse(Boolean response) {
-                                            if(response) {
-                                                 /* Add items to cached elements. */
-                                                for (Org org : orgs) {
-                                                    extractOrg(org, org.getId());
+                    syncDriveIdsTask.addOnSuccessListener(new OnSuccessListener<Boolean>() {
+                        @Override
+                        public void onSuccess(Boolean syncDriveIdsResult) {
+                            if (syncDriveIdsResult) {
+                                importAndMergeGoogleData(new Response.Listener<Boolean>() {
+                                    @Override
+                                    public void onResponse(Boolean response) {
+                                        if (response) {
+                                            /* Add items to cached elements. */
+                                            for (Org org : orgs) {
+                                                extractOrg(org, org.getId());
+                                            }
+                                            Set<Org> baseOrgsToSave = new HashSet<>();
+                                            for (Org org : orgsToSave) {
+                                                baseOrgsToSave.add(getBaseOrg(org.getId()));
+                                            }
+                                            orgsToSave.clear();
+                                            /* Save orgs if necessary. */
+                                            if (baseOrgsToSave.size() > 0) {
+                                                final List<Task<Boolean>> saveOrgFileTasks = new ArrayList<>(orgs.size());
+                                                for (Org org : baseOrgsToSave) {
+                                                    saveOrgFileTasks.add(googleDriveService.saveOrgFile(org));
                                                 }
-                                                Set<Org> baseOrgsToSave = new HashSet<>();
-                                                for (Org org : orgsToSave) {
-                                                    baseOrgsToSave.add(getBaseOrg(org.getId()));
-                                                }
-                                                orgsToSave.clear();
-                                                /* Save orgs if necessary. */
-                                                if(baseOrgsToSave.size() > 0) {
-                                                    final List<Task<Boolean>> saveOrgFileTasks = new ArrayList<>(orgs.size());
-                                                    for (Org org : baseOrgsToSave) {
-                                                        saveOrgFileTasks.add(googleDriveService.saveOrgFile(org));
-                                                    }
-                                                    Tasks.whenAllComplete(saveOrgFileTasks)
-                                                        .continueWithTask(new Continuation<List<Task<?>>, Task<Void>>() {
+                                                Tasks.whenAllComplete(saveOrgFileTasks)
+                                                        .addOnSuccessListener(new OnSuccessListener<List<Task<?>>>() {
                                                             @Override
-                                                            public Task<Void> then(@NonNull Task<List<Task<?>>> task) throws Exception {
+                                                            public void onSuccess(List<Task<?>> tasks) {
                                                                 Boolean good = true;
                                                                 for (Task<Boolean> results : saveOrgFileTasks) {
                                                                     if (!results.getResult()) {
@@ -238,30 +246,38 @@ public class CallingData {
                                                                     }
                                                                 }
                                                                 listener.onResponse(good);
-                                                                return null;
                                                             }
-                                                        });
-                                                } else {
-                                                    listener.onResponse(true);
-                                                }
+                                                        }).addOnFailureListener(new OnFailureListener() {
+                                                    @Override
+                                                    public void onFailure(@NonNull Exception e) {
+                                                        errorCallback.onResponse(ensureWebException(e));
+                                                    }
+                                                });
                                             } else {
-                                                listener.onResponse(false);
+                                                listener.onResponse(true);
                                             }
+                                        } else {
+                                            listener.onResponse(false);
                                         }
-                                    }, currentUser);
-                                } else {
-                                    listener.onResponse(false);
-                                }
-                                return null;
+                                    }
+                                }, errorCallback, currentUser);
+                            } else {
+                                listener.onResponse(false);
                             }
-                        });
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            errorCallback.onResponse(ensureWebException(e));
+                        }
+                    });
                 }
             }
         }, errorCallback);
     }
 
     /* Removes and replaces the data in google drive with the latest data from LCR.  All pending callings will be removed. */
-    public void refreshGoogleDriveOrgs(final Response.Listener<Boolean> listener, final Response.Listener<WebResourcesException> errorListener, final LdsUser currentUser, List<Long> orgIds) {
+    public void refreshGoogleDriveOrgs(final Response.Listener<Boolean> listener, final Response.Listener<WebException> errorListener, final LdsUser currentUser, List<Long> orgIds) {
        /* Reset all cached items. */
        List<Org> orgList = new ArrayList<>(orgIds.size());
        for(Long orgId : orgIds) {
@@ -275,34 +291,41 @@ public class CallingData {
                 .addOnCompleteListener(new OnCompleteListener<Boolean>() {
                     @Override
                     public void onComplete(@NonNull Task<Boolean> task) {
-                        if(task.getResult()) {
-                            memberData.removeAllMemberCallings();
-                            refreshLCROrgs(listener, errorListener, currentUser);
+                        if(task.isSuccessful()) {
+                            if (task.getResult()) {
+                                memberData.removeAllMemberCallings();
+                                refreshLCROrgs(listener, errorListener, currentUser);
+                            }
+                        } else {
+                            errorListener.onResponse(ensureWebException(task.getException()));
                         }
                     }
                 });
     }
 
     /* Get's the latest data stored in google drive and refreshes the data on the device. */
-    public void refreshOrgFromGoogleDrive(final Response.Listener<Org> listener, Long orgId, final LdsUser currentUser) {
+    public void refreshOrgFromGoogleDrive(final Response.Listener<Org> listener, final Response.Listener<WebException> errorListener, Long orgId, final LdsUser currentUser) {
         final Org org = getOrg(orgId);
         /* Check org viewing permissions first */
         isAuthorizableOrg(org, currentUser, org.getId());
         if(org != null && org.getCanView()) {
             googleDriveService.getOrgData(org)
-                .continueWithTask(new Continuation<Org, Task<Void>>() {
+                .addOnSuccessListener(new OnSuccessListener<Org>() {
                     @Override
-                    public Task<Void> then(@NonNull Task<Org> task) throws Exception {
-                        Org googleOrg = task.getResult();
+                    public void onSuccess(Org googleOrg) {
                         /*changes to current and potential assignments will leave incorrect data in the member objects, we must remove them now
                         while references still exist in the current org and correct data is added back in after the merge completes*/
                         memberData.removeMemberCallings(org.getCallings());
                         mergeOrgs(org, googleOrg, currentUser);
                         extractOrg(org, org.getId());
                         listener.onResponse(org);
-                        return null;
                     }
-                });
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        errorListener.onResponse(ensureWebException(e));
+                    }
+            });
         } else {
             listener.onResponse(org);
         }
@@ -337,7 +360,7 @@ public class CallingData {
 
     /* Import and Merge Data */
 
-    private void importAndMergeGoogleData(final Response.Listener<Boolean> mergeFinishedCallback, final LdsUser currentUser) {
+    private void importAndMergeGoogleData(final Response.Listener<Boolean> mergeFinishedCallback, final Response.Listener<WebException> errorCallback, final LdsUser currentUser) {
         googleDriveService.getOrgs()
             .continueWithTask(new Continuation<List<Org>, Task<Boolean>>() {
                 @Override
@@ -383,7 +406,7 @@ public class CallingData {
             .addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
-                    mergeFinishedCallback.onResponse(false);
+                    errorCallback.onResponse(ensureWebException(e));
                 }
             });
     }
@@ -652,7 +675,7 @@ public class CallingData {
         }
     }
 
-    public void releaseLDSCalling(final Calling calling, final Response.Listener<Boolean> callback, final Response.Listener<WebResourcesException> errorListener) {
+    public void releaseLDSCalling(final Calling calling, final Response.Listener<Boolean> callback, final Response.Listener<WebException> errorListener) {
         webResources.releaseCalling(calling, getOrg(calling.getParentOrg()).getUnitNumber(),  getOrg(calling.getParentOrg()).getOrgTypeId(),  new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject jsonObject) {
@@ -673,28 +696,31 @@ public class CallingData {
                         calling.setConflictCause(null);
                         callingsById.put(calling.getCallingId(), calling);
                         Task<Boolean> saveOrgFile = googleDriveService.saveOrgFile(getBaseOrg(calling.getParentOrg()));
-                        saveOrgFile
-                            .continueWithTask(new Continuation<Boolean, Task<Void>>() {
-                                @Override
-                                public Task<Void> then(@NonNull Task<Boolean> task) throws Exception {
-                                    if(task.getResult()) {
+                        saveOrgFile.addOnSuccessListener(new OnSuccessListener<Boolean>() {
+                            @Override
+                            public void onSuccess(Boolean result) {
+                                    if(result) {
                                         callback.onResponse(true);
                                     } else {
                                         callback.onResponse(false);
                                     }
-                                    return null;
                                 }
-                            });
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                errorListener.onResponse(ensureWebException(e));
+                            }
+                        });
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
-                    errorListener.onResponse(new WebResourcesException(ExceptionType.PARSING_ERROR, e));
+                    errorListener.onResponse(new WebException(ExceptionType.PARSING_ERROR, e));
                 }
             }
         }, errorListener);
     }
 
-    public void updateLDSCalling(final Calling calling, final Response.Listener<Boolean> callback, final Response.Listener<WebResourcesException> errorListener) {
+    public void updateLDSCalling(final Calling calling, final Response.Listener<Boolean> callback, final Response.Listener<WebException> errorListener) {
         webResources.updateCalling(calling, getOrg(calling.getParentOrg()).getUnitNumber(), getOrg(calling.getParentOrg()).getOrgTypeId(), new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject jsonObject) {
@@ -719,35 +745,38 @@ public class CallingData {
                                 calling.setCwfOnly(false);
                             }
                             Task<Boolean> saveOrgFile = googleDriveService.saveOrgFile(getBaseOrg(calling.getParentOrg()));
-                            saveOrgFile
-                                .continueWithTask(new Continuation<Boolean, Task<Void>>() {
-                                    @Override
-                                    public Task<Void> then(@NonNull Task<Boolean> task) throws Exception {
-                                        if(task.getResult()) {
-                                            callingsById.put(calling.getCallingId(), calling);
-                                            callback.onResponse(true);
-                                        } else {
-                                            callback.onResponse(false);
-                                        }
-                                        return null;
+                            saveOrgFile.addOnSuccessListener(new OnSuccessListener<Boolean>() {
+                                @Override
+                                public void onSuccess(Boolean result) {
+                                    if(result) {
+                                        callingsById.put(calling.getCallingId(), calling);
+                                        callback.onResponse(true);
+                                    } else {
+                                        callback.onResponse(false);
                                     }
-                                });
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    errorListener.onResponse(ensureWebException(e));
+                                }
+                            });
 
                         } catch (JSONException e) {
                             e.printStackTrace();
-                            errorListener.onResponse(new WebResourcesException(ExceptionType.PARSING_ERROR, e));
+                            errorListener.onResponse(new WebException(ExceptionType.PARSING_ERROR, e));
                         }
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
-                    errorListener.onResponse(new WebResourcesException(ExceptionType.PARSING_ERROR, e));
+                    errorListener.onResponse(new WebException(ExceptionType.PARSING_ERROR, e));
                 }
             }
         }, errorListener);
     }
 
     /* Removes the calling from LCR then from google drive */
-    public void deleteLDSCalling(final Calling calling, final Response.Listener listener, final Response.Listener<WebResourcesException> errorListener) {
+    public void deleteLDSCalling(final Calling calling, final Response.Listener listener, final Response.Listener<WebException> errorListener) {
         final Org originalOrg = getOrg(calling.getParentOrg());
         webResources.deleteCalling(calling, originalOrg.getUnitNumber(), originalOrg.getOrgTypeId(), new Response.Listener<JSONObject>() {
             @Override
@@ -758,49 +787,55 @@ public class CallingData {
                     } else {
                         /* Get Latest org changes from google drive. */
                         Task<Org> getOrgDataTask = googleDriveService.getOrgData(getBaseOrg(originalOrg.getId()));
-                        getOrgDataTask
-                            .continueWithTask(new Continuation<Org, Task<Void>>() {
-                                @Override
-                                public Task<Void> then(@NonNull Task<Org> task) throws Exception {
-                                    final Org latestGoogleDriveOrg = task.getResult();
+                        getOrgDataTask.addOnSuccessListener(new OnSuccessListener<Org>() {
+                            @Override
+                            public void onSuccess(final Org latestGoogleDriveOrg) {
                                     /* Create a calling before the changes are made for backup purposes. */
                                     final Calling backupCalling = new Calling(calling);
                                     /* Removes the calling from within the new org. */
                                     Org parentOrg = findSubOrg(latestGoogleDriveOrg, calling.getParentOrg());
                                     parentOrg.removeCalling(calling);
                                     Task<Boolean> saveOrgFileTask = googleDriveService.saveOrgFile(latestGoogleDriveOrg);
-                                        saveOrgFileTask
-                                            .addOnCompleteListener(new OnCompleteListener<Boolean>() {
-                                                @Override
-                                                public void onComplete(@NonNull Task<Boolean> task) {
-                                                    if(task.getResult()) {
-                                                        /* Remove the callings that belong to the Org from the members with a proposed calling. */
-                                                        memberData.removeMemberCallings(latestGoogleDriveOrg.getCallings());
-                                                        /* Extract recent subOrgs and callings to cached items. */
-                                                        extractOrg(latestGoogleDriveOrg, latestGoogleDriveOrg.getId());
-                                                        /* Re-add Member Assignments */
-                                                        memberData.setMemberCallings(latestGoogleDriveOrg.getCallings());
-                                                        if(backupCalling.getProposedIndId() != null && backupCalling.getProposedIndId() > 0) {
-                                                            memberData.getMember(backupCalling.getProposedIndId()).removeProposedCalling(calling);
-                                                        }
+                                        saveOrgFileTask.addOnCompleteListener(new OnCompleteListener<Boolean>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Boolean> task) {
+                                                if(task.getResult()) {
+                                                    /* Remove the callings that belong to the Org from the members with a proposed calling. */
+                                                    memberData.removeMemberCallings(latestGoogleDriveOrg.getCallings());
+                                                    /* Extract recent subOrgs and callings to cached items. */
+                                                    extractOrg(latestGoogleDriveOrg, latestGoogleDriveOrg.getId());
+                                                    /* Re-add Member Assignments */
+                                                    memberData.setMemberCallings(latestGoogleDriveOrg.getCallings());
+                                                    if(backupCalling.getProposedIndId() != null && backupCalling.getProposedIndId() > 0) {
+                                                        memberData.getMember(backupCalling.getProposedIndId()).removeProposedCalling(calling);
                                                     }
-                                                    listener.onResponse(task.getResult());
                                                 }
-                                            });
-                                    return null;
+                                                listener.onResponse(task.getResult());
+                                            }
+                                        }).addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            errorListener.onResponse(ensureWebException(e));
+                                            }
+                                        });
                                 }
-                            });
+                            }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                errorListener.onResponse(ensureWebException(e));
+                            }
+                        });
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
-                    errorListener.onResponse(new WebResourcesException(ExceptionType.PARSING_ERROR, e));
+                    errorListener.onResponse(new WebException(ExceptionType.PARSING_ERROR, e));
                 }
             }
         }, errorListener);
     }
 
-    private WebResourcesException hydrateErrorListener(JSONObject json, Operation action) {
-        WebResourcesException error = new WebResourcesException(ExceptionType.UNKNOWN_EXCEPTION);
+    private WebException hydrateErrorListener(JSONObject json, Operation action) {
+        WebException error = new WebException(ExceptionType.UNKNOWN_EXCEPTION);
         try {
             switch(action) {
                 case CREATE:
@@ -812,7 +847,7 @@ public class CallingData {
                     if(json.getJSONObject("errors").has("memberId")) {
                         volleyError = new VolleyError(json.getJSONObject("errors").getString("memberId").replace("[", "").replace("]", ""));
                     }
-                    error.setException(new WebResourcesException(ExceptionType.UNKNOWN_EXCEPTION, volleyError));
+                    error.setException(new WebException(ExceptionType.UNKNOWN_EXCEPTION, volleyError));
                     break;
                 case DELETE:
                     break;
@@ -822,7 +857,7 @@ public class CallingData {
                     break;
             }
         } catch (JSONException e) {
-            error = new WebResourcesException(ExceptionType.PARSING_ERROR, e);
+            error = new WebException(ExceptionType.PARSING_ERROR, e);
         }
         return error;
     }
@@ -971,27 +1006,33 @@ public class CallingData {
     }
 
     /* Returns a filtered list of calling status' */
-    public void getCallingStatus(final Response.Listener<List<CallingStatus>> listener, Long unitNumber) {
+    public void getCallingStatus(final Response.Listener<List<CallingStatus>> listener, final Response.Listener<WebException> errorListener, Long unitNumber) {
         Task<UnitSettings> getUnitSettingsTask = googleDriveService.getUnitSettings(unitNumber, true);
-        getUnitSettingsTask
-            .continueWithTask(new Continuation<UnitSettings, Task<Void>>() {
-                @Override
-                public Task<Void> then(@NonNull Task<UnitSettings> task) throws Exception {
-                    UnitSettings unitSettings = task.getResult();
-                    List<CallingStatus> statuses = new ArrayList<>();
-                    if(unitSettings.getDisabledStatuses().size()+1 == CallingStatus.values().length) {
-                        statuses.clear();
-                        statuses.addAll(Arrays.asList(CallingStatus.values()));
-                    } else {
-                        for (CallingStatus status : CallingStatus.values()) {
-                            if (!unitSettings.getDisabledStatuses().contains(status)) {
-                                statuses.add((status));
-                            }
+        getUnitSettingsTask.addOnSuccessListener(new OnSuccessListener<UnitSettings>() {
+            @Override
+            public void onSuccess(UnitSettings unitSettings) {
+                List<CallingStatus> statuses = new ArrayList<>();
+                if(unitSettings.getDisabledStatuses().size()+1 == CallingStatus.values().length) {
+                    statuses.clear();
+                    statuses.addAll(Arrays.asList(CallingStatus.values()));
+                } else {
+                    for (CallingStatus status : CallingStatus.values()) {
+                        if (!unitSettings.getDisabledStatuses().contains(status)) {
+                            statuses.add((status));
                         }
                     }
-                    listener.onResponse(statuses);
-                    return null;
                 }
-            });
+                listener.onResponse(statuses);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+        @Override
+        public void onFailure(@NonNull Exception e) {
+            errorListener.onResponse(ensureWebException(e));
+            }
+        });
+    }
+
+    private WebException ensureWebException(Exception exception) {
+        return exception instanceof WebException ? (WebException) exception : new WebException(ExceptionType.UNKOWN_GOOGLE_EXCEPTION, exception);
     }
 }
