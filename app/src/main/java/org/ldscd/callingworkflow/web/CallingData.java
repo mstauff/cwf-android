@@ -200,6 +200,15 @@ public class CallingData {
         baseOrgByOrgId = new HashMap<>();
     }
 
+    public void removeOrgFromCache(Org org) {
+        for(Calling calling : org.getCallings()) {
+            memberData.removeCallingFromMembers(calling);
+        }
+        orgs.remove(org);
+        orgsById.remove(org);
+        baseOrgByOrgId.remove(org);
+    }
+
     public void refreshLCROrgs(final Response.Listener<Boolean> listener, final Response.Listener<WebException> errorCallback, final LdsUser currentUser) {
         webResources.getOrgs(true, new Response.Listener<List<Org>>() {
             @Override

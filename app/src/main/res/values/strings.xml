@@ -138,10 +138,12 @@
     <string name="title_activity_status_edit">Edit Status</string>
     <string name="manage_data">Manage Data</string>
     <string name="conflict_info_title">Missing Organization</string>
-    <string name="conflict_info_delete_text">Remove Org</string>
+    <string name="conflict_info_delete_text">Remove</string>
     <string name="conflict_info_dismiss_text">Keep for now</string>
     <string name="conflict_understand_agreement">This organization can be removed.</string>
     <string name="org_conflict_warning">%1$s no longer exists on lds.org and should be removed, but there are outstanding changes in some callings. If these proposed changes are no longer needed you can remove the organization with the "Remove" button.  If you want to review the callings with outstanding changes you can choose "keep for now".</string>
+    <string name="org_failed_to_delete">The org failed to delete.</string>
+    <string name="org_deleted_successfully">The org was delete successfully.</string>
     <string name="unknown_member">Unknown Member</string>
     <string name="resync_data">Refresh LDS Data</string>
     <string name="google_drive">Google Drive</string>

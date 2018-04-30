@@ -1,5 +1,6 @@
 package org.ldscd.callingworkflow.display;
 
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.os.Bundle;
@@ -49,9 +50,11 @@ public class ConflictInfoFragment extends DialogFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View conflictInfo = inflater.inflate(R.layout.conflict_info, container, false);
-
+        String orgName = org.getDefaultOrgName();
+        TextView title = conflictInfo.findViewById(R.id.conflict_title);
+        title.setText(conflictInfo.getResources().getString(R.string.conflict_info_title));
         TextView messageView = conflictInfo.findViewById(R.id.conflict_message);
-        messageView.setText(conflictInfo.getResources().getString(R.string.org_conflict_warning));
+        messageView.setText(conflictInfo.getResources().getString(R.string.org_conflict_warning, orgName));
         TextView callingView = conflictInfo.findViewById(R.id.conflict_callings);
         callingView.setText(getPotentialCallings(org));
 
@@ -67,37 +70,28 @@ public class ConflictInfoFragment extends DialogFragment {
         deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(operation.equals(Operation.DELETE)) {
-                    dataManager.deleteOrg(org)
-                            .addOnSuccessListener(new OnSuccessListener<Boolean>() {
-                                @Override
-                                public void onSuccess(Boolean aBoolean) {
-                                    Toast.makeText(getContext(), "The org was delete successfully.", Toast.LENGTH_LONG);
-                                    dismiss();
-                                }
-                            })
-                            .addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    Toast.makeText(getContext(), "The org failed to delete.", Toast.LENGTH_LONG);
-                                }
-                            });
-                } else {
-                    dataManager.updateOrg(org)
-                            .addOnSuccessListener(new OnSuccessListener<Boolean>() {
-                                @Override
-                                public void onSuccess(Boolean aBoolean) {
-                                    Toast.makeText(getContext(), "The org was updated successfully.", Toast.LENGTH_LONG);
-                                    dismiss();
-                                }
-                            })
-                            .addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    Toast.makeText(getContext(), "The org failed to update.", Toast.LENGTH_LONG);
-                                }
-                            });;
-                }
+                /* Deletes the parent base org. */
+                dataManager.deleteOrg(org)
+                    .addOnSuccessListener(new OnSuccessListener<Boolean>() {
+                        @Override
+                        public void onSuccess(Boolean aBoolean) {
+                            Toast.makeText(getContext(), getResources().getString(R.string.org_deleted_successfully), Toast.LENGTH_LONG);
+                            Intent intent = getActivity().getIntent();
+                            getActivity().finish();
+                            if(operation == null || !operation.equals(Operation.DELETE)){
+                                intent.putExtra(ExpandableOrgsListActivity.ARG_ORG_ID, dataManager.getBaseOrg(org.getId()).getId());
+                                intent.putExtra(ExpandableOrgsListActivity.GET_DATA, true);
+                            }
+                            startActivity(intent);
+                            dismiss();
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(getContext(), getResources().getString(R.string.org_failed_to_delete), Toast.LENGTH_LONG);
+                        }
+                    });
             }
         });
 

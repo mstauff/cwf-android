@@ -168,7 +168,7 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
                     @Override
                     public void onClick(View view) {
                         ConflictInfoFragment conflictInfo = new ConflictInfoFragment();
-                        conflictInfo.setOrg(org);
+                        conflictInfo.setOrg(groupOrg);
                         conflictInfo.show(fragmentManager, "ConflictInfo");
                     }
                 });

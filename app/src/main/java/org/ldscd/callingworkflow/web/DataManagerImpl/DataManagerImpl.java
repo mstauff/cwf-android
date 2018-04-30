@@ -13,8 +13,10 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskCompletionSource;
+import com.google.android.gms.tasks.Tasks;
 
 import org.ldscd.callingworkflow.constants.CallingStatus;
+import org.ldscd.callingworkflow.constants.ClassAssignment;
 import org.ldscd.callingworkflow.constants.Operation;
 import org.ldscd.callingworkflow.constants.UnitLevelOrgType;
 import org.ldscd.callingworkflow.model.Calling;
@@ -34,7 +36,10 @@ import org.ldscd.callingworkflow.web.IWebResources;
 import org.ldscd.callingworkflow.web.MemberData;
 import org.ldscd.callingworkflow.web.WebException;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DataManagerImpl implements DataManager {
     private static final String TAG = "DataManager";
@@ -114,21 +119,37 @@ public class DataManagerImpl implements DataManager {
         return callingData.getOrgs();
     }
     @Override
-    public boolean removeSubOrg(Org org, long subOrgId) {
-        if(org == null) {
-            org = callingData.getBaseOrg(subOrgId);
+    public Org getBaseOrg(long orgId) {
+        return callingData.getBaseOrg(orgId);
+    }
+    @Override
+    public Task<Boolean> deleteOrg(final Org org) {
+        final Org baseOrg = callingData.getBaseOrg(org.getId());
+        final boolean isParentOrg = baseOrg != null && baseOrg.equals(org);
+        Task<Boolean> task = null;
+        if(isParentOrg) {
+            /* Remove it from database/google drive */
+            task = googleDataService.deleteOrg(org);
+        } else {
+            callingData.removeSubOrg(baseOrg, org.getId());
+            task = googleDataService.saveOrgFile(baseOrg);
         }
-        return callingData.removeSubOrg(org, subOrgId);
-    }
-    @Override
-    public Task<Boolean> deleteOrg(Org org) {
-        return googleDataService.deleteOrg(org);
-    }
-    @Override
-    public Task<Boolean> updateOrg(Org org) {
-        Org parentOrg = callingData.getBaseOrg(org.getId());
-        org = null;
-        return googleDataService.saveOrgFile(parentOrg);
+        task.addOnSuccessListener(new OnSuccessListener<Boolean>() {
+            @Override
+            public void onSuccess(Boolean result) {
+                if(result) {
+                    if(isParentOrg) {
+                        /* If it's a base org just remove it from cache once it's been deleted in the db */
+                        callingData.removeOrgFromCache(baseOrg);
+                    } else {
+                        /* If it's a suborg handle it accordingly. */
+                        callingData.removeOrgFromCache(org);
+                    }
+                }
+            }
+        });
+
+        return task;
     }
     @Override
     public void refreshGoogleDriveOrgs(List<Long> orgIds, Response.Listener<Boolean> listener, Response.Listener<WebException> errorCallback) {
@@ -205,6 +226,36 @@ public class DataManagerImpl implements DataManager {
         if(permissionManager.hasPermission(currentUser.getUnitRoles(), Permission.ORG_INFO_READ)) {
             memberData.loadMembers(listener, errorCallback, progressBar);
         }
+    }
+    @Override
+    public void loadClassMemberAssignments() {
+        final Map<Long, List<Long>> classMemberAssignment = new HashMap<>();
+        List<Org> orgs = getOrgs();
+        final List<Task<Map<Long, List<Long>>>> tasks = new ArrayList<>();
+        for(ClassAssignment classAssignment : ClassAssignment.values()) {
+            for(Org org : orgs) {
+                if(org.getOrgTypeId() == UnitLevelOrgType.getOrgTypeIdByName(classAssignment.name())) {
+                    tasks.add(webResources.getOrgMembers(org.getId()));
+                    break;
+                }
+            }
+        }
+
+        Tasks.whenAll(tasks)
+            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    for(Task<Map<Long, List<Long>>> item : tasks) {
+                        classMemberAssignment.putAll(item.getResult());
+                    }
+                }
+            })
+            .addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    //TODO: need to respond to the calling method appropriately or show some sort of problem in the error handling services.
+                }
+            });
     }
 
     /* Google data. */

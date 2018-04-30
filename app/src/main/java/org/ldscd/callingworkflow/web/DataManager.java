@@ -32,9 +32,8 @@ public interface DataManager {
     void getCallingStatus(Response.Listener<List<CallingStatus>> listener, Response.Listener<WebException> errorListener);
     Calling getCalling(String id);
     Org getOrg(long id);
+    Org getBaseOrg(long orgId);
     List<Org> getOrgs();
-    boolean removeSubOrg(Org org, long subOrgId);
-    Task<Boolean> updateOrg(Org org);
     void refreshGoogleDriveOrgs(List<Long> orgIds, Response.Listener<Boolean> listener, Response.Listener<WebException> errorCallback);
     void refreshLCROrgs(Response.Listener<Boolean> listener, Response.Listener<WebException> errorCallback);
     void loadOrgs(Response.Listener<Boolean> listener, Response.Listener<WebException> errorCallback, ProgressBar progressBar, Activity activity);
@@ -52,6 +51,7 @@ public interface DataManager {
     Member getMember(Long id);
     void getWardList(Response.Listener<List<Member>> listener);
     void loadMembers(Response.Listener<Boolean> listener, Response.Listener<WebException> errorCallback, ProgressBar progressBar);
+    void loadClassMemberAssignments();
     /* Google data. */
     void addCalling(Response.Listener<Boolean> listener, Response.Listener<WebException> errorListener, Calling calling);
     void updateCalling(Response.Listener<Boolean> listener, Response.Listener<WebException> errorListener, Calling calling);
