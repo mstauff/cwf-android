@@ -169,7 +169,11 @@ public class DataManagerImpl implements DataManager {
     }
     @Override
     public void loadOrgs(Response.Listener<Boolean> listener, Response.Listener<WebException> errorCallback, ProgressBar progressBar, Activity activity) {
-        callingData.loadOrgs(listener, errorCallback, progressBar, activity, currentUser);
+        if(currentUser != null) {
+            callingData.loadOrgs(listener, errorCallback, progressBar, activity, currentUser);
+        } else {
+            errorCallback.onResponse(new WebException(ExceptionType.LDS_AUTH_REQUIRED));
+        }
     }
     @Override
     public void loadPositionMetadata() {
