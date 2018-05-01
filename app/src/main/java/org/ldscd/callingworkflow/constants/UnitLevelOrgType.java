@@ -44,6 +44,17 @@ public enum UnitLevelOrgType {
         return lookup.get(id);
     }
 
+    public static int getOrgTypeIdByName(String name) {
+        int orgTypeId = 0;
+        for(UnitLevelOrgType orgType : UnitLevelOrgType.values()) {
+            if(orgType.name.equals(name)) {
+                orgTypeId = orgType.id;
+                break;
+            }
+        }
+        return orgTypeId;
+    }
+
     public Integer getExceptionId() {
         return this.exceptionId;
     }

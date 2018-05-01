@@ -3,6 +3,7 @@ package org.ldscd.callingworkflow.web;
 import android.content.SharedPreferences;
 
 import com.android.volley.Response;
+import com.google.android.gms.tasks.Task;
 
 import org.json.JSONObject;
 import org.ldscd.callingworkflow.model.Calling;
@@ -13,6 +14,7 @@ import org.ldscd.callingworkflow.model.Org;
 
 import javax.inject.Singleton;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Interface to WebResources.  Only because we are implementing the same interface on LocalFileResources.
@@ -28,6 +30,8 @@ public interface IWebResources {
     void getUserInfo(boolean getClean, Response.Listener<LdsUser> userCallback, Response.Listener<WebException> errorCallback);
 
     void getOrgs(boolean getCleanCopy, Response.Listener<List<Org>> orgsCallback, Response.Listener<WebException> errorCallback);
+
+    Task<Map<Long, List<Long>>> getOrgMembers(Long subOrgId);
 
     void getWardList(Response.Listener<List<Member>> wardCallback, Response.Listener<WebException> errorCallback);
 

@@ -12,6 +12,7 @@ public class ConfigInfo {
     public static final String MEMBER_LIST_SECONDARY = "MEMBER_LIST_SECONDARY";
     public static final String UPDATE_CALLING = "UPDATE_CALLING";
     public static final String CALLING_LIST = "CALLING_LIST";
+    public static final String CLASS_ASSIGNMENTS = "CLASS_ASSIGNMENTS";
 
     private String[] statuses;
     private Map<String,String> ldsEndpointUrls;
@@ -62,5 +63,9 @@ public class ConfigInfo {
 
     public String getCallingListUrl() {
         return this.ldsEndpointUrls.isEmpty() ? null : this.ldsEndpointUrls.get(CALLING_LIST);
+    }
+
+    public String getClassAssignments() {
+        return this.ldsEndpointUrls.isEmpty() ? null : this.ldsEndpointUrls.get(CLASS_ASSIGNMENTS);
     }
 }

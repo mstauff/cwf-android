@@ -32,6 +32,7 @@ public class Member implements Comparable<Member> {
     Priesthood priesthood;
     List<Calling> currentCallings;
     Map<String, Calling> proposedCallings;
+    Long classAssignment;
 
     /* Constructors */
     public Member() {}
@@ -151,6 +152,13 @@ public class Member implements Comparable<Member> {
 
     public int getCurrentAge() {
         return getBirthDate() != null ? Years.yearsBetween(getBirthDate(), DateTime.now()).getYears() : -1;
+    }
+
+    public Long getClassAssignment() {
+        return classAssignment;
+    }
+    public void setClassAssignment(Long classAssignment) {
+        this.classAssignment = classAssignment;
     }
 
     @Override

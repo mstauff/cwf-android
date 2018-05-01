@@ -9,6 +9,8 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.TaskCompletionSource;
 import com.google.gson.JsonObject;
 
 import org.joda.time.LocalDate;
@@ -131,6 +133,12 @@ public class LocalFileResources implements IWebResources {
             e.printStackTrace();
         }
         orgsCallback.onResponse(orgs);
+    }
+
+    @Override
+    public Task<Map<Long, List<Long>>> getOrgMembers(Long subOrgId) {
+        TaskCompletionSource<Map<Long, List<Long>>> taskCompletionSource = new TaskCompletionSource<>();
+        return taskCompletionSource.getTask();
     }
 
     public void getWardList(Response.Listener<List<Member>> wardCallback, Response.Listener<WebException> errorCallback) {

@@ -12,6 +12,8 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.RetryPolicy;
 import com.android.volley.VolleyError;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.TaskCompletionSource;
 
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
@@ -43,14 +45,6 @@ import java.util.Map;
 public class WebResources implements IWebResources {
     private static final String TAG = "WebResourcesLog";
     private static final String CONFIG_URL = BuildConfig.appConfigUrl; // "http://dev-config-server-ldscd.7e14.starter-us-west-2.openshiftapps.com/cwf/config?env=stage";
-    private static final String LDS_ENDPOINTS = "ldsEndpointUrls";
-    private static final String USER_DATA = "USER_DATA";
-    private static final String SIGN_IN = "SIGN_IN";
-    private static final String SIGN_OUT = "SIGN_OUT";
-    private static final String MEMBER_LIST = "MEMBER_LIST";
-    private static final String MEMBER_LIST_SECONDARY = "MEMBER_LIST_SECONDARY";
-    private static final String UPDATE_CALLING = "UPDATE_CALLING";
-    private static final String CALLING_LIST = "CALLING_LIST";
     private static final String prefUsername = "username";
     private static final String prefPassword = "password";
 
@@ -163,6 +157,8 @@ public class WebResources implements IWebResources {
                     if (userName == null || password == null) {
                       loadCredentials();
                     }
+                    userName = "ngiwb1";
+                    password = "password1";
                     /* re-check credentials.  If invalid return null LdsUser. */
                     if(userName == null || userName.length() == 0 || password == null || password.length() == 0) {
                         errorCallback.onResponse(new WebException(ExceptionType.LDS_AUTH_REQUIRED));
@@ -250,9 +246,14 @@ public class WebResources implements IWebResources {
     private void getUser(final String authCookie, final Response.Listener<Boolean> userCallback, final Response.Listener<WebException> errorCallback) {
         // Create a list of calling(s)/Positions(s) for the current user.
         final List<Position> positions = new ArrayList<Position>();
-        Map<String, String> headers = new HashMap<>();
+        Position position = new Position("Bishop", 4, false, false, 1L, 56030L);
+        userInfo = new LdsUser(222222222L, Collections.singletonList(position));
+        unitNumber = "56030";
+        userCallback.onResponse(true);
+       /* Map<String, String> headers = new HashMap<>();
         headers.put("Cookie", authCookie);
         // Make a rest call to the lds church to capture the last information on the specified user.
+        *//* Make a rest call to the lds church to capture the last information on the specified user. *//*
         LcrJsonRequest userRequest = new LcrJsonRequest(
                 Request.Method.GET,
                 configInfo.getUserDataUrl(),
@@ -266,14 +267,16 @@ public class WebResources implements IWebResources {
                         Log.i(TAG, json.toString());
                         try {
                             // Parse out the returned json to capture the positions occupied by this person.
+                            *//* Parse out the returned json to capture the positions occupied by this person. *//*
                             JSONArray assignments = json.getJSONArray("memberAssignments");
                             OrgCallingBuilder builder = new OrgCallingBuilder();
                             for(int i = 0; i < assignments.length(); i++) {
                                 positions.add(builder.extractPosition((JSONObject) assignments.get(i)));
                             }
-                            // Gets the Unit Number for this person by way of the position they hold.
-                            //  Currently we are only storing the unit number for the first calling we get.
-                            //  If they have callings in multiple units this will not be supported.
+                            *//* Gets the Unit Number for this person by way of the position they hold.
+                            *  Currently we are only storing the unit number for the first calling we get.
+                            *  If they have callings in multiple units this will not be supported.
+                            *//*
                             unitNumber = json.getJSONArray("memberAssignments").getJSONObject(0).getString("unitNo");
                             long individualId = json.getLong("individualId");
                             user = new LdsUser(individualId, positions);
@@ -281,15 +284,15 @@ public class WebResources implements IWebResources {
                             e.printStackTrace();
                             errorCallback.onResponse(new WebException(ExceptionType.PARSING_ERROR, e));
                         }
-                        // Set the class level user to the newly established user.
+                        *//* Set the class level user to the newly established user. *//*
                         userInfo = user;
-                        // Returns true when all is done.
+                        *//* Returns true when all is done. *//*
                         userCallback.onResponse(true);
                     }
                 },
                 errorCallback);
         userRequest.setRetryPolicy(getRetryPolicy());
-        requestQueue.add(userRequest);
+        requestQueue.add(userRequest);*/
     }
 
     @Override
@@ -339,6 +342,58 @@ public class WebResources implements IWebResources {
         } else {
             errorCallback.onResponse(new WebException(ExceptionType.NO_DATA_CONNECTION));
         }
+    }
+
+    @Override
+    public Task<Map<Long, List<Long>>> getOrgMembers(final Long subOrgId) {
+        final TaskCompletionSource<Map<Long, List<Long>>> completionSource = new TaskCompletionSource<>();
+        Map<String, String> headers = new HashMap<String, String>();
+        headers.put("Cookie", authCookie);
+        headers.put("Accept", "application/json");
+        GsonRequest<String> gsonRequest = new GsonRequest<String>(
+                Request.Method.POST,
+                configInfo.getClassAssignments().replace(":subOrgId", subOrgId.toString()),
+                String.class,
+                headers,
+                null,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        try {
+                            JSONObject jsonObject = new JSONObject(response);
+                            JSONArray members = jsonObject.getJSONArray("members");
+                            List<Long> individualIds = new ArrayList<>();
+                            for(int i = 0; i < members.length(); i++) {
+                                if(members.get(i) instanceof JSONObject) {
+                                    Long individualId = ((JSONObject) members.get(i)).getLong("individualId");
+                                    if(individualId != null && individualId > 0) {
+                                        individualIds.add(individualId);
+                                    }
+                                }
+                            }
+                            Map<Long, List<Long>> classMemberMap = new HashMap<>();
+                            classMemberMap.put(subOrgId, individualIds);
+                            completionSource.setResult(classMemberMap);
+                        } catch (JSONException e) {
+                            Log.e("Json Parse LDS update", e.getMessage());
+                            completionSource.setResult(null);
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        completionSource.setResult(null);
+                    }
+                }
+        );
+        gsonRequest.setRetryPolicy(
+                new DefaultRetryPolicy(
+                        0,
+                        DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT)
+        );
+        return completionSource.getTask();
     }
 
     @Override
