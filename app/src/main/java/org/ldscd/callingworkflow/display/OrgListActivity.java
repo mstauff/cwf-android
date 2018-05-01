@@ -23,6 +23,7 @@ import com.android.volley.Response;
 
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.display.adapters.OrgListAdapter;
+import org.ldscd.callingworkflow.model.LdsUser;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.web.DataManager;
 import org.ldscd.callingworkflow.web.WebException;
@@ -115,14 +116,20 @@ public class OrgListActivity extends AppCompatActivity
                 progressBar = findViewById(R.id.org_list_reload_data_progress);
                 progressBar.setVisibility(View.VISIBLE);
                 if(dataManager.isGoogleDriveAuthenticated(getApplicationContext())) {
-                    dataManager.loadOrgs(new Response.Listener<Boolean>() {
+                    dataManager.getUserInfo(null, null, false, new Response.Listener<LdsUser>() {
                         @Override
-                        public void onResponse(Boolean response) {
-                            layout.setVisibility(GONE);
-                            reloadButton.setVisibility(GONE);
-                            progressBar.setVisibility(GONE);
+                        public void onResponse(LdsUser response) {
+                            dataManager.loadOrgs(new Response.Listener<Boolean>() {
+                                @Override
+                                public void onResponse(Boolean response) {
+                                    layout.setVisibility(GONE);
+                                    reloadButton.setVisibility(GONE);
+                                    progressBar.setVisibility(GONE);
+                                    setupRecyclerView();
+                                }
+                            }, webErrorListener, progressBar, activity);
                         }
-                    }, webErrorListener, progressBar, activity);
+                    }, webErrorListener);
                 } else {
                     layout.setVisibility(GONE);
                     reloadButton.setVisibility(GONE);

@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -99,7 +100,8 @@ public class SplashActivity extends AppCompatActivity {
         public void onResponse(WebException error) {
             View dialogView = getLayoutInflater().inflate(R.layout.warning_dialog_text, null);
             TextView messageView = dialogView.findViewById(R.id.warning_message);
-            AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(activity);
+            ContextThemeWrapper contextTheme = new ContextThemeWrapper(activity, R.style.AppTheme);
+            AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(contextTheme);
 
             switch (error.getExceptionType()) {
                 case LDS_AUTH_REQUIRED:
