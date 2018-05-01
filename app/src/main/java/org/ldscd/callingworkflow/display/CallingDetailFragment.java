@@ -142,6 +142,10 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
         public void onResponse(Boolean response) {
             progressDialog.dismiss();
             getActivity().finish();
+            Intent intent = new Intent(getContext(), ExpandableOrgsListActivity.class);
+            intent.putExtra(ExpandableOrgsListActivity.ARG_ORG_ID, dataManager.getBaseOrg(calling.getParentOrg()).getId());
+            intent.putExtra(ExpandableOrgsListActivity.GET_DATA, true);
+            startActivity(intent);
             Toast.makeText(getContext(), getResources().getString(R.string.items_saved), Toast.LENGTH_SHORT).show();
         }
     };
@@ -332,9 +336,9 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
 
     private void hydrateCalling() {
         if(calling != null) {
-            TextView callingName = (TextView)view.findViewById(R.id.label_calling_detail_position);
+            TextView callingName = view.findViewById(R.id.label_calling_detail_position);
             callingName.setText(calling.getPosition().getName());
-            final TextView currentlyCalled = (TextView)view.findViewById(R.id.calling_detail_currently_called);
+            final TextView currentlyCalled = view.findViewById(R.id.calling_detail_currently_called);
             String name = dataManager.getMemberName(calling.getMemberId() != null ? calling.getMemberId() : 0);
             currentlyCalled.setText(name);
             if(calling.getMemberId() != null && calling.getMemberId() > 0) {
