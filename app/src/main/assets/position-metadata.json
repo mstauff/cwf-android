@@ -67,76 +67,12 @@
     }
   },
   {
-    "positionTypeId": 133,
-    "shortName": "Group Leader",
-    "mediumName": "HP Group Leader",
-    "requirements": {
-      "gender" : "MALE",
-      "priesthood": ["HIGH_PRIEST"]
-    }
-  },
-  {
-    "positionTypeId": 134,
-    "shortName": "1st Asst.",
-    "mediumName": "HP 1st Asst.",
-    "requirements": {
-      "gender" : "MALE",
-      "priesthood": ["HIGH_PRIEST"]
-    }
-  },
-  {
-    "positionTypeId": 135,
-    "shortName": "2nd Asst.",
-    "mediumName": "HP 2nd Asst.",
-    "requirements": {
-      "gender" : "MALE",
-      "priesthood": ["HIGH_PRIEST"]
-    }
-  },
-  {
-    "positionTypeId": 136,
-    "shortName": "Secretary",
-    "mediumName": "HP Secretary",
-    "requirements": {
-      "gender" : "MALE",
-      "priesthood": ["HIGH_PRIEST"]
-    }
-  },
-  {
-    "positionTypeId": 3635,
-    "shortName": "Asst. Sec.",
-    "mediumName": "HP Asst. Sec.",
-    "requirements": {
-      "gender" : "MALE",
-      "priesthood": ["PRIEST","ELDER","HIGH_PRIEST"]
-    }
-  },
-  {
-    "positionTypeId": 137,
-    "shortName": "Instructor",
-    "mediumName": "HP Instructor",
-    "requirements": {
-      "gender" : "MALE",
-      "priesthood": ["HIGH_PRIEST"]
-    }
-  },
-
-  {
-    "positionTypeId": 1395,
-    "shortName": "District Supervisor",
-    "mediumName": "HP District Supervisor",
-    "requirements": {
-      "gender" : "MALE",
-      "priesthood": ["HIGH_PRIEST"]
-    }
-  },
-  {
     "positionTypeId": 138,
     "shortName": "President",
     "mediumName": "EQ Pres.",
     "requirements": {
       "gender" : "MALE",
-      "priesthood": ["ELDER"]
+      "priesthood": ["ELDER", "HIGH_PRIEST"]
     }
   },
   {
@@ -145,7 +81,7 @@
     "mediumName": "EQ 1st Counselor",
     "requirements": {
       "gender" : "MALE",
-      "priesthood": ["ELDER"]
+      "priesthood": ["ELDER", "HIGH_PRIEST"]
     }
   },
   {
@@ -154,7 +90,7 @@
     "mediumName": "EQ 2nd Counselor",
     "requirements": {
       "gender" : "MALE",
-      "priesthood": ["ELDER"]
+      "priesthood": ["ELDER", "HIGH_PRIEST"]
     }
   },
   {
@@ -163,7 +99,7 @@
     "mediumName": "EQ Secretary",
     "requirements": {
       "gender" : "MALE",
-      "priesthood": ["ELDER"]
+      "priesthood": ["ELDER", "HIGH_PRIEST"]
     }
   },
   {
@@ -172,7 +108,7 @@
     "mediumName": "EQ Asst. Secretary",
     "requirements": {
       "gender" : "MALE",
-      "priesthood": ["PRIEST","ELDER"]
+      "priesthood": ["PRIEST","ELDER", "HIGH_PRIEST"]
     }
   },
   {
@@ -181,16 +117,25 @@
     "mediumName": "EQ Instructor",
     "requirements": {
       "gender" : "MALE",
-      "priesthood": ["ELDER"]
+      "priesthood": ["ELDER", "HIGH_PRIEST"]
+    }
+  },
+  {
+    "positionTypeId": 2021,
+    "shortName": "Ministering Coordinator",
+    "mediumName": "EQ Ministering Coordinator",
+    "requirements": {
+      "gender" : "MALE",
+      "priesthood": ["ELDER", "HIGH_PRIEST"]
     }
   },
   {
     "positionTypeId": 1394,
-    "shortName": "District Supervisor",
-    "mediumName": "EQ District Supervisor",
+    "shortName": "Ministering Supervisor",
+    "mediumName": "EQ Ministering Supervisor",
     "requirements": {
       "gender" : "MALE",
-      "priesthood": ["ELDER"]
+      "priesthood": ["ELDER", "HIGH_PRIEST"]
     }
   },
   {
@@ -249,8 +194,8 @@
   },
   {
     "positionTypeId": 151,
-    "shortName": "VT Coordinator",
-    "mediumName": "RS VT Coordinator",
+    "shortName": "Ministering Coordinator",
+    "mediumName": "RS Ministering Coordinator",
     "requirements": {
       "gender" : "FEMALE",
       "memberClasses": ["RELIEF_SOCIETY"]
@@ -258,7 +203,8 @@
   },
   {
     "positionTypeId": 152,
-    "shortName": "VT District Supervisor",
+    "shortName": "Ministering Supervisor",
+    "mediumName": "RS Ministering Supervisor",
     "requirements": {
       "gender" : "FEMALE",
       "memberClasses": ["RELIEF_SOCIETY"]
