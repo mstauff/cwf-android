@@ -32,6 +32,7 @@ android {
             zipAlignEnabled true
             /* Custom Parameters */
             buildConfigField "String", "appConfigUrl", "\"http://dev-config-server-ldscd.7e14.starter-us-west-2.openshiftapps.com/cwf/config\""
+            buildConfigField "String", "appConfigFile", "\"config-info.json\""
             buildConfigField "boolean", "useLDSOrgData", "true"
             buildConfigField "boolean", "authRemoteDataWithLdsAcct", "true"
         }
@@ -40,6 +41,7 @@ android {
             debuggable true
             /* Custom Parameters */
             buildConfigField "String", "appConfigUrl", "\"http://dev-config-server-ldscd.7e14.starter-us-west-2.openshiftapps.com/cwf/config?env=stage\""
+            buildConfigField "String", "appConfigFile", "\"config-info-stage.json\""
             buildConfigField "boolean", "useLDSOrgData", "true"
             buildConfigField "boolean", "authRemoteDataWithLdsAcct", "true"
         }
