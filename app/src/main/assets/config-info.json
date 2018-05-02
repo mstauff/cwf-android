@@ -1,0 +1,54 @@
+{
+  "ldsEndpointUrls": {
+    "USER_DATA": "https://www.lds.org/mobiledirectory/services/v2/ldstools/current-user-detail",
+    "SIGN_IN": "https://signin.lds.org/login.html",
+    "SIGN_OUT": "https://www.lds.org/signinout/?lang=eng&signmeout",
+    "MEMBER_LIST": "https://www.lds.org/htvt/services/v1/:unitNum/members",
+    "MEMBER_LIST_SECONDARY": "https://www.lds.org/mobiledirectory/services/ludrs/1.1/mem/mobile/member-detaillist/:unitNum",
+    "UPDATE_CALLING": "https://www.lds.org/mls/mbr/services/orgs/callings?lang=eng",
+    "CALLING_LIST": "https://www.lds.org/mls/mbr/services/orgs/sub-orgs-with-callings",
+    "CLASS_ASSIGNMENTS": "https://www.lds.org/mls/mbr/services/orgs/sub-orgs-with-callings/?subOrgId=:subOrgId"
+  },
+  "orgTypes": [
+    {
+      "id": 1179,
+      "name": "Bishopric"
+    },
+    {
+      "id": 69,
+      "name": "High Priests Group"
+    },
+    {
+      "id": 70,
+      "name": "Elders Quorum"
+    },
+    {
+      "id": 74,
+      "name": "Relief Society"
+    },
+    {
+      "id": 73,
+      "name": "Young Men"
+    },
+    {
+      "id": 76,
+      "name": "Young Women"
+    },
+    {
+      "id": 75,
+      "name": "Sunday School"
+    },
+    {
+      "id": 77,
+      "name": "Primary"
+    },
+    {
+      "id": 1310,
+      "name": "Ward Missionaries"
+    },
+    {
+      "id": 1185,
+      "name": "Other Callings"
+    }
+  ]
+}

@@ -7,13 +7,17 @@ import android.net.NetworkInfo;
 import android.util.Log;
 
 import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.ParseError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.RetryPolicy;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.HttpHeaderParser;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskCompletionSource;
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
@@ -32,6 +36,7 @@ import org.ldscd.callingworkflow.utils.SecurityUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.CookieManager;
 import java.net.HttpCookie;
 import java.net.URI;
@@ -133,7 +138,7 @@ public class WebResources implements IWebResources {
                     public void onErrorResponse(VolleyError error) {
                         Log.e(TAG, "load config error");
                         error.printStackTrace();
-                        errorCallback.onResponse(new WebException(ExceptionType.UNKNOWN_EXCEPTION, error.networkResponse));
+                        getLocalConfigInfo(configCallback, errorCallback);
                     }
                 }
             );
@@ -141,6 +146,17 @@ public class WebResources implements IWebResources {
             requestQueue.add(configRequest);
         } else {
             errorCallback.onResponse(new WebException(ExceptionType.NO_DATA_CONNECTION));
+        }
+    }
+
+    private void getLocalConfigInfo(Response.Listener<ConfigInfo> configInfoCallback, Response.Listener<WebException> errorCallback) {
+        String json = getJSONFromAssets(BuildConfig.appConfigFile);
+        Gson gson = new Gson();
+        try {
+            ConfigInfo result = gson.fromJson(json, ConfigInfo.class);
+            configInfoCallback.onResponse(result);
+        } catch (JsonSyntaxException e) {
+            errorCallback.onResponse(new WebException(ExceptionType.PARSING_ERROR, e));
         }
     }
 
