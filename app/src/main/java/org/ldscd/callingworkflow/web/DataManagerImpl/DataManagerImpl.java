@@ -294,65 +294,67 @@ public class DataManagerImpl implements DataManager {
             if(canDeleteCalling(calling, org)) {
                 /* Get the latest file from google drive. */
                 final Task<Org> getOrgDataTask = googleDataService.getOrgData(org);
-                getOrgDataTask.continueWithTask(new Continuation<Org, Task<Void>>() {
-                    @Override
-                    public Task<Void> then(@NonNull Task<Org> task) throws Exception {
-                        Org newOrg = task.getResult();
-                        if(newOrg != null) {
-                            final Calling originalCalling = new Calling(calling);
-                            /* Remove the callings that belong to the Org from the members with a proposed calling. */
-                            memberData.removeMemberCallings(org.getCallings());
-                            /* Get's the subOrg within the main org(ie. instructors subOrg in the EQ Org) */
-                            Org newParentOrg = callingData.findSubOrg(newOrg, calling.getParentOrg());
-                            /* Removes the calling from within the new org */
-                            newParentOrg.removeCalling(calling);
-                            /* Get's the old parent org */
-                            Org oldParentOrg = callingData.getOrg(calling.getParentOrg());
-                            /* Removes the calling from the old parent org */
-                            oldParentOrg.removeCalling(calling);
-                            /* Merge the changes in the old and new orgs */
-                            callingData.mergeOrgs(org, newOrg, currentUser);
-                            /* Extract recent subOrgs and callings to cached items */
-                            callingData.extractOrg(org, org.getId());
-                            /* Save the changes back to google drive */
-                            Task<Boolean> saveOrgFileTask = googleDataService.saveOrgFile(newOrg);
-                            saveOrgFileTask
-                                .continueWithTask(new Continuation<Boolean, Task<Boolean>>() {
-                                    @Override
-                                    public Task<Boolean> then(@NonNull Task<Boolean> task) throws Exception {
-                                        return task;
-                                    }
-                                })
-                                .addOnCompleteListener(new OnCompleteListener<Boolean>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Boolean> task) {
-                                        listener.onResponse(task.getResult());
-                                        if(!task.getResult()) {
-                                            Org newOrg = getOrgDataTask.getResult();
-                                            callingData.updateCalling(newOrg, originalCalling, Operation.CREATE);
-                                            callingData.mergeOrgs(org, newOrg, currentUser);
-                                            callingData.extractOrg(org, org.getId());
-                                        } else if(originalCalling.getProposedIndId() > 0) {
-                                            getMember(originalCalling.getProposedIndId()).removeProposedCalling(calling);
+                getOrgDataTask
+                    .addOnSuccessListener(new OnSuccessListener<Org>() {
+                        @Override
+                        public void onSuccess(Org newOrg) {
+                            if(newOrg != null) {
+                                final Calling originalCalling = new Calling(calling);
+                                /* Remove the callings that belong to the Org from the members with a proposed calling. */
+                                memberData.removeMemberCallings(org.getCallings());
+                                /* Get's the subOrg within the main org(ie. instructors subOrg in the EQ Org) */
+                                Org newParentOrg = callingData.findSubOrg(newOrg, calling.getParentOrg());
+                                /* Removes the calling from within the new org */
+                                newParentOrg.removeCalling(calling);
+                                /* Get's the old parent org */
+                                Org oldParentOrg = callingData.getOrg(calling.getParentOrg());
+                                /* Removes the calling from the old parent org */
+                                oldParentOrg.removeCalling(calling);
+                                /* Merge the changes in the old and new orgs */
+                                callingData.mergeOrgs(org, newOrg, currentUser);
+                                /* Extract recent subOrgs and callings to cached items */
+                                callingData.extractOrg(org, org.getId());
+                                /* Save the changes back to google drive */
+                                Task<Boolean> saveOrgFileTask = googleDataService.saveOrgFile(newOrg);
+                                saveOrgFileTask
+                                    .continueWithTask(new Continuation<Boolean, Task<Boolean>>() {
+                                        @Override
+                                        public Task<Boolean> then(@NonNull Task<Boolean> task) {
+                                            if(!task.getResult()) {
+                                                Org newOrg = getOrgDataTask.getResult();
+                                                callingData.updateCalling(newOrg, originalCalling, Operation.CREATE);
+                                                callingData.mergeOrgs(org, newOrg, currentUser);
+                                                callingData.extractOrg(org, org.getId());
+                                            } else if(originalCalling.getProposedIndId() != null && originalCalling.getProposedIndId() > 0) {
+                                                getMember(originalCalling.getProposedIndId()).removeProposedCalling(calling);
+                                            }
+                                            return task;
                                         }
-                                    }
-                                }).addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    errorListener.onResponse(ensureWebException(e));
-                                }
-                            });
-                        } else {
-                            listener.onResponse(false);
+                                    })
+                                    .addOnSuccessListener(new OnSuccessListener<Boolean>() {
+                                        @Override
+                                        public void onSuccess(Boolean result) {
+                                            listener.onResponse(result);
+                                        }
+                                    })
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            errorListener.onResponse(ensureWebException(e));
+                                        }
+                                    });
+                            } else {
+                                listener.onResponse(false);
+                            }
+                            //return null;
                         }
-                        return null;
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        errorListener.onResponse(ensureWebException(e));
-                    }
-                });
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            errorListener.onResponse(ensureWebException(e));
+                        }
+                    });
             } else {
                 listener.onResponse(false);
             }
