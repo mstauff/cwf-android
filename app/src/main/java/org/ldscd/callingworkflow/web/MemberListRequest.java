@@ -88,7 +88,7 @@ public class MemberListRequest extends Request<List<Member>> {
 
     @Override
     protected VolleyError parseNetworkError(VolleyError volleyError) {
-        if(volleyError.networkResponse.statusCode == 403) {
+        if(volleyError.networkResponse != null && volleyError.networkResponse.statusCode == 403) {
             return new WebException(ExceptionType.LDS_AUTH_REQUIRED, volleyError.networkResponse);
         } else {
             return new WebException(ExceptionType.UNKNOWN_EXCEPTION, volleyError.networkResponse);
