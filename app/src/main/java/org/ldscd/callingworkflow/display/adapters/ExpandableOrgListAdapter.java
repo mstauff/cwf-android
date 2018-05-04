@@ -162,6 +162,7 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
          /* Show the conflict icon if the org in lcr was deleted but wasn't in google. */
         if(groupOrg.getConflictCause() != null) {
             addButton.setVisibility(View.GONE);
+            conflictIcon.setFocusable(false);
             if(groupOrg.getConflictCause().equals(ConflictCause.LDS_EQUIVALENT_DELETED)) {
                 conflictIcon.setVisibility(View.VISIBLE);
                 conflictIcon.setOnClickListener(new View.OnClickListener() {
@@ -174,7 +175,6 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
                 });
             } else {
                 conflictIcon.setEnabled(false);
-                conflictIcon.setFocusable(false);
             }
         } else {
             conflictIcon.setVisibility(View.GONE);
