@@ -76,13 +76,7 @@ public class ConflictInfoFragment extends DialogFragment {
                         @Override
                         public void onSuccess(Boolean aBoolean) {
                             Toast.makeText(getContext(), getResources().getString(R.string.org_deleted_successfully), Toast.LENGTH_LONG);
-                            Intent intent = getActivity().getIntent();
-                            getActivity().finish();
-                            if(operation == null || !operation.equals(Operation.DELETE)){
-                                intent.putExtra(ExpandableOrgsListActivity.ARG_ORG_ID, dataManager.getBaseOrg(org.getId()).getId());
-                                intent.putExtra(ExpandableOrgsListActivity.GET_DATA, true);
-                            }
-                            startActivity(intent);
+                            getActivity().recreate();
                             dismiss();
                         }
                     })
