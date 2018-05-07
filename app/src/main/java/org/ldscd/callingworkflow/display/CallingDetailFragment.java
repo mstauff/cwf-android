@@ -142,10 +142,6 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
         public void onResponse(Boolean response) {
             progressDialog.dismiss();
             getActivity().finish();
-            Intent intent = new Intent(getContext(), ExpandableOrgsListActivity.class);
-            intent.putExtra(ExpandableOrgsListActivity.ARG_ORG_ID, dataManager.getBaseOrg(calling.getParentOrg()).getId());
-            intent.putExtra(ExpandableOrgsListActivity.GET_DATA, true);
-            startActivity(intent);
             Toast.makeText(getContext(), getResources().getString(R.string.items_saved), Toast.LENGTH_SHORT).show();
         }
     };
