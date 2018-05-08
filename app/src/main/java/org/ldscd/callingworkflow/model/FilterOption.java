@@ -390,7 +390,7 @@ public class FilterOption {
 
         /* Properties */
         private int getTimeInCalling() {
-            return timeInCalling;
+            return timeInCalling*6;
         }
 
         /* Methods */
