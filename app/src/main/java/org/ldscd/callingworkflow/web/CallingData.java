@@ -322,9 +322,9 @@ public class CallingData {
                 .addOnSuccessListener(new OnSuccessListener<Org>() {
                     @Override
                     public void onSuccess(Org googleOrg) {
-                        /*changes to current and potential assignments will leave incorrect data in the member objects, we must remove them now
-                        while references still exist in the current org and correct data is added back in after the merge completes*/
-                        memberData.removeMemberCallings(org.getCallings());
+                        /* Changes to current and potential assignments will leave incorrect data in the member objects, we must remove them now
+                           while references still exist in the current org and correct data is added back in after the merge completes */
+                        memberData.removeMemberCallings(org.allOrgCallings());
                         mergeOrgs(org, googleOrg, currentUser);
                         extractOrg(org, org.getId());
                         listener.onResponse(org);
