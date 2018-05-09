@@ -266,10 +266,9 @@ public class WebResources implements IWebResources {
         userInfo = new LdsUser(222222222L, Collections.singletonList(position));
         unitNumber = "56030";
         userCallback.onResponse(true);
-       /* Map<String, String> headers = new HashMap<>();
+        Map<String, String> headers = new HashMap<>();
         headers.put("Cookie", authCookie);
         // Make a rest call to the lds church to capture the last information on the specified user.
-        *//* Make a rest call to the lds church to capture the last information on the specified user. *//*
         LcrJsonRequest userRequest = new LcrJsonRequest(
                 Request.Method.GET,
                 configInfo.getUserDataUrl(),
@@ -283,16 +282,15 @@ public class WebResources implements IWebResources {
                         Log.i(TAG, json.toString());
                         try {
                             // Parse out the returned json to capture the positions occupied by this person.
-                            *//* Parse out the returned json to capture the positions occupied by this person. *//*
                             JSONArray assignments = json.getJSONArray("memberAssignments");
                             OrgCallingBuilder builder = new OrgCallingBuilder();
                             for(int i = 0; i < assignments.length(); i++) {
                                 positions.add(builder.extractPosition((JSONObject) assignments.get(i)));
                             }
-                            *//* Gets the Unit Number for this person by way of the position they hold.
+                            /* Gets the Unit Number for this person by way of the position they hold.
                             *  Currently we are only storing the unit number for the first calling we get.
                             *  If they have callings in multiple units this will not be supported.
-                            *//*
+                            */
                             unitNumber = json.getJSONArray("memberAssignments").getJSONObject(0).getString("unitNo");
                             long individualId = json.getLong("individualId");
                             user = new LdsUser(individualId, positions);
@@ -300,15 +298,15 @@ public class WebResources implements IWebResources {
                             e.printStackTrace();
                             errorCallback.onResponse(new WebException(ExceptionType.PARSING_ERROR, e));
                         }
-                        *//* Set the class level user to the newly established user. *//*
+                        /* Set the class level user to the newly established user. */
                         userInfo = user;
-                        *//* Returns true when all is done. *//*
+                        /* Returns true when all is done. */
                         userCallback.onResponse(true);
                     }
                 },
                 errorCallback);
         userRequest.setRetryPolicy(getRetryPolicy());
-        requestQueue.add(userRequest);*/
+        requestQueue.add(userRequest);
     }
 
     @Override
