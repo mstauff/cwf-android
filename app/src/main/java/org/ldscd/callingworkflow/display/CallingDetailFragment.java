@@ -166,6 +166,9 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
                 case UNKOWN_GOOGLE_EXCEPTION:
                     messageView.setText(R.string.error_google_drive);
                     break;
+                case LDS_SERVER_PROVIDED_MESSAGE:
+                    messageView.setText(getResources().getString(R.string.action_failed, error.getException().getMessage()));
+                    break;
                 default:
                     messageView.setText(R.string.error_generic_web);
 
