@@ -17,6 +17,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.android.volley.Response;
@@ -25,6 +28,7 @@ import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.display.adapters.ExpandableOrgListAdapter;
 import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.web.DataManager;
+import org.ldscd.callingworkflow.web.UI.Spinner;
 import org.ldscd.callingworkflow.web.WebException;
 
 import javax.inject.Inject;
@@ -65,7 +69,7 @@ public class ExpandableOrgsListActivity extends AppCompatActivity {
         ((CWFApplication)getApplication()).getNetComponent().inject(this);
         setContentView(R.layout.activity_expandable_org_list);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
         if(actionBar != null) {
@@ -74,12 +78,16 @@ public class ExpandableOrgsListActivity extends AppCompatActivity {
             expandId = getIntent().getLongExtra(ARG_EXPAND_ID, 0);
             loadData = orgId > 0 && getIntent().getBooleanExtra(GET_DATA, false);
             if(loadData) {
+                final FrameLayout formView = findViewById(R.id.expandable_org_list_container);
+                final ProgressBar progressBar = findViewById(R.id.expandable_org_list_progress);
+                Spinner.showProgress(true, formView, progressBar, getResources());
                 dataManager.refreshOrg(new Response.Listener<Org>() {
                     @Override
                     public void onResponse(Org response) {
-                        orgsListView = (ExpandableListView) findViewById(R.id.expandable_org_list);
+                        orgsListView = findViewById(R.id.expandable_org_list);
                         assert orgsListView != null;
                         setupListView(orgsListView, response);
+                        Spinner.showProgress(false, formView, progressBar, getResources());
                     }
                 }, webErrorListener, org.getId());
 
@@ -91,7 +99,7 @@ public class ExpandableOrgsListActivity extends AppCompatActivity {
                 Intent intent = new Intent(context, OrgListActivity.class);
                 context.startActivity(intent);
             } else {
-                orgsListView = (ExpandableListView) findViewById(R.id.expandable_org_list);
+                orgsListView = findViewById(R.id.expandable_org_list);
                 assert orgsListView != null;
                 setupListView(orgsListView, org);
                 getSupportActionBar().setTitle(org.getDefaultOrgName());

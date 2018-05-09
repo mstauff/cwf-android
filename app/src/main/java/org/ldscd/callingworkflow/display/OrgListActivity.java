@@ -34,19 +34,6 @@ import javax.inject.Inject;
 
 import static android.view.View.GONE;
 
-// Default startup view is a list of Org's
-// Initial login is not yet designed.  Needs google id etc.
-// Post initial launch allow them to startup where left off.(This would require having the org structure.)
-// Need to create a splash screen as a startup.
-// Need to determine location of retrieved and shared data.
-// TODO: Start up activity data sync. all this should start up on a background thread.
-// 1. App Config setup call.
-// 2. Login Information
-// 3. User Information(Permissions, callings to determine permissions)
-// 4. Query church services for org's
-// 5. WardMember List
-// 6. Query google drive for syncing.  Read and cache DriveId's
-
 public class OrgListActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -70,21 +57,21 @@ public class OrgListActivity extends AppCompatActivity
         setContentView(R.layout.activity_org_list);
         fragmentManager = getSupportFragmentManager();
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         toolbar.setTitle(getString(R.string.navigation_drawer_orgs));
         setSupportActionBar(toolbar);
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
+        drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         navigationView.setCheckedItem(R.id.nav_orgs);
 
-        recyclerView = (RecyclerView) findViewById(R.id.org_list);
+        recyclerView = findViewById(R.id.org_list);
         setupRecyclerView();
 
         if (findViewById(R.id.calling_detail_container) != null) {
@@ -150,7 +137,7 @@ public class OrgListActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -178,7 +165,7 @@ public class OrgListActivity extends AppCompatActivity
             startActivity(intent);
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
