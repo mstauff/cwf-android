@@ -67,7 +67,7 @@ public class CreateCallingActivity extends AppCompatActivity implements CreateCa
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(final MenuItem item) {
         int id = item.getItemId();
         if (id == android.R.id.home) {
             if(subFragmentOpen) {
@@ -77,6 +77,7 @@ public class CreateCallingActivity extends AppCompatActivity implements CreateCa
             }
             return true;
         } else if(id == R.id.confirm_action) {
+            item.setEnabled(false);
             Calling calling = createCallingFragment.getNewCalling();
             dataManager.addCalling(new Response.Listener<Boolean>() {
                 @Override
@@ -88,6 +89,7 @@ public class CreateCallingActivity extends AppCompatActivity implements CreateCa
                     } else {
                         Toast toast = Toast.makeText(getApplicationContext(), R.string.new_calling_failed, Toast.LENGTH_SHORT);
                         toast.show();
+                        item.setEnabled(true);
                     }
                 }
             }, webErrorListener, calling);
