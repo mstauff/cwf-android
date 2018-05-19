@@ -140,10 +140,10 @@ public class DataManagerImpl implements DataManager {
                 if(result) {
                     if(isParentOrg) {
                         /* If it's a base org just remove it from cache once it's been deleted in the db */
-                        callingData.removeOrgFromCache(baseOrg);
+                        callingData.removeOrg(baseOrg);
                     } else {
                         /* If it's a suborg handle it accordingly. */
-                        callingData.removeOrgFromCache(org);
+                        callingData.removeOrg(org);
                     }
                 }
             }
@@ -197,15 +197,15 @@ public class DataManagerImpl implements DataManager {
     }
     @Override
     public void releaseLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.Listener<WebException> errorListener) {
-        callingData.releaseLDSCalling(calling, callback, errorListener);
+        callingData.releaseLDSCalling(calling, currentUser, callback, errorListener);
     }
     @Override
     public void updateLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.Listener<WebException> errorListener) {
-        callingData.updateLDSCalling(calling, callback, errorListener);
+        callingData.updateLDSCalling(calling, currentUser, callback, errorListener);
     }
     @Override
     public void deleteLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.Listener<WebException> errorListener) {
-        callingData.deleteLDSCalling(calling, callback, errorListener);
+        callingData.deleteLDSCalling(calling, currentUser, callback, errorListener);
     }
 
     /* Member data. */
@@ -265,13 +265,12 @@ public class DataManagerImpl implements DataManager {
     /* Google data. */
     @Override
     public void addCalling(Response.Listener<Boolean> listener, Response.Listener<WebException> errorListener, Calling calling) {
-        Org org = callingData.getBaseOrg(calling.getParentOrg());
+        Org baseOrg = callingData.getBaseOrg(calling.getParentOrg());
         if(permissionManager.isAuthorized(currentUser.getUnitRoles(),
                 Permission.POTENTIAL_CALLING_CREATE,
-                new AuthorizableOrg(org.getUnitNumber(), UnitLevelOrgType.get(org.getOrgTypeId()), org.getOrgTypeId())))
+                new AuthorizableOrg(baseOrg.getUnitNumber(), UnitLevelOrgType.get(baseOrg.getOrgTypeId()), baseOrg.getOrgTypeId())))
         {
-            callingData.addNewCalling(calling);
-            saveCalling(listener, errorListener, org, calling, Operation.CREATE);
+            callingData.addNewCalling(listener, errorListener, calling, baseOrg, currentUser);
         } else {
             listener.onResponse(false);
         }
@@ -282,7 +281,7 @@ public class DataManagerImpl implements DataManager {
         if(permissionManager.isAuthorized(currentUser.getUnitRoles(),
                 Permission.POTENTIAL_CALLING_UPDATE,
                 new AuthorizableOrg(baseOrg.getUnitNumber(), UnitLevelOrgType.get(baseOrg.getOrgTypeId()), baseOrg.getOrgTypeId()))) {
-            saveCalling(listener, errorListener, baseOrg, calling, Operation.UPDATE);
+            callingData.updateCalling(listener, errorListener, calling, baseOrg, currentUser);
         }
     }
     @Override
@@ -297,37 +296,20 @@ public class DataManagerImpl implements DataManager {
                 getOrgDataTask
                     .addOnSuccessListener(new OnSuccessListener<Org>() {
                         @Override
-                        public void onSuccess(Org newOrg) {
+                        public void onSuccess(final Org newOrg) {
                             if(newOrg != null) {
-                                final Calling originalCalling = new Calling(calling);
-                                /* Remove the callings that belong to the Org from the members with a proposed calling. */
-                                memberData.removeMemberCallings(org.allOrgCallings());
                                 /* Get's the subOrg within the main org(ie. instructors subOrg in the EQ Org) */
                                 Org newParentOrg = callingData.findSubOrg(newOrg, calling.getParentOrg());
                                 /* Removes the calling from within the new org */
                                 newParentOrg.removeCalling(calling);
-                                /* Get's the old parent org */
-                                Org oldParentOrg = callingData.getOrg(calling.getParentOrg());
-                                /* Removes the calling from the old parent org */
-                                oldParentOrg.removeCalling(calling);
-                                /* Merge the changes in the old and new orgs */
-                                callingData.mergeOrgs(org, newOrg, currentUser);
-                                /* Extract recent subOrgs and callings to cached items */
-                                callingData.extractOrg(org, org.getId());
                                 /* Save the changes back to google drive */
                                 Task<Boolean> saveOrgFileTask = googleDataService.saveOrgFile(newOrg);
                                 saveOrgFileTask
                                     .addOnSuccessListener(new OnSuccessListener<Boolean>() {
                                         @Override
                                         public void onSuccess(Boolean response) {
-                                            if(!response) {
-                                                Org newOrg = getOrgDataTask.getResult();
-                                                memberData.removeMemberCallings(org.allOrgCallings());
-                                                callingData.updateCalling(newOrg, originalCalling, Operation.CREATE);
-                                                callingData.mergeOrgs(org, newOrg, currentUser);
-                                                callingData.extractOrg(org, org.getId());
-                                            } else if(originalCalling.getProposedIndId() != null && originalCalling.getProposedIndId() > 0) {
-                                                getMember(originalCalling.getProposedIndId()).removeProposedCalling(calling);
+                                            if(response) {
+                                                callingData.replaceOrg(newOrg, currentUser);
                                             }
                                             listener.onResponse(response);
                                         }
@@ -355,77 +337,6 @@ public class DataManagerImpl implements DataManager {
         }
     }
 
-    /* Calling and Google Data */
-    private void saveCalling(final Response.Listener<Boolean> listener, final Response.Listener<WebException> errorListener, final Org org, final Calling calling, final Operation operation) {
-        Task<Org> getOrgDataTask = googleDataService.getOrgData(org);
-        getOrgDataTask
-            .addOnSuccessListener(new OnSuccessListener<Org>() {
-                @Override
-                public void onSuccess(Org newOrg) {
-                    Task<Boolean> task = handleSaveCalling(org, newOrg, calling, operation);
-                    task.addOnSuccessListener(new OnSuccessListener<Boolean>() {
-                        @Override
-                        public void onSuccess(Boolean response) {
-                            listener.onResponse(response);
-                        }
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            errorListener.onResponse(ensureWebException(e));
-                        }
-                    });
-
-                }
-            })
-            .addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    errorListener.onResponse(ensureWebException(e));
-                }
-            });
-    }
-    private Task<Boolean> handleSaveCalling(final Org org, final Org newOrg,  final Calling calling, final Operation operation) {
-        final TaskCompletionSource<Boolean> taskCompletionSource = new TaskCompletionSource<>();
-        if(newOrg != null) {
-            memberData.removeMemberCallings(org.allOrgCallings()); //this must be done before changes are made, they are repopulated while merging orgs
-            final Calling backupCalling = operation.equals(Operation.CREATE) ? null : new Calling(newOrg.getCallingById(calling.getCallingId()));
-            callingData.updateCalling(newOrg, calling, operation);
-            callingData.mergeOrgs(org, newOrg, currentUser);
-            callingData.extractOrg(org, org.getId());
-            final Task<Boolean> saveOrgFileTask = googleDataService.saveOrgFile(newOrg);
-            saveOrgFileTask
-                .addOnSuccessListener(new OnSuccessListener<Boolean>() {
-                    @Override
-                    public void onSuccess(Boolean response) {
-                        if(!response) {
-                            memberData.removeMemberCallings(org.allOrgCallings());
-                            if (operation.equals(Operation.UPDATE)) {
-                                callingData.updateCalling(newOrg, backupCalling, operation);
-                            } else if (operation.equals(Operation.CREATE)) {
-                                Org parentOrg = callingData.findSubOrg(newOrg, calling.getParentOrg());
-                                Calling callingToRemove = parentOrg.getCallingById(calling.getCallingId());
-                                parentOrg.getCallings().remove(callingToRemove);
-                                Org localParentOrg = callingData.getOrg(calling.getParentOrg());
-                                callingToRemove = localParentOrg.getCallingById(calling.getCallingId());
-                                localParentOrg.getCallings().remove(callingToRemove);
-                            }
-                            callingData.mergeOrgs(org, newOrg, currentUser);
-                            callingData.extractOrg(org, org.getId());
-                        }
-                        taskCompletionSource.setResult(response);
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    taskCompletionSource.setResult(false);
-                    taskCompletionSource.setException(e);
-                }
-            });
-        }
-        return taskCompletionSource.getTask();
-    }
     @Override
     public List<Calling> getUnfinalizedCallings() {
         return callingData.getUnfinalizedCallings();

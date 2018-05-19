@@ -48,6 +48,17 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
         this.fragmentManager = fragmentManager;
     }
 
+    public Org getOrg() {
+        return org;
+    }
+
+    public void changeOrg(Org org) {
+        this.org = org;
+        subOrgs = org.getChildren();
+        callings = org.getCallings();
+        this.notifyDataSetChanged();
+    }
+
     @Override
     public int getGroupCount() {
         return subOrgs.size() + callings.size();

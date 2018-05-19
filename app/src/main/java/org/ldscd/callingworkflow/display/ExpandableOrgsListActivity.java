@@ -31,6 +31,9 @@ import org.ldscd.callingworkflow.web.DataManager;
 import org.ldscd.callingworkflow.web.UI.Spinner;
 import org.ldscd.callingworkflow.web.WebException;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.inject.Inject;
 
 import static android.view.View.GONE;
@@ -120,7 +123,30 @@ public class ExpandableOrgsListActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
         if(adapter != null) {
-            adapter.notifyDataSetChanged();
+            Org freshOrg = dataManager.getOrg(orgId);
+            //if the org instances differ we need to update the list
+            if(adapter.getOrg() != freshOrg) {
+                //find which orgs are expanded
+                Set<Long> expandedOrgIds = new HashSet<>();
+                for(int i=0; i < adapter.getGroupCount(); i++) {
+                    if(orgsListView.isGroupExpanded(i) && adapter.getGroup(i) instanceof Org) {
+                        expandedOrgIds.add(((Org)adapter.getGroup(i)).getId());
+                        orgsListView.collapseGroup(i);
+                    }
+                }
+                //load new data into adapter and reopen orgs which were expanded before
+                adapter.changeOrg(freshOrg);
+                for(int i=0; i < adapter.getGroupCount(); i++) {
+                    if(adapter.getGroup(i) instanceof Org) {
+                        Long orgId = ((Org)adapter.getGroup(i)).getId();
+                        if(expandedOrgIds.contains(orgId)) {
+                            orgsListView.expandGroup(i);
+                        }
+                    }
+                }
+            } else {
+                adapter.notifyDataSetChanged();
+            }
         }
     }
 
