@@ -170,8 +170,8 @@ public class WebResources implements IWebResources {
                     if (userName == null || password == null) {
                       loadCredentials();
                     }
-                    /*userName = "ngiwb1";
-                    password = "password1";*/
+//                    userName = "ngiwb1";
+//                    password = "password1";
                     /* re-check credentials.  If invalid return null LdsUser. */
                     if(userName == null || userName.length() == 0 || password == null || password.length() == 0) {
                         errorCallback.onResponse(new WebException(ExceptionType.LDS_AUTH_REQUIRED));
@@ -259,10 +259,10 @@ public class WebResources implements IWebResources {
     private void getUser(final String authCookie, final Response.Listener<Boolean> userCallback, final Response.Listener<WebException> errorCallback) {
         // Create a list of calling(s)/Positions(s) for the current user.
         final List<Position> positions = new ArrayList<Position>();
-        /*Position position = new Position("Bishop", 4, false, false, 1L, 56030L);
-        userInfo = new LdsUser(222222222L, Collections.singletonList(position));
-        unitNumber = "56030";
-        userCallback.onResponse(true);*/
+//        Position position = new Position("Bishop", 4, false, false, 1L, 56030L);
+//        userInfo = new LdsUser(222222222L, Collections.singletonList(position));
+//        unitNumber = "56030";
+//        userCallback.onResponse(true);
         Map<String, String> headers = new HashMap<>();
         headers.put("Cookie", authCookie);
         // Make a rest call to the lds church to capture the last information on the specified user.
