@@ -25,6 +25,7 @@ public class Org {
     private transient ConflictCause conflictCause;
     private transient boolean hasUnsavedChanges = false;
     private transient boolean canView = false;
+    private transient List<Long> assignedMembers;
 
     /* Constructors */
     public Org() {}
@@ -84,6 +85,13 @@ public class Org {
     }
     public void setCanView(boolean canView) {
         this.canView = canView;
+    }
+
+    public void setAssignedMembers(List<Long> assignedMembers) {
+        this.assignedMembers = assignedMembers;
+    }
+    public List<Long> getAssignedMembers() {
+        return this.assignedMembers;
     }
 
     public HashSet<Position> getPositions() {

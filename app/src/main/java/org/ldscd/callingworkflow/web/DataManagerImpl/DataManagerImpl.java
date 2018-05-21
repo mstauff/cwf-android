@@ -7,7 +7,6 @@ import android.support.annotation.NonNull;
 import android.widget.ProgressBar;
 
 import com.android.volley.Response;
-import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -15,6 +14,9 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskCompletionSource;
 import com.google.android.gms.tasks.Tasks;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.ldscd.callingworkflow.constants.CallingStatus;
 import org.ldscd.callingworkflow.constants.ClassAssignment;
 import org.ldscd.callingworkflow.constants.Operation;
@@ -34,6 +36,7 @@ import org.ldscd.callingworkflow.web.DataManager;
 import org.ldscd.callingworkflow.web.ExceptionType;
 import org.ldscd.callingworkflow.web.IWebResources;
 import org.ldscd.callingworkflow.web.MemberData;
+import org.ldscd.callingworkflow.web.OrgCallingBuilder;
 import org.ldscd.callingworkflow.web.WebException;
 
 import java.util.ArrayList;
@@ -195,27 +198,90 @@ public class DataManagerImpl implements DataManager {
     public PositionMetaData getPositionMetadata(int positionTypeId) {
         return callingData.getPositionMetadata(positionTypeId);
     }
-    @Override
-    public void releaseLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.Listener<WebException> errorListener) {
-        callingData.releaseLDSCalling(calling, currentUser, callback, errorListener);
+
+    public void releaseLDSCalling(final Calling calling, final Response.Listener<Boolean> callback, final Response.Listener<WebException> errorListener) {
+        final Org org = callingData.getBaseOrg(calling.getParentOrg());
+         googleDataService.getOrgData(org)
+            .addOnSuccessListener(new OnSuccessListener<Org>() {
+                @Override
+                public void onSuccess(Org newOrg) {
+                    callingData.releaseLDSCalling(calling, org, newOrg, currentUser)
+                        .addOnSuccessListener(new OnSuccessListener<Boolean>() {
+                            @Override
+                            public void onSuccess(Boolean response) {
+                                callback.onResponse(response);
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                errorListener.onResponse(ensureWebException(e));
+                            }
+                        });
+
+                }
+            })
+            .addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    errorListener.onResponse(ensureWebException(e));
+                }
+            });
+    }
+    public void updateLDSCalling(final Calling calling, final Response.Listener<Boolean> callback, final Response.Listener<WebException> errorListener) {
+        final Org org = callingData.getBaseOrg(calling.getParentOrg());
+        googleDataService.getOrgData(org)
+            .addOnSuccessListener(new OnSuccessListener<Org>() {
+                @Override
+                public void onSuccess(Org newOrg) {
+                    callingData.updateLDSCalling(calling, org, newOrg, currentUser)
+                        .addOnSuccessListener(new OnSuccessListener<Boolean>() {
+                            @Override
+                            public void onSuccess(Boolean response) {
+                                callback.onResponse(response);
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                errorListener.onResponse(ensureWebException(e));
+                            }
+                        });
+                }
+            })
+            .addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    errorListener.onResponse(ensureWebException(e));
+                }
+            });
     }
     @Override
-    public void updateLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.Listener<WebException> errorListener) {
-        callingData.updateLDSCalling(calling, currentUser, callback, errorListener);
-    }
-    @Override
-    public void deleteLDSCalling(Calling calling, Response.Listener<Boolean> callback, Response.Listener<WebException> errorListener) {
+    public void deleteLDSCalling(final Calling calling, final Response.Listener<Boolean> callback, final Response.Listener<WebException> errorListener) {
         callingData.deleteLDSCalling(calling, currentUser, callback, errorListener);
+        final Org originalOrg = getOrg(calling.getParentOrg());
+        webResources.deleteCalling(calling, originalOrg.getUnitNumber(), originalOrg.getOrgTypeId(), new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject jsonObject) {
+                try {
+                    if(jsonObject != null && jsonObject.has("errors") && jsonObject.getJSONObject("errors").length() > 0) {
+                        errorListener.onResponse(callingData.hydrateErrorListener(jsonObject, Operation.DELETE));
+                    } else {
+                        /* Get Latest org changes from google drive. */
+                        deleteCalling(calling, callback, errorListener);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    errorListener.onResponse(new WebException(ExceptionType.PARSING_ERROR, e));
+                }
+            }
+        }, errorListener);
     }
 
     /* Member data. */
     @Override
     public String getMemberName(Long id) {
-        if(id != null) {
-            return memberData.getMemberName(id);
-        } else {
-            return "";
-        }
+        return id != null ? memberData.getMemberName(id) : "";
     }
     @Override
     public void getWardList(Response.Listener<List<Member>> listener) {
@@ -232,15 +298,58 @@ public class DataManagerImpl implements DataManager {
         }
     }
     @Override
-    public void loadClassMemberAssignments() {
-        final Map<Long, List<Long>> classMemberAssignment = new HashMap<>();
+    public void loadClassMemberAssignments(final Response.Listener<Boolean> listener, final Response.Listener<WebException> errorCallback, final ProgressBar progressBar, final Activity activity) {
         List<Org> orgs = getOrgs();
-        final List<Task<Map<Long, List<Long>>>> tasks = new ArrayList<>();
-        for(ClassAssignment classAssignment : ClassAssignment.values()) {
-            for(Org org : orgs) {
-                if(org.getOrgTypeId() == UnitLevelOrgType.getOrgTypeIdByName(classAssignment.name())) {
-                    tasks.add(webResources.getOrgMembers(org.getId()));
-                    break;
+        if(orgs == null || orgs.size() == 0) {
+            webResources.getOrgHierarchy()
+                .addOnSuccessListener(new OnSuccessListener<JSONArray>() {
+                    @Override
+                    public void onSuccess(JSONArray jsonArray) {
+                        List<Org> orgHierarchyList = new OrgCallingBuilder().extractOrgs(jsonArray, true);
+                        if(orgHierarchyList != null) {
+                            getClassAssignments(orgHierarchyList, true)
+                                .addOnSuccessListener(new OnSuccessListener<List<Org>>() {
+                                    @Override
+                                    public void onSuccess(List<Org> orgs) {
+                                        callingData.loadOrgs(listener, errorCallback, progressBar, activity, currentUser);
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        errorCallback.onResponse(new WebException(ExceptionType.UNKNOWN_EXCEPTION, e));
+                                    }
+                                });
+                        } else {
+                            listener.onResponse(false);
+                            errorCallback.onResponse(new WebException(ExceptionType.PARSING_ERROR));
+                        }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        errorCallback.onResponse(new WebException(ExceptionType.UNKNOWN_EXCEPTION, e));
+                    }
+                });
+        } else {
+            getClassAssignments(orgs, false);
+            loadOrgs(listener, errorCallback, progressBar, activity);
+        }
+    }
+
+    private Task<List<Org>> getClassAssignments(List<Org> orgs, boolean getAllOrgs) {
+        final TaskCompletionSource<List<Org>> taskClassMemberAssignment = new TaskCompletionSource<>();
+        final List<Task<List<Org>>> tasks = new ArrayList<>();
+        for(Org org : orgs) {
+            if(getAllOrgs) {
+                tasks.add(webResources.getOrgWithMembers(org.getId()));
+            } else {
+                for (ClassAssignment classAssignment : ClassAssignment.values()) {
+                    if (org.getOrgTypeId() == UnitLevelOrgType.getOrgTypeIdByName(classAssignment.name())) {
+                        tasks.add(webResources.getOrgWithMembers(org.getId()));
+                        break;
+                    }
                 }
             }
         }
@@ -249,17 +358,19 @@ public class DataManagerImpl implements DataManager {
             .addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
                 public void onSuccess(Void aVoid) {
-                    for(Task<Map<Long, List<Long>>> item : tasks) {
-                        classMemberAssignment.putAll(item.getResult());
+                    for(Task<List<Org>> item : tasks) {
+                        taskClassMemberAssignment.setResult(item.getResult());
                     }
                 }
             })
             .addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
-                    //TODO: need to respond to the calling method appropriately or show some sort of problem in the error handling services.
+                    taskClassMemberAssignment.setException(new WebException(ExceptionType.UNKNOWN_EXCEPTION, e));
+                    taskClassMemberAssignment.setResult(null);
                 }
             });
+        return taskClassMemberAssignment.getTask();
     }
 
     /* Google data. */
@@ -335,6 +446,37 @@ public class DataManagerImpl implements DataManager {
                 listener.onResponse(false);
             }
         }
+    }
+
+    /* Calling and Google Data */
+    private void saveCalling(final Response.Listener<Boolean> listener, final Response.Listener<WebException> errorListener, final Org org, final Calling calling, final Operation operation) {
+        Task<Org> getOrgDataTask = googleDataService.getOrgData(org);
+        getOrgDataTask
+            .addOnSuccessListener(new OnSuccessListener<Org>() {
+                @Override
+                public void onSuccess(Org newOrg) {
+                    Task<Boolean> task = callingData.handleSaveCalling(org, newOrg, calling, currentUser, operation);
+                    task.addOnSuccessListener(new OnSuccessListener<Boolean>() {
+                        @Override
+                        public void onSuccess(Boolean response) {
+                            listener.onResponse(response);
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            errorListener.onResponse(ensureWebException(e));
+                        }
+                    });
+
+                }
+            })
+            .addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    errorListener.onResponse(ensureWebException(e));
+                }
+            });
     }
 
     @Override

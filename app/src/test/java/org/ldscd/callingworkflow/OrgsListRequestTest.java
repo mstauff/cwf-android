@@ -44,7 +44,7 @@ public class OrgsListRequestTest {
                 try {
                     jsonArray = new JSONArray(json);
                     orgCallingBuilder = new OrgCallingBuilder();
-                    orgs = orgCallingBuilder.extractOrgs(jsonArray);
+                    orgs = orgCallingBuilder.extractOrgs(jsonArray, false);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }

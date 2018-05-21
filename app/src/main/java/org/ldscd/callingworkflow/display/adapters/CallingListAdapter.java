@@ -44,6 +44,10 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
         orgFilters = new ArrayList<>();
     }
 
+    public void setAllValues(List<Calling> items) {
+        this.allValues = items;
+    }
+
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())

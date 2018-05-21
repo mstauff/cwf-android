@@ -48,17 +48,17 @@ public class CallingListActivity extends AppCompatActivity
         ((CWFApplication)getApplication()).getNetComponent().inject(this);
         setContentView(R.layout.activity_calling_list);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         toolbar.setTitle(getString(R.string.navigation_drawer_callings));
         setSupportActionBar(toolbar);
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         navigationView.setCheckedItem(R.id.nav_callings);
 
@@ -76,9 +76,8 @@ public class CallingListActivity extends AppCompatActivity
     }
 
     private void setupRecyclerView(@NonNull final RecyclerView recyclerView) {
-        List<Calling> callings = dataManager.getUnfinalizedCallings();
         FragmentManager fragmentManager = getSupportFragmentManager();
-        adapter = new CallingListAdapter(callings, dataManager, twoPane, fragmentManager);
+        adapter = new CallingListAdapter(dataManager.getUnfinalizedCallings(), dataManager, twoPane, fragmentManager);
         recyclerView.setAdapter(adapter);
     }
 
@@ -86,13 +85,14 @@ public class CallingListActivity extends AppCompatActivity
     public void onResume() {
         super.onResume();
         if(adapter != null) {
-            adapter.notifyDataSetChanged();
+            adapter.setAllValues(dataManager.getUnfinalizedCallings());
+            adapter.filterCallings();
         }
     }
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -144,7 +144,7 @@ public class CallingListActivity extends AppCompatActivity
             startActivity(intent);
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }

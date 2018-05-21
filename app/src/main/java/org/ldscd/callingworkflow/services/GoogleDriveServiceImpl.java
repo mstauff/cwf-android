@@ -152,7 +152,7 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                                     Org newOrg = null;
                                     try {
                                         JSONObject jsonObject = new JSONObject(orgStr);
-                                        newOrg = orgCallingBuilder.extractOrg(jsonObject);
+                                        newOrg = orgCallingBuilder.extractOrg(jsonObject, false);
                                     } catch (JSONException e) {
                                         e.printStackTrace();
                                     }
@@ -222,7 +222,7 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                             for (String cwStr : contentList) {
                                 try {
                                     jsonObject = new JSONObject(cwStr);
-                                    orgs.add(orgCallingBuilder.extractOrg(jsonObject));
+                                    orgs.add(orgCallingBuilder.extractOrg(jsonObject, false));
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }

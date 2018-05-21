@@ -23,9 +23,11 @@ public class OrgCallingBuilder {
     private static final String orgIdFieldName = "subOrgId";
     private static final String positionCwfIdFieldName = "cwfId";
     private static final String cwfOnlyFieldName = "cwfOnly";
-    private static final String defaultNameFieldName = "defaultOrgName";
-    private static final String customNameFieldName = "customOrgName";
+    private static final String defaultOrgNameFieldName = "defaultOrgName";
+    private static final String defaultNameFieldName = "name";
+    private static final String customOrgNameFieldName = "customOrgName";
     private static final String orgTypeIdFieldName = "firstOrgTypeId";
+    private static final String firstTypeIdFieldName = "firstTypeId";
     private static final String displayOrderFieldName = "displayOrder";
     private static final String childrenArrayName = "children";
     private static final String callingArrayName = "callings";
@@ -47,12 +49,12 @@ public class OrgCallingBuilder {
     public OrgCallingBuilder() {}
 
     /* Methods */
-    public List<Org> extractOrgs(JSONArray orgsJson) throws JSONException {
+    public List<Org> extractOrgs(JSONArray orgsJson, boolean includeMemberAssignments) {
         List<Org> orgs = new ArrayList<>();
         for(int i=0; i < orgsJson.length(); i++) {
             try {
                 JSONObject orgJson = orgsJson.getJSONObject(i);
-                Org org = extractOrg(orgJson);
+                Org org = extractOrg(orgJson, includeMemberAssignments);
                 if(org != null && org.getOrgTypeId() > 0) {
                     orgs.add(org);
                 }
@@ -63,7 +65,7 @@ public class OrgCallingBuilder {
         return orgs;
     }
 
-    public Org extractOrg(JSONObject orgJson) throws JSONException {
+    public Org extractOrg(JSONObject orgJson, boolean includeMemberAssignments) throws JSONException {
         long unitNumber = 0;
         try {
             unitNumber = orgJson.getLong(unitNumberFieldName);
@@ -72,19 +74,41 @@ public class OrgCallingBuilder {
         }
         if(unitNumber > 0) {
             long id = orgJson.getLong(orgIdFieldName);
-            String name;
-            if (orgJson.isNull(customNameFieldName)) {
+            String name = null;
+            if (orgJson.has(defaultOrgNameFieldName)) {
+                name = orgJson.getString(defaultOrgNameFieldName);
+            } else if(orgJson.has(customOrgNameFieldName)) {
+                name = orgJson.getString(customOrgNameFieldName);
+            } else if(orgJson.has(defaultNameFieldName)) {
                 name = orgJson.getString(defaultNameFieldName);
-            } else {
-                name = orgJson.getString(customNameFieldName);
             }
-            int typeId = orgJson.has(orgTypeIdFieldName) ? orgJson.getInt(orgTypeIdFieldName) : orgJson.getInt("orgTypeId");
-            int order = orgJson.getInt(displayOrderFieldName);
+            int typeId = 0;
+            if(orgJson.has(orgTypeIdFieldName)) {
+                typeId = orgJson.getInt(orgTypeIdFieldName);
+            } else if(orgJson.has(firstTypeIdFieldName)) {
+                typeId = orgJson.getInt(firstTypeIdFieldName);
+            } else if(orgJson.has("orgTypeId")) {
+                typeId = orgJson.getInt("orgTypeId");
+            }
+            int order = 0;
+            if(orgJson.has(displayOrderFieldName)) {
+                order = orgJson.getInt(displayOrderFieldName);
+            }
 
-            JSONArray childOrgsJson = orgJson.getJSONArray(childrenArrayName);
-            List<Org> childOrgs = extractOrgs(childOrgsJson);
+            JSONArray childOrgsJson = new JSONArray();
+            if(orgJson.has(childrenArrayName)) {
+                childOrgsJson = orgJson.getJSONArray(childrenArrayName);
+            }
+            List<Long> members = new ArrayList();
+            if(includeMemberAssignments && orgJson.has("members")) {
 
-            JSONArray callingsJson = orgJson.getJSONArray(callingArrayName);
+            }
+            List<Org> childOrgs = extractOrgs(childOrgsJson, false);
+
+            JSONArray callingsJson = new JSONArray();
+            if(orgJson.has(callingArrayName)) {
+                callingsJson = orgJson.getJSONArray(callingArrayName);
+            }
             List<Calling> callings = new ArrayList<>();
             for (int i = 0; i < callingsJson.length(); i++) {
                 JSONObject callingJson = callingsJson.getJSONObject(i);
@@ -92,7 +116,11 @@ public class OrgCallingBuilder {
                 callings.add(calling);
             }
 
-            return new Org(unitNumber, id, name, typeId, order, childOrgs, callings);
+            Org org = new Org(unitNumber, id, name, typeId, order, childOrgs, callings);
+            if(members.size() > 0) {
+                org.setAssignedMembers(members);
+            }
+            return org;
         }
         return null;
     }

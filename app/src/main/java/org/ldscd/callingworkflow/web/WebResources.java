@@ -7,13 +7,11 @@ import android.net.NetworkInfo;
 import android.util.Log;
 
 import com.android.volley.DefaultRetryPolicy;
-import com.android.volley.ParseError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.RetryPolicy;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.HttpHeaderParser;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskCompletionSource;
 import com.google.gson.Gson;
@@ -36,7 +34,6 @@ import org.ldscd.callingworkflow.utils.SecurityUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.CookieManager;
 import java.net.HttpCookie;
 import java.net.URI;
@@ -173,8 +170,8 @@ public class WebResources implements IWebResources {
                     if (userName == null || password == null) {
                       loadCredentials();
                     }
-                    userName = "ngiwb1";
-                    password = "password1";
+                    /*userName = "ngiwb1";
+                    password = "password1";*/
                     /* re-check credentials.  If invalid return null LdsUser. */
                     if(userName == null || userName.length() == 0 || password == null || password.length() == 0) {
                         errorCallback.onResponse(new WebException(ExceptionType.LDS_AUTH_REQUIRED));
@@ -262,10 +259,10 @@ public class WebResources implements IWebResources {
     private void getUser(final String authCookie, final Response.Listener<Boolean> userCallback, final Response.Listener<WebException> errorCallback) {
         // Create a list of calling(s)/Positions(s) for the current user.
         final List<Position> positions = new ArrayList<Position>();
-        Position position = new Position("Bishop", 4, false, false, 1L, 56030L);
+        /*Position position = new Position("Bishop", 4, false, false, 1L, 56030L);
         userInfo = new LdsUser(222222222L, Collections.singletonList(position));
         unitNumber = "56030";
-        userCallback.onResponse(true);
+        userCallback.onResponse(true);*/
         Map<String, String> headers = new HashMap<>();
         headers.put("Cookie", authCookie);
         // Make a rest call to the lds church to capture the last information on the specified user.
@@ -359,54 +356,40 @@ public class WebResources implements IWebResources {
     }
 
     @Override
-    public Task<Map<Long, List<Long>>> getOrgMembers(final Long subOrgId) {
-        final TaskCompletionSource<Map<Long, List<Long>>> completionSource = new TaskCompletionSource<>();
+    public Task<List<Org>> getOrgWithMembers(final Long subOrgId) {
+        final TaskCompletionSource<List<Org>> completionSource = new TaskCompletionSource<>();
         Map<String, String> headers = new HashMap<String, String>();
         headers.put("Cookie", authCookie);
+        headers.put("Content-type", "application/json");
         headers.put("Accept", "application/json");
-        GsonRequest<String> gsonRequest = new GsonRequest<String>(
-                Request.Method.POST,
+        JSONArrayRequest getOrgMembersRequest = new JSONArrayRequest(
+                Request.Method.GET,
                 configInfo.getClassAssignments().replace(":subOrgId", subOrgId.toString()),
-                String.class,
                 headers,
                 null,
-                new Response.Listener<String>() {
+                new Response.Listener<JSONArray>() {
                     @Override
-                    public void onResponse(String response) {
-                        try {
-                            JSONObject jsonObject = new JSONObject(response);
-                            JSONArray members = jsonObject.getJSONArray("members");
-                            List<Long> individualIds = new ArrayList<>();
-                            for(int i = 0; i < members.length(); i++) {
-                                if(members.get(i) instanceof JSONObject) {
-                                    Long individualId = ((JSONObject) members.get(i)).getLong("individualId");
-                                    if(individualId != null && individualId > 0) {
-                                        individualIds.add(individualId);
-                                    }
-                                }
-                            }
-                            Map<Long, List<Long>> classMemberMap = new HashMap<>();
-                            classMemberMap.put(subOrgId, individualIds);
-                            completionSource.setResult(classMemberMap);
-                        } catch (JSONException e) {
-                            Log.e("Json Parse LDS update", e.getMessage());
-                            completionSource.setResult(null);
-                        }
+                    public void onResponse(JSONArray result) {
+                        completionSource.setResult(new OrgCallingBuilder().extractOrgs(result, true));
                     }
                 },
-                new Response.ErrorListener() {
+                new Response.Listener<WebException>() {
                     @Override
-                    public void onErrorResponse(VolleyError error) {
-                        completionSource.setResult(null);
+                    public void onResponse(WebException error) {
+                        Log.e(TAG, "load Org Hierarchy list error");
+                        error.printStackTrace();
+                        if (error.getExceptionType() == ExceptionType.SESSION_EXPIRED && attemptSessionRefresh) {
+                            httpCookie = null;
+                            attemptSessionRefresh = false;
+                        } else {
+                            completionSource.setResult(null);
+                            completionSource.setException(new WebException(ExceptionType.PARSING_ERROR, error));
+                        }
                     }
                 }
         );
-        gsonRequest.setRetryPolicy(
-                new DefaultRetryPolicy(
-                        0,
-                        DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT)
-        );
+        getOrgMembersRequest.setRetryPolicy(getRetryPolicy());
+        requestQueue.add(getOrgMembersRequest);
         return completionSource.getTask();
     }
 
@@ -723,6 +706,61 @@ public class WebResources implements IWebResources {
         } else {
             errorCallback.onResponse(new WebException(ExceptionType.NO_DATA_CONNECTION));
         }
+    }
+
+    @Override
+    public Task<JSONArray> getOrgHierarchy() {
+        final TaskCompletionSource<JSONArray> taskCompletionSource = new TaskCompletionSource<>();
+        if(isDataConnected()) {
+            getUserInfo(false, new Response.Listener<LdsUser>() {
+                @Override
+                public void onResponse(LdsUser ldsUser) {
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Cookie", authCookie);
+                    headers.put("Content-type", "application/json");
+                    headers.put("Accept", "application/json");
+                    JSONArrayRequest orgsRequest = new JSONArrayRequest(
+                            Request.Method.GET,
+                            "https://stage.lds.org/mls/mbr/services/orgs/sub-org-name-hierarchy?lang=eng",
+                            headers,
+                            null,
+                            new Response.Listener<JSONArray>() {
+                                @Override
+                                public void onResponse(JSONArray jsonArray) {
+                                    taskCompletionSource.setResult(jsonArray);
+                                }
+                            },
+                            new Response.Listener<WebException>() {
+                                @Override
+                                public void onResponse(WebException error) {
+                                    Log.e(TAG, "load Org Hierarchy list error");
+                                    error.printStackTrace();
+                                    if (error.getExceptionType() == ExceptionType.SESSION_EXPIRED && attemptSessionRefresh) {
+                                        httpCookie = null;
+                                        attemptSessionRefresh = false;
+                                    } else {
+                                        taskCompletionSource.setResult(null);
+                                        taskCompletionSource.setException(new WebException(ExceptionType.PARSING_ERROR, error));
+                                    }
+                                }
+                            }
+                    );
+                    orgsRequest.setRetryPolicy(getRetryPolicy());
+                    requestQueue.add(orgsRequest);
+                }
+            }, new Response.Listener<WebException>() {
+                @Override
+                public void onResponse(WebException error) {
+                    taskCompletionSource.setResult(null);
+                    taskCompletionSource.setException(new WebException(ExceptionType.LDS_SERVER_PROVIDED_MESSAGE, error));
+                }
+            });
+
+        } else {
+            taskCompletionSource.setResult(null);
+            taskCompletionSource.setException(new WebException(ExceptionType.NO_DATA_CONNECTION));
+        }
+        return taskCompletionSource.getTask();
     }
 
     private static RetryPolicy getRetryPolicy() {

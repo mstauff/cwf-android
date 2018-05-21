@@ -763,14 +763,34 @@ public class CallingData {
         });
     }
 
-    public void releaseLDSCalling(final Calling calling, final LdsUser currentUser, final Response.Listener<Boolean> callback, final Response.Listener<WebException> errorListener) {
-        webResources.releaseCalling(calling, getOrg(calling.getParentOrg()).getUnitNumber(),  getOrg(calling.getParentOrg()).getOrgTypeId(),  new Response.Listener<JSONObject>() {
+    public Task<Boolean> releaseLDSCalling(final Calling calling, final Org org, final Org newOrg, final LdsUser currentUser) {
+        final TaskCompletionSource<Boolean> taskCompletionSource = new TaskCompletionSource<>();
+        webResources.releaseCalling(calling, getOrg(calling.getParentOrg()).getUnitNumber(), getOrg(calling.getParentOrg()).getOrgTypeId(), new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject jsonObject) {
                 try {
-                    if(jsonObject.has("errors") && jsonObject.getJSONObject("errors").length() > 0) {
-                        errorListener.onResponse(hydrateErrorListener(jsonObject, Operation.RELEASE));
+                    if (jsonObject.has("errors") && jsonObject.getJSONObject("errors").length() > 0) {
+                        taskCompletionSource.setResult(false);
+                        taskCompletionSource.setException(hydrateErrorListener(jsonObject, Operation.RELEASE));
                     } else {
+                        calling.setActiveDate(null);
+                        calling.setActiveDateTime(null);
+                        calling.setMemberId(null);
+                        calling.setConflictCause(null);
+                        handleSaveCalling(org, newOrg, calling, currentUser, Operation.UPDATE)
+                            .addOnSuccessListener(new OnSuccessListener<Boolean>() {
+                                @Override
+                                public void onSuccess(Boolean result) {
+                                    taskCompletionSource.setResult(result);
+                                }
+                            })
+                            .addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    taskCompletionSource.setResult(false);
+                                    taskCompletionSource.setException(ensureWebException(e));
+                                }
+                            });
                         Task getOrgTask = googleDriveService.getOrgData(getBaseOrg(calling.getParentOrg()));
                         getOrgTask.addOnSuccessListener(new OnSuccessListener<Org>() {
                             @Override
@@ -793,37 +813,49 @@ public class CallingData {
                                             if(result) {
                                                 replaceOrg(latestGoogleDriveOrg, currentUser);
                                             }
-                                            callback.onResponse(result);
+                                        taskCompletionSource.setResult(result);
                                         }
                                 }).addOnFailureListener(new OnFailureListener() {
                                     @Override
                                     public void onFailure(@NonNull Exception e) {
-                                        errorListener.onResponse(ensureWebException(e));
+                                        taskCompletionSource.setResult(false);
+                                        taskCompletionSource.setException(ensureWebException(e));
                                     }
                                 });
                             }
                         }).addOnFailureListener(new OnFailureListener() {
                             @Override
                             public void onFailure(@NonNull Exception e) {
-                                errorListener.onResponse(ensureWebException(e));
+                                taskCompletionSource.setResult(false);
+                                taskCompletionSource.setException(ensureWebException(e));
                             }
                         });
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
-                    errorListener.onResponse(new WebException(ExceptionType.PARSING_ERROR, e));
+                    taskCompletionSource.setResult(false);
+                    taskCompletionSource.setException(new WebException(ExceptionType.PARSING_ERROR, e));
                 }
             }
-        }, errorListener);
+        }, new Response.Listener<WebException>() {
+            @Override
+            public void onResponse(WebException e) {
+                taskCompletionSource.setResult(false);
+                taskCompletionSource.setException(ensureWebException(e));
+            }
+        });
+        return taskCompletionSource.getTask();
     }
 
-    public void updateLDSCalling(final Calling calling, final LdsUser currentUser, final Response.Listener<Boolean> callback, final Response.Listener<WebException> errorListener) {
+    public Task<Boolean> updateLDSCalling(final Calling calling, final Org org, final Org newOrg, final LdsUser currentUser) {
+        final TaskCompletionSource<Boolean> taskCompletionSource = new TaskCompletionSource<>();
         webResources.updateCalling(calling, getOrg(calling.getParentOrg()).getUnitNumber(), getOrg(calling.getParentOrg()).getOrgTypeId(), new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(final JSONObject jsonObject) {
                 try {
-                    if(jsonObject.has("errors") && jsonObject.getJSONObject("errors").length() > 0) {
-                        errorListener.onResponse(hydrateErrorListener(jsonObject, Operation.UPDATE));
+                    if (jsonObject.has("errors") && jsonObject.getJSONObject("errors").length() > 0) {
+                        taskCompletionSource.setResult(false);
+                        taskCompletionSource.setException(hydrateErrorListener(jsonObject, Operation.UPDATE));
                     } else {
                         Task getOrgTask = googleDriveService.getOrgData(getBaseOrg(calling.getParentOrg()));
                         getOrgTask.addOnSuccessListener(new OnSuccessListener<Org>() {
@@ -853,33 +885,122 @@ public class CallingData {
                                             if (result) {
                                                 replaceOrg(latestGoogleDriveOrg, currentUser);
                                             }
-                                            callback.onResponse(result);
+                                            taskCompletionSource.setResult(result);
                                         }
                                     }).addOnFailureListener(new OnFailureListener() {
                                         @Override
                                         public void onFailure(@NonNull Exception e) {
-                                            errorListener.onResponse(ensureWebException(e));
+                                            taskCompletionSource.setResult(false);
+                                            taskCompletionSource.setException(ensureWebException(e));
                                         }
                                     });
                                 } catch(JSONException e) {
                                     e.printStackTrace();
-                                    errorListener.onResponse(new WebException(ExceptionType.PARSING_ERROR, e));
+                                    taskCompletionSource.setResult(false);
+                                    taskCompletionSource.setException(new WebException(ExceptionType.PARSING_ERROR, e));
                                 }
                             }
                         }).addOnFailureListener(new OnFailureListener() {
                             @Override
                             public void onFailure(@NonNull Exception e) {
                                 e.printStackTrace();
-                                errorListener.onResponse(ensureWebException(e));
+                                taskCompletionSource.setResult(false);
+                                taskCompletionSource.setException(ensureWebException(e));
                             }
                         });
+                        try {
+                            if (jsonObject.has("positionId")) {
+                                calling.setId(jsonObject.getLong("positionId"));
+                            }
+                            calling.setNotes("");
+                            calling.setExistingStatus(null);
+                            calling.setProposedIndId(null);
+                            calling.setProposedStatus(CallingStatus.NONE);
+                            calling.setActiveDate(DateTime.now());
+                            calling.setActiveDateTime(DateTime.now());
+                            calling.setCwfId("");
+                            calling.setMemberId(jsonObject.getLong("memberId"));
+                            calling.setConflictCause(null);
+                            if (calling.isCwfOnly()) {
+                                calling.setCwfOnly(false);
+                            }
+                            handleSaveCalling(org, newOrg, calling, currentUser, Operation.UPDATE)
+                                .addOnSuccessListener(new OnSuccessListener<Boolean>() {
+                                    @Override
+                                    public void onSuccess(Boolean result) {
+                                        taskCompletionSource.setResult(result);
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        taskCompletionSource.setResult(false);
+                                        taskCompletionSource.setException(e);
+                                    }
+                                });
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            taskCompletionSource.setResult(false);
+                            taskCompletionSource.setException(new WebException(ExceptionType.PARSING_ERROR, e));
+                        }
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
-                    errorListener.onResponse(new WebException(ExceptionType.PARSING_ERROR, e));
+                    taskCompletionSource.setResult(false);
+                    taskCompletionSource.setException(new WebException(ExceptionType.PARSING_ERROR, e));
                 }
             }
-        }, errorListener);
+        }, new Response.Listener<WebException>() {
+            @Override
+            public void onResponse(WebException e) {
+                taskCompletionSource.setResult(false);
+                taskCompletionSource.setException(ensureWebException(e));
+            }
+        });
+        return taskCompletionSource.getTask();
+    }
+
+    public Task<Boolean> handleSaveCalling(final Org org, final Org newOrg,  final Calling calling, final LdsUser currentUser, final Operation operation) {
+        final TaskCompletionSource<Boolean> taskCompletionSource = new TaskCompletionSource<>();
+        if(newOrg != null) {
+            memberData.removeMemberCallings(org.allOrgCallings()); //this must be done before changes are made, they are repopulated while merging orgs
+            final Calling backupCalling = operation.equals(Operation.CREATE) ? null : new Calling(newOrg.getCallingById(calling.getCallingId()) != null ? newOrg.getCallingById(calling.getCallingId()) : calling);
+            updateCalling(newOrg, calling, operation);
+            mergeOrgs(org, newOrg, currentUser);
+            extractOrg(org, org.getId());
+            final Task<Boolean> saveOrgFileTask = googleDriveService.saveOrgFile(newOrg);
+            saveOrgFileTask
+                    .addOnSuccessListener(new OnSuccessListener<Boolean>() {
+                        @Override
+                        public void onSuccess(Boolean response) {
+                            if(!response) {
+                                memberData.removeMemberCallings(org.allOrgCallings());
+                                if (operation.equals(Operation.UPDATE)) {
+                                    updateCalling(newOrg, backupCalling, operation);
+                                } else if (operation.equals(Operation.CREATE)) {
+                                    Org parentOrg = findSubOrg(newOrg, calling.getParentOrg());
+                                    Calling callingToRemove = parentOrg.getCallingById(calling.getCallingId());
+                                    parentOrg.getCallings().remove(callingToRemove);
+                                    Org localParentOrg = getOrg(calling.getParentOrg());
+                                    callingToRemove = localParentOrg.getCallingById(calling.getCallingId());
+                                    localParentOrg.getCallings().remove(callingToRemove);
+                                }
+                                mergeOrgs(org, newOrg, currentUser);
+                                extractOrg(org, org.getId());
+                            }
+                            taskCompletionSource.setResult(response);
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            taskCompletionSource.setResult(false);
+                            taskCompletionSource.setException(e);
+                        }
+                    });
+        }
+        return taskCompletionSource.getTask();
     }
 
     /* Removes the calling from LCR then from google drive */
@@ -931,7 +1052,7 @@ public class CallingData {
         }, errorListener);
     }
 
-    private WebException hydrateErrorListener(JSONObject json, Operation action) {
+    public WebException hydrateErrorListener(JSONObject json, Operation action) {
         WebException error = new WebException(ExceptionType.UNKNOWN_EXCEPTION);
         try {
             switch(action) {
@@ -957,6 +1078,24 @@ public class CallingData {
             error = new WebException(ExceptionType.PARSING_ERROR, e);
         }
         return error;
+    }
+
+    public void updateCalling(Org baseOrg, Calling updatedCalling, Operation operation) {
+        if(operation.equals(Operation.UPDATE)) {
+            Calling original = baseOrg.getCallingById(updatedCalling.getCallingId());
+            if(updatedCalling.getNotes() != null) {
+                original.setNotes(updatedCalling.getNotes());
+            }
+            if(updatedCalling.getProposedIndId() != null && updatedCalling.getProposedIndId() > 0) {
+                original.setProposedIndId(updatedCalling.getProposedIndId());
+            }
+            if(updatedCalling.getProposedStatus() != null && !updatedCalling.getProposedStatus().equals(CallingStatus.UNKNOWN)) {
+                original.setProposedStatus(updatedCalling.getProposedStatus());
+            }
+        } else if(operation.equals(Operation.CREATE)) {
+            Org org = findSubOrg(baseOrg, updatedCalling.getParentOrg());
+            org.getCallings().add(updatedCalling);
+        }
     }
 
     public boolean canDeleteCalling(Calling calling, Org org) {

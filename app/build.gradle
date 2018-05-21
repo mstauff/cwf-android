@@ -2,7 +2,7 @@ apply plugin: "com.android.application"
 
 android {
     compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    buildToolsVersion "27.0.3"
     compileOptions.incremental = false
 
     defaultConfig {
@@ -35,6 +35,7 @@ android {
             buildConfigField "String", "appConfigFile", "\"config-info.json\""
             buildConfigField "boolean", "useLDSOrgData", "true"
             buildConfigField "boolean", "authRemoteDataWithLdsAcct", "true"
+            buildConfigField "int", "CacheTimer", "4320" /* Minutes */
         }
         debug {
             //applicationIdSuffix ".debug"
@@ -43,7 +44,8 @@ android {
             buildConfigField "String", "appConfigUrl", "\"http://dev-config-server-ldscd.7e14.starter-us-west-2.openshiftapps.com/cwf/config?env=stage\""
             buildConfigField "String", "appConfigFile", "\"config-info-stage.json\""
             buildConfigField "boolean", "useLDSOrgData", "true"
-            buildConfigField "boolean", "authRemoteDataWithLdsAcct", "true"
+            buildConfigField "boolean", "authRemoteDataWithLdsAcct", "false"
+            buildConfigField "int", "CacheTimer", "4320" /* Minutes */
         }
     }
     testOptions {
@@ -54,13 +56,22 @@ android {
 dependencies {
     def androidVersion = "27.1.1"
     def googlePlayServiceVersion = "11.8.0"
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation fileTree(include: ["*.jar"], dir: "libs")
     implementation "com.android.support:appcompat-v7:${androidVersion}"
     implementation "com.android.support:support-v4:${androidVersion}"
     implementation "com.android.support:recyclerview-v7:${androidVersion}"
     implementation "com.google.android.gms:play-services-drive:${googlePlayServiceVersion}"
     implementation "com.google.android.gms:play-services-auth:${googlePlayServiceVersion}"
     implementation "com.android.support:support-annotations:${androidVersion}"
+    implementation "com.android.support:design:${androidVersion}"
+    implementation "com.android.support:support-v4:${androidVersion}"
+    implementation "com.android.support:support-vector-drawable:${androidVersion}"
+    implementation "joda-time:joda-time:2.9.9"
+    implementation "com.google.dagger:dagger:2.7"
+    implementation "com.android.volley:volley:1.0.0"
+    implementation "com.google.code.gson:gson:2.8.0"
+    implementation "com.google.android:flexbox:0.2.7"
+    implementation group: "io.reactivex.rxjava2", name: "rxjava", version: "2.1.12"
     /* Test dependencies */
     def espressoVersion = "2.2.2"
     def testRunnerVersion = "0.5"
@@ -74,18 +85,10 @@ dependencies {
     configurations.androidTestImplementation.dependencies.each { androidTestCompileDependency ->
         androidTestCompileDependency.exclude group: "com.android.support"
     }
-    testImplementation 'junit:junit:4.12'
-    implementation 'joda-time:joda-time:2.9.9'
-    implementation 'com.google.dagger:dagger:2.7'
-    implementation 'com.android.volley:volley:1.0.0'
-    implementation 'com.google.code.gson:gson:2.2.4'
-    implementation "com.android.support:design:${androidVersion}"
-    implementation "com.android.support:support-v4:${androidVersion}"
-    implementation "com.android.support:support-vector-drawable:${androidVersion}"
-    implementation 'com.google.android:flexbox:0.2.7'
-    testImplementation 'junit:junit:4.12'
-    testImplementation 'org.json:json:20140107'
-    testImplementation 'org.mockito:mockito-core:1.10.19'
-    annotationProcessor 'com.google.dagger:dagger-compiler:2.7'
-    compileOnly 'javax.annotation:jsr250-api:1.0'
+    testImplementation "junit:junit:4.12"
+    testImplementation "junit:junit:4.12"
+    testImplementation "org.json:json:20140107"
+    testImplementation "org.mockito:mockito-core:1.10.19"
+    annotationProcessor "com.google.dagger:dagger-compiler:2.7"
+    compileOnly "javax.annotation:jsr250-api:1.0"
 }

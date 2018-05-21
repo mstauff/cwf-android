@@ -128,7 +128,7 @@ public class LocalFileResources implements IWebResources {
         try {
             String json = getJSONFromAssets("org-callings.json");
             JSONArray jsonArray = new JSONArray(json);
-            orgs = orgCallingBuilder.extractOrgs(jsonArray);
+            orgs = orgCallingBuilder.extractOrgs(jsonArray, false);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -136,8 +136,8 @@ public class LocalFileResources implements IWebResources {
     }
 
     @Override
-    public Task<Map<Long, List<Long>>> getOrgMembers(Long subOrgId) {
-        TaskCompletionSource<Map<Long, List<Long>>> taskCompletionSource = new TaskCompletionSource<>();
+    public Task<List<Org>> getOrgWithMembers(Long subOrgId) {
+        TaskCompletionSource<List<Org>> taskCompletionSource = new TaskCompletionSource<>();
         return taskCompletionSource.getTask();
     }
 
@@ -238,6 +238,11 @@ public class LocalFileResources implements IWebResources {
 
     public void deleteCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback, Response.Listener<WebException> errorCallback) {
 
+    }
+
+    @Override
+    public Task<JSONArray> getOrgHierarchy() {
+        return null;
     }
 
     private void removeCalling(JsonObject jsonObject) {

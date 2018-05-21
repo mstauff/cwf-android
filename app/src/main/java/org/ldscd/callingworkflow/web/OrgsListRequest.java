@@ -52,7 +52,7 @@ public class OrgsListRequest extends Request<List<Org>> {
                 String jsonString = new String(response.data, HttpHeaderParser.parseCharset(response.headers));
                 JSONArray orgs = new JSONArray(jsonString);
                 OrgCallingBuilder orgCallingBuilder = new OrgCallingBuilder();
-                orgsList = orgCallingBuilder.extractOrgs(orgs);
+                orgsList = orgCallingBuilder.extractOrgs(orgs, false);
             } catch (Exception e) {
                 return Response.error(new WebException(ExceptionType.PARSING_ERROR, e));
             }
