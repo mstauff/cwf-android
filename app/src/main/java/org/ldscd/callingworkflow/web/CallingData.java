@@ -780,7 +780,37 @@ public class CallingData {
                             .addOnSuccessListener(new OnSuccessListener<Boolean>() {
                                 @Override
                                 public void onSuccess(Boolean result) {
-                                    taskCompletionSource.setResult(result);
+                                    googleDriveService.getOrgData(getBaseOrg(calling.getParentOrg()))
+                                            .addOnSuccessListener(new OnSuccessListener<Org>() {
+                                                @Override
+                                                public void onSuccess(final Org latestGoogleDriveOrg) {
+                                                    Calling googleCalling = latestGoogleDriveOrg.getCallingById(calling.getCallingId());
+                                                    googleCalling.setActiveDate(null);
+                                                    googleCalling.setActiveDateTime(null);
+                                                    googleCalling.setMemberId(null);
+                                                    googleCalling.setConflictCause(null);
+                                                    Task<Boolean> saveOrgFile = googleDriveService.saveOrgFile(latestGoogleDriveOrg);
+                                                    saveOrgFile.addOnSuccessListener(new OnSuccessListener<Boolean>() {
+                                                        @Override
+                                                        public void onSuccess(Boolean result) {
+                                                            if(result) {
+                                                                replaceOrg(latestGoogleDriveOrg, currentUser);
+                                                            }
+                                                            taskCompletionSource.setResult(result);
+                                                        }
+                                                    }).addOnFailureListener(new OnFailureListener() {
+                                                        @Override
+                                                        public void onFailure(@NonNull Exception e) {
+                                                            taskCompletionSource.setException(ensureWebException(e));
+                                                        }
+                                                    });
+                                                }
+                                            }).addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            taskCompletionSource.setException(ensureWebException(e));
+                                        }
+                                    });
                                 }
                             })
                             .addOnFailureListener(new OnFailureListener() {
@@ -789,43 +819,7 @@ public class CallingData {
                                     taskCompletionSource.setException(ensureWebException(e));
                                 }
                             });
-                        Task getOrgTask = googleDriveService.getOrgData(getBaseOrg(calling.getParentOrg()));
-                        getOrgTask.addOnSuccessListener(new OnSuccessListener<Org>() {
-                            @Override
-                            public void onSuccess(final Org latestGoogleDriveOrg) {
-                                Calling googleCalling = latestGoogleDriveOrg.getCallingById(calling.getCallingId());
-                                googleCalling.setId(null);
-                                googleCalling.setNotes("");
-                                googleCalling.setExistingStatus(null);
-                                googleCalling.setProposedIndId(null);
-                                googleCalling.setProposedStatus(CallingStatus.NONE);
-                                googleCalling.setActiveDate(null);
-                                googleCalling.setActiveDateTime(null);
-                                googleCalling.setCwfId(UUID.randomUUID().toString());
-                                googleCalling.setMemberId(null);
-                                googleCalling.setConflictCause(null);
-                                Task<Boolean> saveOrgFile = googleDriveService.saveOrgFile(latestGoogleDriveOrg);
-                                saveOrgFile.addOnSuccessListener(new OnSuccessListener<Boolean>() {
-                                    @Override
-                                    public void onSuccess(Boolean result) {
-                                            if(result) {
-                                                replaceOrg(latestGoogleDriveOrg, currentUser);
-                                            }
-                                        taskCompletionSource.setResult(result);
-                                        }
-                                }).addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        taskCompletionSource.setException(ensureWebException(e));
-                                    }
-                                });
-                            }
-                        }).addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                taskCompletionSource.setException(ensureWebException(e));
-                            }
-                        });
+
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -877,8 +871,41 @@ public class CallingData {
                                         public void onSuccess(Boolean result) {
                                             if (result) {
                                                 replaceOrg(latestGoogleDriveOrg, currentUser);
+                                                try {
+                                                    if (jsonObject.has("positionId")) {
+                                                        calling.setId(jsonObject.getLong("positionId"));
+                                                    }
+                                                    calling.setNotes("");
+                                                    calling.setExistingStatus(null);
+                                                    calling.setProposedIndId(null);
+                                                    calling.setProposedStatus(CallingStatus.NONE);
+                                                    calling.setActiveDate(DateTime.now());
+                                                    calling.setActiveDateTime(DateTime.now());
+                                                    calling.setCwfId("");
+                                                    calling.setMemberId(jsonObject.getLong("memberId"));
+                                                    calling.setConflictCause(null);
+                                                    if (calling.isCwfOnly()) {
+                                                        calling.setCwfOnly(false);
+                                                    }
+                                                    handleSaveCalling(org, newOrg, calling, currentUser, Operation.UPDATE)
+                                                        .addOnSuccessListener(new OnSuccessListener<Boolean>() {
+                                                            @Override
+                                                            public void onSuccess(Boolean result) {
+                                                                taskCompletionSource.setResult(result);
+                                                            }
+                                                        })
+                                                        .addOnFailureListener(new OnFailureListener() {
+                                                            @Override
+                                                            public void onFailure(@NonNull Exception e) {
+                                                                taskCompletionSource.setException(e);
+                                                            }
+                                                        });
+
+                                                } catch (JSONException e) {
+                                                    e.printStackTrace();
+                                                    taskCompletionSource.setException(new WebException(ExceptionType.PARSING_ERROR, e));
+                                                }
                                             }
-                                            taskCompletionSource.setResult(result);
                                         }
                                     }).addOnFailureListener(new OnFailureListener() {
                                         @Override
@@ -898,40 +925,6 @@ public class CallingData {
                                 taskCompletionSource.setException(ensureWebException(e));
                             }
                         });
-                        try {
-                            if (jsonObject.has("positionId")) {
-                                calling.setId(jsonObject.getLong("positionId"));
-                            }
-                            calling.setNotes("");
-                            calling.setExistingStatus(null);
-                            calling.setProposedIndId(null);
-                            calling.setProposedStatus(CallingStatus.NONE);
-                            calling.setActiveDate(DateTime.now());
-                            calling.setActiveDateTime(DateTime.now());
-                            calling.setCwfId("");
-                            calling.setMemberId(jsonObject.getLong("memberId"));
-                            calling.setConflictCause(null);
-                            if (calling.isCwfOnly()) {
-                                calling.setCwfOnly(false);
-                            }
-                            handleSaveCalling(org, newOrg, calling, currentUser, Operation.UPDATE)
-                                .addOnSuccessListener(new OnSuccessListener<Boolean>() {
-                                    @Override
-                                    public void onSuccess(Boolean result) {
-                                        taskCompletionSource.setResult(result);
-                                    }
-                                })
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        taskCompletionSource.setException(e);
-                                    }
-                                });
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                            taskCompletionSource.setException(new WebException(ExceptionType.PARSING_ERROR, e));
-                        }
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -1068,14 +1061,16 @@ public class CallingData {
     public void updateCalling(Org baseOrg, Calling updatedCalling, Operation operation) {
         if(operation.equals(Operation.UPDATE)) {
             Calling original = baseOrg.getCallingById(updatedCalling.getCallingId());
-            if(updatedCalling.getNotes() != null) {
-                original.setNotes(updatedCalling.getNotes());
-            }
-            if(updatedCalling.getProposedIndId() != null && updatedCalling.getProposedIndId() > 0) {
-                original.setProposedIndId(updatedCalling.getProposedIndId());
-            }
-            if(updatedCalling.getProposedStatus() != null && !updatedCalling.getProposedStatus().equals(CallingStatus.UNKNOWN)) {
-                original.setProposedStatus(updatedCalling.getProposedStatus());
+            if(original != null) {
+                if (updatedCalling.getNotes() != null) {
+                    original.setNotes(updatedCalling.getNotes());
+                }
+                if (updatedCalling.getProposedIndId() != null && updatedCalling.getProposedIndId() > 0) {
+                    original.setProposedIndId(updatedCalling.getProposedIndId());
+                }
+                if (updatedCalling.getProposedStatus() != null && !updatedCalling.getProposedStatus().equals(CallingStatus.UNKNOWN)) {
+                    original.setProposedStatus(updatedCalling.getProposedStatus());
+                }
             }
         } else if(operation.equals(Operation.CREATE)) {
             Org org = findSubOrg(baseOrg, updatedCalling.getParentOrg());
