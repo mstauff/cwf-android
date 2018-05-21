@@ -770,7 +770,6 @@ public class CallingData {
             public void onResponse(JSONObject jsonObject) {
                 try {
                     if (jsonObject.has("errors") && jsonObject.getJSONObject("errors").length() > 0) {
-                        taskCompletionSource.setResult(false);
                         taskCompletionSource.setException(hydrateErrorListener(jsonObject, Operation.RELEASE));
                     } else {
                         calling.setActiveDate(null);
@@ -787,7 +786,6 @@ public class CallingData {
                             .addOnFailureListener(new OnFailureListener() {
                                 @Override
                                 public void onFailure(@NonNull Exception e) {
-                                    taskCompletionSource.setResult(false);
                                     taskCompletionSource.setException(ensureWebException(e));
                                 }
                             });
@@ -818,7 +816,6 @@ public class CallingData {
                                 }).addOnFailureListener(new OnFailureListener() {
                                     @Override
                                     public void onFailure(@NonNull Exception e) {
-                                        taskCompletionSource.setResult(false);
                                         taskCompletionSource.setException(ensureWebException(e));
                                     }
                                 });
@@ -826,21 +823,18 @@ public class CallingData {
                         }).addOnFailureListener(new OnFailureListener() {
                             @Override
                             public void onFailure(@NonNull Exception e) {
-                                taskCompletionSource.setResult(false);
                                 taskCompletionSource.setException(ensureWebException(e));
                             }
                         });
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
-                    taskCompletionSource.setResult(false);
                     taskCompletionSource.setException(new WebException(ExceptionType.PARSING_ERROR, e));
                 }
             }
         }, new Response.Listener<WebException>() {
             @Override
             public void onResponse(WebException e) {
-                taskCompletionSource.setResult(false);
                 taskCompletionSource.setException(ensureWebException(e));
             }
         });
@@ -854,7 +848,6 @@ public class CallingData {
             public void onResponse(final JSONObject jsonObject) {
                 try {
                     if (jsonObject.has("errors") && jsonObject.getJSONObject("errors").length() > 0) {
-                        taskCompletionSource.setResult(false);
                         taskCompletionSource.setException(hydrateErrorListener(jsonObject, Operation.UPDATE));
                     } else {
                         Task getOrgTask = googleDriveService.getOrgData(getBaseOrg(calling.getParentOrg()));
@@ -890,13 +883,11 @@ public class CallingData {
                                     }).addOnFailureListener(new OnFailureListener() {
                                         @Override
                                         public void onFailure(@NonNull Exception e) {
-                                            taskCompletionSource.setResult(false);
                                             taskCompletionSource.setException(ensureWebException(e));
                                         }
                                     });
                                 } catch(JSONException e) {
                                     e.printStackTrace();
-                                    taskCompletionSource.setResult(false);
                                     taskCompletionSource.setException(new WebException(ExceptionType.PARSING_ERROR, e));
                                 }
                             }
@@ -904,7 +895,6 @@ public class CallingData {
                             @Override
                             public void onFailure(@NonNull Exception e) {
                                 e.printStackTrace();
-                                taskCompletionSource.setResult(false);
                                 taskCompletionSource.setException(ensureWebException(e));
                             }
                         });
@@ -934,28 +924,24 @@ public class CallingData {
                                 .addOnFailureListener(new OnFailureListener() {
                                     @Override
                                     public void onFailure(@NonNull Exception e) {
-                                        taskCompletionSource.setResult(false);
                                         taskCompletionSource.setException(e);
                                     }
                                 });
 
                         } catch (JSONException e) {
                             e.printStackTrace();
-                            taskCompletionSource.setResult(false);
                             taskCompletionSource.setException(new WebException(ExceptionType.PARSING_ERROR, e));
                         }
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
-                    taskCompletionSource.setResult(false);
                     taskCompletionSource.setException(new WebException(ExceptionType.PARSING_ERROR, e));
                 }
             }
         }, new Response.Listener<WebException>() {
             @Override
             public void onResponse(WebException e) {
-                taskCompletionSource.setResult(false);
-                taskCompletionSource.setException(ensureWebException(e));
+                taskCompletionSource.setException(e);
             }
         });
         return taskCompletionSource.getTask();
@@ -995,7 +981,6 @@ public class CallingData {
                     .addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
-                            taskCompletionSource.setResult(false);
                             taskCompletionSource.setException(e);
                         }
                     });

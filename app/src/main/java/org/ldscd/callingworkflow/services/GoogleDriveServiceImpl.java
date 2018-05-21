@@ -123,11 +123,9 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                 initializeDriveClient(activity.getApplicationContext());
                 taskCompletionSource.setResult(true);
             } else {
-                taskCompletionSource.setResult(false);
                 taskCompletionSource.setException(new WebException(ExceptionType.GOOGLE_AUTH_REQUIRED));
             }
         } else {
-            taskCompletionSource.setResult(false);
             taskCompletionSource.setException(new WebException(ExceptionType.NO_DATA_CONNECTION));
         }
 
@@ -176,7 +174,6 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                         .addOnFailureListener(new OnFailureListener() {
                             @Override
                             public void onFailure(@NonNull Exception e) {
-                                taskCompletionSource.setResult(null);
                                 taskCompletionSource.setException(new WebException(ExceptionType.UNKOWN_GOOGLE_EXCEPTION, e));
                             }
                         });
@@ -184,7 +181,6 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                 taskCompletionSource.setResult(null);
             }
         } else {
-            taskCompletionSource.setResult(null);
             taskCompletionSource.setException(new WebException(ExceptionType.NO_DATA_CONNECTION));
         }
         return taskCompletionSource.getTask();
@@ -240,12 +236,10 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                     }).addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
-                    taskCompletionSource.setResult(null);
                     taskCompletionSource.setException(new WebException(ExceptionType.UNKOWN_GOOGLE_EXCEPTION, e));
                 }
             });
         } else {
-            taskCompletionSource.setResult(null);
             taskCompletionSource.setException(new WebException(ExceptionType.NO_DATA_CONNECTION));
         }
         return taskCompletionSource.getTask();
@@ -284,7 +278,6 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                     .addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
-                            taskCompletionSource.setResult(new ArrayList<String>());
                             taskCompletionSource.setException(new WebException(ExceptionType.UNKOWN_GOOGLE_EXCEPTION, e));
                         }
                     });
@@ -314,7 +307,6 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                             .addOnFailureListener(new OnFailureListener() {
                                 @Override
                                 public void onFailure(@NonNull Exception e) {
-                                    taskCompletionSource.setResult(false);
                                     taskCompletionSource.setException(new WebException(ExceptionType.UNKOWN_GOOGLE_EXCEPTION, e));
                                 }
                             });
@@ -330,14 +322,12 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                             .addOnFailureListener(new OnFailureListener() {
                                 @Override
                                 public void onFailure(@NonNull Exception e) {
-                                    taskCompletionSource.setResult(false);
                                     taskCompletionSource.setException(new WebException(ExceptionType.UNKOWN_GOOGLE_EXCEPTION, e));
                                 }
                             });
                 }
             }
         } else {
-            taskCompletionSource.setResult(false);
             taskCompletionSource.setException(new WebException(ExceptionType.NO_DATA_CONNECTION));
         }
         return taskCompletionSource.getTask();
@@ -358,7 +348,6 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                             /* Get results individually.  If any failed get one result and exception and return. */
                             for (Task task : tasks) {
                                 if (!task.isSuccessful()) {
-                                    taskCompletionSource.setResult(false);
                                     taskCompletionSource.setException(new WebException(ExceptionType.UNKOWN_GOOGLE_EXCEPTION, task.getException()));
                                     break;
                                 }
@@ -367,12 +356,10 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                     }).addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
-                    taskCompletionSource.setResult(false);
                     taskCompletionSource.setException(new WebException(ExceptionType.UNKOWN_GOOGLE_EXCEPTION, e));
                 }
             });
         } else {
-            taskCompletionSource.setResult(false);
             taskCompletionSource.setException(new WebException(ExceptionType.NO_DATA_CONNECTION));
         }
         return taskCompletionSource.getTask();
@@ -396,7 +383,6 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                         });
             }
         } else {
-            taskCompletionSource.setResult(false);
             taskCompletionSource.setException(new WebException(ExceptionType.NO_DATA_CONNECTION));
         }
         return taskCompletionSource.getTask();
@@ -416,7 +402,6 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                      /* Get results individually.  If any failed get one result and exception and return. */
                     for(Task task : tasks) {
                         if(!task.isSuccessful()) {
-                            taskCompletionSource.setResult(false);
                             taskCompletionSource.setException(new WebException(ExceptionType.UNKOWN_GOOGLE_EXCEPTION, task.getException()));
                             break;
                         }
@@ -426,7 +411,6 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
             .addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
-                    taskCompletionSource.setResult(false);
                     taskCompletionSource.setException(new WebException(ExceptionType.UNKOWN_GOOGLE_EXCEPTION, e));
                 }
             });
@@ -460,7 +444,6 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                             .addOnFailureListener(new OnFailureListener() {
                                 @Override
                                 public void onFailure(@NonNull Exception e) {
-                                    taskCompletionSource.setResult(false);
                                     taskCompletionSource.setException(new WebException(ExceptionType.UNKOWN_GOOGLE_EXCEPTION, e));
                                 }
                             });
@@ -469,12 +452,10 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        taskCompletionSource.setResult(false);
                         taskCompletionSource.setException(new WebException(ExceptionType.UNKOWN_GOOGLE_EXCEPTION, e));
                     }
                 });
         } else {
-            taskCompletionSource.setResult(false);
             taskCompletionSource.setException(new WebException(ExceptionType.UNKOWN_GOOGLE_EXCEPTION, new Exception("Org data was null or empty.  Data is required.")));
         }
         return taskCompletionSource.getTask();
@@ -496,8 +477,7 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
             .addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
-                    taskCompletionSource.setResult(false);
-                    taskCompletionSource.trySetException(e);
+                    taskCompletionSource.setException(e);
                 }
             });
         return taskCompletionSource.getTask();
@@ -563,26 +543,22 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                                         .addOnFailureListener(new OnFailureListener() {
                                             @Override
                                             public void onFailure(@NonNull Exception e) {
-                                                taskCompletionSource.setResult(false);
                                                 taskCompletionSource.trySetException(e);
                                             }
                                         });
 
                             } else {
-                                taskCompletionSource.setResult(false);
-                                taskCompletionSource.trySetException(new Exception("There wasn't any meta data returned to sync."));
+                                taskCompletionSource.setException(new Exception("There wasn't any meta data returned to sync."));
                             }
                         }
                     })
                     .addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
-                            taskCompletionSource.setResult(false);
                             taskCompletionSource.setException(new WebException(ExceptionType.UNKOWN_GOOGLE_EXCEPTION, e));
                         }
                     });
         } else {
-            taskCompletionSource.setResult(false);
             taskCompletionSource.setException(new WebException(ExceptionType.NO_DATA_CONNECTION));
         }
         return taskCompletionSource.getTask();
@@ -671,7 +647,6 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                                     taskCompletionSource.setResult(null);
                                 }
                             } else {
-                                taskCompletionSource.setResult(null);
                                 taskCompletionSource.setException(new WebException(ExceptionType.UNKOWN_GOOGLE_EXCEPTION));
                             }
                         }
@@ -681,7 +656,6 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                 taskCompletionSource.setResult(unitSettings);
             }
         } else {
-            taskCompletionSource.setResult(null);
             taskCompletionSource.setException(new WebException(ExceptionType.NO_DATA_CONNECTION));
         }
         return taskCompletionSource.getTask();
@@ -709,13 +683,11 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                         .addOnFailureListener(new OnFailureListener() {
                             @Override
                             public void onFailure(@NonNull Exception e) {
-                                taskCompletionSource.setResult(false);
                                 taskCompletionSource.setException(new WebException(ExceptionType.UNKOWN_GOOGLE_EXCEPTION, e));
                             }
                         });
             }
         } else {
-            taskCompletionSource.setResult(false);
             taskCompletionSource.setException(new WebException(ExceptionType.NO_DATA_CONNECTION));
         }
         return taskCompletionSource.getTask();
@@ -769,12 +741,10 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        taskCompletionSource.setResult(false);
                         taskCompletionSource.setException(new WebException(ExceptionType.UNKOWN_GOOGLE_EXCEPTION, e));
                     }
                 });
         } else {
-            taskCompletionSource.setResult(false);
             taskCompletionSource.setException(new WebException(ExceptionType.UNKOWN_GOOGLE_EXCEPTION, new Exception("UnitSettings data was null or empty.  Data is required.")));
         }
         return taskCompletionSource.getTask();
@@ -814,7 +784,6 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
             @Override
             public void onFailure(@NonNull Exception e) {
                 Log.e(TAG, "Unable to update contents", e);
-                taskCompletionSource.setResult(false);
                 taskCompletionSource.setException(new WebException(ExceptionType.UNKOWN_GOOGLE_EXCEPTION, e));
             }
         });
@@ -850,7 +819,6 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                 @Override
                 public void onFailure(@NonNull Exception e) {
                     Log.e(TAG, "Unable to create file: " + changeSet.getTitle(), e);
-                    taskCompletionSource.setResult(null);
                     taskCompletionSource.setException(new WebException(ExceptionType.UNKOWN_GOOGLE_EXCEPTION, e));
                 }
             });
@@ -886,7 +854,6 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                 @Override
                 public void onFailure(@NonNull Exception e) {
                     Log.e(TAG, "Unable to retrieve contents for: " + file.getDriveId(), e);
-                    taskCompletionSource.setResult(null);
                     taskCompletionSource.setException(new WebException(ExceptionType.UNKOWN_GOOGLE_EXCEPTION, e));
                 }
             });
@@ -909,7 +876,6 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                     @Override
                     public void onFailure(@NonNull Exception e) {
                         Log.e(TAG, "Unable to retrieve metadata", e);
-                        taskCompletionSource.setResult(null);
                         taskCompletionSource.trySetException(e);
                     }
                 });
@@ -944,7 +910,6 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                                             @Override
                                             public void onFailure(@NonNull Exception e) {
                                                 Log.e(TAG, "Unable to get files from the AppData folder.  " + e.toString());
-                                                taskCompletionSource.setResult(null);
                                                 taskCompletionSource.setException(new WebException(ExceptionType.UNKOWN_GOOGLE_EXCEPTION, e));
                                             }
                                         });
@@ -972,7 +937,6 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                         @Override
                         public void onFailure(@NonNull Exception e) {
                             Log.e(TAG, "Unable to delete file", e);
-                            taskCompletionSource.setResult(false);
                             taskCompletionSource.setException(new WebException(ExceptionType.UNKOWN_GOOGLE_EXCEPTION, e));
                         }
                 });
