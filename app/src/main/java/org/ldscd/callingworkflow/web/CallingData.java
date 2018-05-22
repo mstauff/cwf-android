@@ -680,8 +680,9 @@ public class CallingData {
         List<Calling> result = new ArrayList<>();
         for(Org org : getOrgs()) {
             for(Calling calling: org.allOrgCallings()) {
-                if ((calling.getProposedIndId() != null && calling.getProposedIndId() > 0)
-                        || calling.getProposedStatus() != CallingStatus.NONE || calling.getNotes() != null) {
+                if ((calling.getProposedIndId() != null && calling.getProposedIndId() > 0) ||
+                    (calling.getProposedStatus() != null && calling.getProposedStatus() != CallingStatus.NONE) ||
+                    (calling.getNotes() != null && calling.getNotes().length() != 0)) {
                     result.add(calling);
                 }
             }
