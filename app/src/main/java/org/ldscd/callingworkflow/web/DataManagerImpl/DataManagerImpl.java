@@ -200,25 +200,11 @@ public class DataManagerImpl implements DataManager {
     }
 
     public void releaseLDSCalling(final Calling calling, final Response.Listener<Boolean> callback, final Response.Listener<WebException> errorListener) {
-        final Org org = callingData.getBaseOrg(calling.getParentOrg());
-         googleDataService.getOrgData(org)
-            .addOnSuccessListener(new OnSuccessListener<Org>() {
+        callingData.releaseLDSCalling(calling, currentUser)
+            .addOnSuccessListener(new OnSuccessListener<Boolean>() {
                 @Override
-                public void onSuccess(Org newOrg) {
-                    callingData.releaseLDSCalling(calling, org, newOrg, currentUser)
-                        .addOnSuccessListener(new OnSuccessListener<Boolean>() {
-                            @Override
-                            public void onSuccess(Boolean response) {
-                                callback.onResponse(response);
-                            }
-                        })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                errorListener.onResponse(ensureWebException(e));
-                            }
-                        });
-
+                public void onSuccess(Boolean response) {
+                    callback.onResponse(response);
                 }
             })
             .addOnFailureListener(new OnFailureListener() {
@@ -229,24 +215,11 @@ public class DataManagerImpl implements DataManager {
             });
     }
     public void updateLDSCalling(final Calling calling, final Response.Listener<Boolean> callback, final Response.Listener<WebException> errorListener) {
-        final Org org = callingData.getBaseOrg(calling.getParentOrg());
-        googleDataService.getOrgData(org)
-            .addOnSuccessListener(new OnSuccessListener<Org>() {
+        callingData.updateLDSCalling(calling, currentUser)
+            .addOnSuccessListener(new OnSuccessListener<Boolean>() {
                 @Override
-                public void onSuccess(Org newOrg) {
-                    callingData.updateLDSCalling(calling, org, newOrg, currentUser)
-                        .addOnSuccessListener(new OnSuccessListener<Boolean>() {
-                            @Override
-                            public void onSuccess(Boolean response) {
-                                callback.onResponse(response);
-                            }
-                        })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                errorListener.onResponse(ensureWebException(e));
-                            }
-                        });
+                public void onSuccess(Boolean response) {
+                    callback.onResponse(response);
                 }
             })
             .addOnFailureListener(new OnFailureListener() {
@@ -259,23 +232,6 @@ public class DataManagerImpl implements DataManager {
     @Override
     public void deleteLDSCalling(final Calling calling, final Response.Listener<Boolean> callback, final Response.Listener<WebException> errorListener) {
         callingData.deleteLDSCalling(calling, currentUser, callback, errorListener);
-        final Org originalOrg = getOrg(calling.getParentOrg());
-        webResources.deleteCalling(calling, originalOrg.getUnitNumber(), originalOrg.getOrgTypeId(), new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject jsonObject) {
-                try {
-                    if(jsonObject != null && jsonObject.has("errors") && jsonObject.getJSONObject("errors").length() > 0) {
-                        errorListener.onResponse(callingData.hydrateErrorListener(jsonObject, Operation.DELETE));
-                    } else {
-                        /* Get Latest org changes from google drive. */
-                        deleteCalling(calling, callback, errorListener);
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    errorListener.onResponse(new WebException(ExceptionType.PARSING_ERROR, e));
-                }
-            }
-        }, errorListener);
     }
 
     /* Member data. */
@@ -446,37 +402,6 @@ public class DataManagerImpl implements DataManager {
                 listener.onResponse(false);
             }
         }
-    }
-
-    /* Calling and Google Data */
-    private void saveCalling(final Response.Listener<Boolean> listener, final Response.Listener<WebException> errorListener, final Org org, final Calling calling, final Operation operation) {
-        Task<Org> getOrgDataTask = googleDataService.getOrgData(org);
-        getOrgDataTask
-            .addOnSuccessListener(new OnSuccessListener<Org>() {
-                @Override
-                public void onSuccess(Org newOrg) {
-                    Task<Boolean> task = callingData.handleSaveCalling(org, newOrg, calling, currentUser, operation);
-                    task.addOnSuccessListener(new OnSuccessListener<Boolean>() {
-                        @Override
-                        public void onSuccess(Boolean response) {
-                            listener.onResponse(response);
-                        }
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            errorListener.onResponse(ensureWebException(e));
-                        }
-                    });
-
-                }
-            })
-            .addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    errorListener.onResponse(ensureWebException(e));
-                }
-            });
     }
 
     @Override

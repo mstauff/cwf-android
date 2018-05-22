@@ -144,6 +144,7 @@ public class ExpandableOrgsListActivity extends AppCompatActivity {
                         }
                     }
                 }
+                setupListClickListeners(orgsListView, freshOrg);
             } else {
                 adapter.notifyDataSetChanged();
             }
@@ -156,15 +157,18 @@ public class ExpandableOrgsListActivity extends AppCompatActivity {
         callingListView.setAdapter(adapter);
 
         //expand subOrg if expandId was provided
-        if(expandId > 0) {
+        if (expandId > 0) {
             for (int i = 0; i < org.getChildren().size(); i++) {
-                if(org.getChildren().get(i).getId() == expandId) {
+                if (org.getChildren().get(i).getId() == expandId) {
                     callingListView.expandGroup(i);
                     break;
                 }
             }
         }
+        setupListClickListeners(callingListView, org);
+    }
 
+    private void setupListClickListeners(ExpandableListView callingListView, final Org org) {
         callingListView.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
             @Override
             public boolean onGroupClick(ExpandableListView expandableListView, View groupView, int index, long id) {
