@@ -1,5 +1,6 @@
 package org.ldscd.callingworkflow.display;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
@@ -75,24 +76,24 @@ public class IndividualInformationFragment extends BottomSheetDialogFragment {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_individual_information, container, false);
         if(member != null) {
-            TextView nameView = (TextView) v.findViewById(R.id.member_information_member_name);
+            TextView nameView = v.findViewById(R.id.member_information_member_name);
             nameView.setText(member.getFormattedName());
-            TextView callingView = (TextView) v.findViewById(R.id.member_information_calling);
+            TextView callingView = v.findViewById(R.id.member_information_calling);
             if(member.getCurrentCallings() != null && !member.getCurrentCallings().isEmpty()) {
                 String names = member.getCurrentCallingsWithTime().toString();
                 callingView.setText(names.substring(1, names.length() -1));
             } else {
-                TextView callingLabel = (TextView) v.findViewById(R.id.member_information_calling_label);
+                TextView callingLabel = v.findViewById(R.id.member_information_calling_label);
                 callingLabel.setVisibility(View.GONE);
                 callingView.setVisibility(View.GONE);
             }
 
-            TextView proposedCalling = (TextView) v.findViewById(R.id.member_information_proposed_calling);
+            TextView proposedCalling = v.findViewById(R.id.member_information_proposed_calling);
             if(member.getProposedCallings() != null && member.getProposedCallings().size() > 0) {
                 String names = member.getProposedCallingsWithStatus().toString();
                 proposedCalling.setText(names.substring(1, names.length() -1));
             } else {
-                TextView proposedCallingLabel = (TextView) v.findViewById(R.id.member_information_proposed_label);
+                TextView proposedCallingLabel = v.findViewById(R.id.member_information_proposed_label);
                 proposedCallingLabel.setVisibility(View.GONE);
                 proposedCalling.setVisibility(View.GONE);
             }
@@ -150,11 +151,6 @@ public class IndividualInformationFragment extends BottomSheetDialogFragment {
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-    }
-
-    @Override
     public void onDetach() {
         super.onDetach();
     }
@@ -172,6 +168,7 @@ public class IndividualInformationFragment extends BottomSheetDialogFragment {
         }
     };
 
+    @SuppressLint("RestrictedApi")
     @Override
     public void setupDialog(Dialog dialog, int style) {
         super.setupDialog(dialog, style);
@@ -188,7 +185,7 @@ public class IndividualInformationFragment extends BottomSheetDialogFragment {
 
     public void createViewItems(View v, final Member member) {
         /* Create xml for bottom sheet. */
-        TableLayout tableLayout = (TableLayout) v.findViewById(R.id.member_information_table_layout);
+        TableLayout tableLayout = v.findViewById(R.id.member_information_table_layout);
         tableLayout.setGravity(Gravity.CENTER);
         /* Set the horizontal separating border. */
         tableLayout.addView(getBorderView());
