@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Calling Workflow</string>
+    <string name="app_name">LDS Callings</string>
     <string name="version">1.0.0</string>
     <string name="company">LDS Community Developers</string>
     <string name="title_calling_detail">Calling Detail</string>
@@ -118,6 +118,7 @@
     <string name="prompt_password">Password</string>
     <string name="action_sign_in">Sign in and Save</string>
     <string name="action_sign_in_short">Sign in</string>
+    <string name="action_sign_out_short">Sign out</string>
     <string name="action_sign_out">Sign out of Google</string>
     <string name="action_disconnect">Disconnect</string>
     <string name="action_signed_in_format">Signed in as: %s</string>
