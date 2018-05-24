@@ -150,8 +150,8 @@ public class WebResources implements IWebResources {
         String json = getJSONFromAssets(BuildConfig.appConfigFile);
         Gson gson = new Gson();
         try {
-            ConfigInfo result = gson.fromJson(json, ConfigInfo.class);
-            configInfoCallback.onResponse(result);
+            configInfo = gson.fromJson(json, ConfigInfo.class);
+            configInfoCallback.onResponse(configInfo);
         } catch (JsonSyntaxException e) {
             errorCallback.onResponse(new WebException(ExceptionType.PARSING_ERROR, e));
         }
@@ -218,7 +218,7 @@ public class WebResources implements IWebResources {
             authCallback.onResponse(authCookie);
         } else {
             /* Authentication Request to the LDS church. */
-            AuthenticationRequest authRequest = new AuthenticationRequest(userName, password, "https://signin-int.lds.org/login.html", //configInfo.getEndpointUrl("SIGN_IN"),
+            AuthenticationRequest authRequest = new AuthenticationRequest(userName, password, configInfo.getEndpointUrl("SIGN_IN"),
                     new Response.Listener<String>() {
                         @Override
                         public void onResponse(String response) {
