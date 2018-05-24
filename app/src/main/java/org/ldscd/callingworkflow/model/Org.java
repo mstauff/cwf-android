@@ -3,10 +3,13 @@ package org.ldscd.callingworkflow.model;
 import org.ldscd.callingworkflow.constants.ConflictCause;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents an auxiliary.  i.e. primary, R.S. or E.Q.
@@ -21,7 +24,7 @@ public class Org {
     private int displayOrder;
     private List<Org> children;
     private List<Calling> callings;
-    private transient HashSet<Position> positions;
+    private transient Map<Integer, Position> positions;
     private transient ConflictCause conflictCause;
     private transient boolean hasUnsavedChanges = false;
     private transient boolean canView = false;
@@ -68,9 +71,9 @@ public class Org {
     public List<Calling> getCallings() { return callings; }
     public void setCallings(List<Calling> callings) {
         this.callings = callings == null ? new ArrayList<Calling>() : callings;
-        this.positions = new HashSet<>();
+        this.positions = new HashMap<>();
         for(Calling calling : this.callings) {
-            this.positions.add(calling.getPosition());
+            this.positions.put(calling.getPosition().getPositionTypeId(), calling.getPosition());
         }
     }
 
@@ -95,7 +98,7 @@ public class Org {
     }
 
     public HashSet<Position> getPositions() {
-        return this.positions;
+        return new HashSet<>(this.positions.values());
     }
 
     public List<String> allOrgCallingIds() {
@@ -149,12 +152,12 @@ public class Org {
     }
 
     public List<Position> potentialNewPositions() {
-        List<Integer> existingPositionTypeIds = new ArrayList<>();
+        Set<Integer> existingPositionTypeIds = new HashSet<>();
         for(Calling calling : callings) {
             existingPositionTypeIds.add(calling.getPosition().getPositionTypeId());
         }
         List<Position> potentialPositions = new ArrayList<>();
-        for(Position position : this.positions) {
+        for(Position position : this.positions.values()) {
             if(position.getAllowMultiple() || !existingPositionTypeIds.contains(position.getPositionTypeId())) {
                 potentialPositions.add(position);
             }

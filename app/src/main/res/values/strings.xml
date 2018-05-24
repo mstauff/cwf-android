@@ -58,7 +58,7 @@
     <string name="gender">Gender</string>
     <string name="priesthood">Priesthood</string>
     <string name="high_priest">High Priest</string>
-    <string name="elders_quorum">Elders Quorum</string>
+    <string name="elder">Elder</string>
     <string name="priest">Priest</string>
     <string name="teacher">Teacher</string>
     <string name="deacon">Deacon</string>

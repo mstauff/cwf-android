@@ -233,13 +233,13 @@
                 android:fontFamily="@font/roboto"
                 android:text="@string/high_priest" />
             <TextView
-                android:id="@+id/member_lookup_filter_elders_quorum"
+                android:id="@+id/member_lookup_filter_elder"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="16dp"
                 android:textSize="@dimen/text_size_small"
                 android:fontFamily="@font/roboto"
-                android:text="@string/elders_quorum" />
+                android:text="@string/elder" />
         </TableRow>
         <TableRow>
             <TextView

@@ -220,7 +220,7 @@ public class MemberLookupFilterFragment extends DialogFragment {
             }
         });
         /* Elders */
-        final TextView eldersButton = (TextView)view.findViewById(R.id.member_lookup_filter_elders_quorum);
+        final TextView eldersButton = (TextView)view.findViewById(R.id.member_lookup_filter_elder);
         setToggleButtonColor(eldersButton,filterOption.isElders());
         eldersButton.setOnClickListener(new View.OnClickListener() {
             @Override
