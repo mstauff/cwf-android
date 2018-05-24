@@ -106,7 +106,7 @@ public class CreateCallingFragment extends Fragment implements MemberLookupFragm
         if(parentOrg != null) {
             //Position Dropdown
             List<Position> potentialPositions = parentOrg.potentialNewPositions();
-            positionDropdown = (Spinner) view.findViewById(R.id.new_calling_position_dropdown);
+            positionDropdown = view.findViewById(R.id.new_calling_position_dropdown);
             final PositionArrayAdapter positionAdapter = new PositionArrayAdapter<Position>(getContext(), android.R.layout.simple_list_item_1, potentialPositions);
             positionDropdown.setAdapter(positionAdapter);
             position = (Position)positionDropdown.getSelectedItem();

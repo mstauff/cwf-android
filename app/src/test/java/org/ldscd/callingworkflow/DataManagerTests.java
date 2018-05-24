@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.widget.ProgressBar;
 
 import com.android.volley.Response;
+import com.google.android.gms.tasks.TaskCompletionSource;
 
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -15,8 +16,11 @@ import org.ldscd.callingworkflow.services.GoogleDriveService;
 import org.ldscd.callingworkflow.web.CallingData;
 import org.ldscd.callingworkflow.web.IWebResources;
 import org.ldscd.callingworkflow.web.MemberData;
+import org.ldscd.callingworkflow.web.WebException;
 import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,6 +29,8 @@ import java.util.List;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DataManagerTests {
@@ -104,6 +110,13 @@ public class DataManagerTests {
         calling.setNotes(null);
     }
 
+    private Response.Listener<WebException> errorListener = new Response.Listener<WebException>() {
+        @Override
+        public void onResponse(WebException response) {
+            fail("LoadOrgs method returned an error");
+        }
+    };
+
     @Test
     public void mergeWithNothingChangedMultiplesAllowed() {
         mergeWithNothingChanged(sampleLCROrgMultiplesAllowed, sampleCWFOrgMultiplesAllowed);
@@ -129,9 +142,9 @@ public class DataManagerTests {
                     public void onResponse(Boolean response) {
                         checkWithNothingChangedResult(startingSize, lcrOrg, cwfOrg);
                     }
-                });
+                }, errorListener);
             }
-        });
+        }, errorListener);
     }
     private void checkWithNothingChangedResult(int startingSize, Org lcrOrg, Org cwfOrg) {
         //all the callings should have matched up so the number should be the same
@@ -171,9 +184,9 @@ public class DataManagerTests {
                     public void onResponse(Boolean response) {
                         checkWhenDeletedInLCRResult(startingSize, lcrOrg, cwfOrg);
                     }
-                });
+                }, errorListener);
             }
-        });
+        }, errorListener);
     }
     private void checkWhenDeletedInLCRResult(int startingSize, Org lcrOrg, Org cwfOrg) {
         //since it has potential data the extra calling in cwfOrg should be added to the lcrOrg
@@ -218,9 +231,9 @@ public class DataManagerTests {
                     public void onResponse(Boolean response) {
                         checkCurrentReleasedInLCRResult(startingSize, lcrOrg, cwfOrg);
                     }
-                });
+                }, errorListener);
             }
-        });
+        }, errorListener);
     }
     private void checkCurrentReleasedInLCRResult(int startingSize, Org lcrOrg, Org cwfOrg) {
         //the cwfCalling with proposed data should have merged without current info and the other discarded
@@ -259,9 +272,9 @@ public class DataManagerTests {
                     public void onResponse(Boolean response) {
                         checkCurrentChangedToProposedResult(startingSize, lcrOrg, cwfOrg);
                     }
-                });
+                }, errorListener);
             }
-        });
+        }, errorListener);
     }
     private void checkCurrentChangedToProposedResult(int startingSize, Org lcrOrg, Org cwfOrg) {
         //in the case potential matches the new current we can match on position type and don't keep the old cwf info
@@ -304,9 +317,9 @@ public class DataManagerTests {
                     public void onResponse(Boolean response) {
                         checkCurrentChangedToOtherWithPotentialResult(startingSize, lcrOrg, cwfOrg);
                     }
-                });
+                }, errorListener);
             }
-        });
+        }, errorListener);
     }
     private void checkCurrentChangedToOtherWithPotentialResult(int startingSize, Org lcrOrg, Org cwfOrg) {
         //In this case we can merge matching position types only if multiples are not allowed
@@ -357,9 +370,9 @@ public class DataManagerTests {
                     public void onResponse(Boolean response) {
                         checkCurrentChangedToOtherWithoutPotentialResult(startingSize, lcrOrg, cwfOrg);
                     }
-                });
+                }, errorListener);
             }
-        });
+        }, errorListener);
     }
     private void checkCurrentChangedToOtherWithoutPotentialResult(int startingSize, Org lcrOrg, Org cwfOrg) {
         //In this case we can merge matching position types only if multiples are not allowed
@@ -405,9 +418,9 @@ public class DataManagerTests {
                     public void onResponse(Boolean response) {
                         checkWithNewCallingInCWFResult(startingSize, lcrOrg, cwfOrg);
                     }
-                });
+                }, errorListener);
             }
-        });
+        }, errorListener);
     }
     private void checkWithNewCallingInCWFResult(int startingSize, Org lcrOrg, Org cwfOrg) {
         //the new calling should be unchanged and added to the org, other callings should have merged
@@ -447,9 +460,9 @@ public class DataManagerTests {
                     public void onResponse(Boolean response) {
                         checkEmptyCallingsResult(startingSize, lcrOrg, cwfOrg);
                     }
-                });
+                }, errorListener);
             }
-        });
+        }, errorListener);
     }
     private void checkEmptyCallingsResult(int startingSize, Org lcrOrg, Org cwfOrg) {
 
@@ -498,9 +511,9 @@ public class DataManagerTests {
                     public void onResponse(Boolean response) {
                         checkEmptyCallingsDeletedFromLCRResult(startingSize, lcrOrg, cwfOrg);
                     }
-                });
+                }, errorListener);
             }
-        });
+        }, errorListener);
     }
     private void checkEmptyCallingsDeletedFromLCRResult(int startingSize, Org lcrOrg, Org cwfOrg) {
         //the calling with potential data should be added and the one without should be left off
@@ -537,9 +550,9 @@ public class DataManagerTests {
                     public void onResponse(Boolean response) {
                         checkEmptyCallingsAddedToLCRResult(startingSize, lcrOrg, cwfOrg);
                     }
-                });
+                }, errorListener);
             }
-        });
+        }, errorListener);
     }
     private void checkEmptyCallingsAddedToLCRResult(int startingSize, Org lcrOrg, Org cwfOrg) {
 
@@ -582,9 +595,9 @@ public class DataManagerTests {
                     public void onResponse(Boolean response) {
                         checkWithCWFOnlyResult(startingSize, lcrOrg, cwfOrg);
                     }
-                });
+                }, errorListener);
             }
-        });
+        }, errorListener);
     }
     private void checkWithCWFOnlyResult(int startingSize, Org lcrOrg, Org cwfOrg) {
         //we should have one more since we changed the one to cwfOnly
@@ -631,9 +644,9 @@ public class DataManagerTests {
                     public void onResponse(Boolean response) {
                         checkCWFOnlyWithEmptyCallingsResult(startingSize, lcrOrg, cwfOrg);
                     }
-                });
+                }, errorListener);
             }
-        });
+        }, errorListener);
     }
     private void checkCWFOnlyWithEmptyCallingsResult(int startingSize, Org lcrOrg, Org cwfOrg) {
         //we should have one more since we change one to cwfOnly
@@ -663,9 +676,8 @@ public class DataManagerTests {
         cwfOrgs.add(sampleCWFOrgNoMultiplesAllowed);
 
         List<Org> expectedUpdates = new ArrayList<>();
-        List<Org> expectedDeletes = new ArrayList<>();
 
-        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates, expectedDeletes);
+        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates);
     }
 
     @Test
@@ -683,9 +695,8 @@ public class DataManagerTests {
         List<Org> expectedUpdates = new ArrayList<>();
         expectedUpdates.add(sampleLCROrgMultiplesAllowed);
         expectedUpdates.add(sampleLCROrgNoMultiplesAllowed);
-        List<Org> expectedDeletes = new ArrayList<>();
 
-        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates, expectedDeletes);
+        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates);
     }
 
     @Test
@@ -701,9 +712,8 @@ public class DataManagerTests {
         cwfOrgs.add(sampleCWFOrgNoMultiplesAllowed);
 
         List<Org> expectedUpdates = new ArrayList<>();
-        List<Org> expectedDeletes = new ArrayList<>();
 
-        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates, expectedDeletes);
+        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates);
     }
 
     @Test
@@ -723,9 +733,8 @@ public class DataManagerTests {
         List<Org> expectedUpdates = new ArrayList<>();
         expectedUpdates.add(sampleLCROrgMultiplesAllowed);
         expectedUpdates.add(sampleLCROrgNoMultiplesAllowed);
-        List<Org> expectedDeletes = new ArrayList<>();
 
-        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates, expectedDeletes);
+        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates);
     }
 
     @Test
@@ -745,9 +754,8 @@ public class DataManagerTests {
         List<Org> expectedUpdates = new ArrayList<>();
         expectedUpdates.add(sampleLCROrgMultiplesAllowed);
         expectedUpdates.add(sampleLCROrgNoMultiplesAllowed);
-        List<Org> expectedDeletes = new ArrayList<>();
 
-        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates, expectedDeletes);
+        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates);
     }
 
     @Test
@@ -765,9 +773,8 @@ public class DataManagerTests {
         cwfOrgs.add(sampleCWFOrgNoMultiplesAllowed);
 
         List<Org> expectedUpdates = new ArrayList<>();
-        List<Org> expectedDeletes = new ArrayList<>();
 
-        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates, expectedDeletes);
+        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates);
     }
 
     @Test
@@ -789,9 +796,8 @@ public class DataManagerTests {
         List<Org> expectedUpdates = new ArrayList<>();
         expectedUpdates.add(sampleLCROrgMultiplesAllowed);
         expectedUpdates.add(sampleLCROrgNoMultiplesAllowed);
-        List<Org> expectedDeletes = new ArrayList<>();
 
-        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates, expectedDeletes);
+        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates);
     }
 
     @Test
@@ -804,9 +810,8 @@ public class DataManagerTests {
 
         //This case is being saved from googleDataService so we shouldn't expect it here
         List<Org> expectedUpdates = new ArrayList<>();
-        List<Org> expectedDeletes = new ArrayList<>();
 
-        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates, expectedDeletes);
+        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates);
     }
 
     @Test
@@ -818,9 +823,8 @@ public class DataManagerTests {
         cwfOrgs.add(sampleCWFOrgNoMultiplesAllowed);
 
         List<Org> expectedUpdates = new ArrayList<>();
-        List<Org> expectedDeletes = new ArrayList<>();
 
-        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates, expectedDeletes);
+        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates);
     }
 
     @Test
@@ -836,64 +840,45 @@ public class DataManagerTests {
         cwfOrgs.add(sampleCWFOrgNoMultiplesAllowed);
 
         List<Org> expectedUpdates = new ArrayList<>();
-        List<Org> expectedDeletes = new ArrayList<>();
-        expectedDeletes.add(sampleCWFOrgNoMultiplesAllowed);
 
-        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates, expectedDeletes);
+        testMergeUpdatingGoogleDrive(lcrOrgs, cwfOrgs, expectedUpdates);
     }
 
-    private void testMergeUpdatingGoogleDrive(final List<Org> lcrOrgs, final List<Org> cwfOrgs, final List<Org> expectedSaves, final List<Org> expectedDeletes) {
-      /*  runLoadOrgs(lcrOrgs, cwfOrgs, new Response.Listener<Boolean>() {
+    private void testMergeUpdatingGoogleDrive(final List<Org> lcrOrgs, final List<Org> cwfOrgs, final List<Org> expectedSaves) {
+        runLoadOrgs(lcrOrgs, cwfOrgs, new Response.Listener<Boolean>() {
             @Override
             public void onResponse(Boolean success) {
                 assertTrue(success);
                 //check to make sure mockGoogleDataService received all expected save calls and no others
                 for(Org expectedOrgSave: expectedSaves) {
-                    verify(mockGoogleDataService).saveOrgFile(any(Response.Listener.class), eq(expectedOrgSave));
+                    verify(mockGoogleDataService).saveOrgFile(eq(expectedOrgSave));
                 }
-                verify(mockGoogleDataService, times(expectedSaves.size())).saveOrgFile(any(Response.Listener.class), any(Org.class));
-
-                //check to make sure mockGoogleDataService received all expected delete calls and no others
-                for(Org expectedOrgDelete: expectedDeletes) {
-                    verify(mockGoogleDataService).deleteFile(any(Response.Listener.class), eq(expectedOrgDelete));
-                }
-                verify(mockGoogleDataService, times(expectedDeletes.size())).deleteFile(any(Response.Listener.class), any(Org.class));
+                verify(mockGoogleDataService, times(expectedSaves.size())).saveOrgFile(any(Org.class));
             }
-        });*/
+        }, errorListener);
     }
 
-    private void runLoadOrgs(final List<Org> lcrOrgs, final List<Org> cwfOrgs, Response.Listener<Boolean> callback) {
+    private void runLoadOrgs(final List<Org> lcrOrgs, final List<Org> cwfOrgs, Response.Listener<Boolean> callback, Response.Listener<WebException> errorCallback) {
         //We need to set the mock objects to give values to the callbacks
-       /* doAnswer(new Answer() {
-            @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
-                ((Response.Listener<Boolean>)invocation.getArguments()[0]).onResponse(true);
-                return null;
-            }
-        }).when(mockGoogleDataService).init(any(Response.Listener.class), any(Activity.class));
+        TaskCompletionSource<Boolean> booleanTaskSource = new TaskCompletionSource<Boolean>();
+        booleanTaskSource.setResult(true);
+        when(mockGoogleDataService.init(any(Activity.class))).thenReturn(booleanTaskSource.getTask());
+
         doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
                 ((Response.Listener<List<Org>>)invocation.getArguments()[1]).onResponse(lcrOrgs);
                 return null;
             }
-        }).when(mockWebResources).getOrgs(any(boolean.class), any(Response.Listener.class));
-        doAnswer(new Answer() {
-            @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
-                ((Response.Listener<Boolean>)invocation.getArguments()[0]).onResponse(true);
-                return null;
-            }
-        }).when(mockGoogleDataService).syncDriveIds(any(Response.Listener.class), any(List.class));
-        doAnswer(new Answer() {
-            @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
-                ((Response.Listener<List<Org>>)invocation.getArguments()[0]).onResponse(cwfOrgs);
-                return null;
-            }
-        }).when(mockGoogleDataService).getOrgs(any(Response.Listener.class), any(Response.ErrorListener.class));*/
+        }).when(mockWebResources).getOrgs(any(boolean.class), any(Response.Listener.class), any(Response.Listener.class));
+
+        when(mockGoogleDataService.syncDriveIds(any(List.class))).thenReturn(booleanTaskSource.getTask());
+
+        TaskCompletionSource<List<Org>> cwfOrgsTaskSource = new TaskCompletionSource<>();
+        cwfOrgsTaskSource.setResult(cwfOrgs);
+        when(mockGoogleDataService.getOrgs()).thenReturn(cwfOrgsTaskSource.getTask());
 
         //run whole merge process including saving changes back to google drive
-        callingData.loadOrgs(callback, mockProgressBar, mockActivity, user);
+        callingData.loadOrgs(callback, errorCallback, mockProgressBar, mockActivity, user);
     }
 }
