@@ -72,6 +72,8 @@ public class CallingData {
     private Map<Long, Org> baseOrgByOrgId;
     private Map<Long, Org> LcrBaseOrgByOrgId;
     private Map<Long, Org> lcrOrgsById;
+    private Map<Long, ConflictCause> orgConflicts;
+    private Map<String, ConflictCause> callingConflicts;
     private List<PositionMetaData> allPositionMetadata;
     private Map<Integer, PositionMetaData> positionMetaDataByPositionTypeId;
     private Set<Org> orgsToSave;
@@ -103,6 +105,8 @@ public class CallingData {
                                 orgsById = new HashMap<>();
                                 callingsById = new HashMap<String, Calling>();
                                 baseOrgByOrgId = new HashMap<>();
+                                orgConflicts = new HashMap<>();
+                                callingConflicts = new HashMap<>();
                                 pb.setProgress(pb.getProgress() + 20);
                                 googleDriveService.syncDriveIds(getAuthorizableOrgs(orgs, currentUser))
                                     .addOnSuccessListener(new OnSuccessListener<Boolean>() {
@@ -123,6 +127,7 @@ public class CallingData {
                                                             for (Org org : baseOrgsToRemove) {
                                                                 if (org.getConflictCause() != null && org.getConflictCause().getConflictCause().length() > 0) {
                                                                     setOrgConflict(org, ConflictCause.LDS_EQUIVALENT_DELETED);
+                                                                    orgConflicts.put(org.getId(), org.getConflictCause());
                                                                 }
                                                             }
                                                             /* Items to save */
@@ -232,6 +237,8 @@ public class CallingData {
                     orgsById = new HashMap<Long, Org>();
                     callingsById = new HashMap<String, Calling>();
                     baseOrgByOrgId = new HashMap<Long, Org>();
+                    orgConflicts = new HashMap<>();
+                    callingConflicts = new HashMap<>();
                     Task<Boolean> syncDriveIdsTask = googleDriveService.syncDriveIds(getAuthorizableOrgs(lcrOrgs, currentUser));
                     syncDriveIdsTask.addOnSuccessListener(new OnSuccessListener<Boolean>() {
                         @Override
@@ -361,6 +368,21 @@ public class CallingData {
         orgs.set(orgs.indexOf(originalOrg), newOrg);
         extractOrg(newOrg, baseOrg.getId());
         isAuthorizableOrg(newOrg, currentUser, baseOrg.getId());
+        restoreOrgConflicts(newOrg);
+    }
+
+    private void restoreOrgConflicts(Org org) {
+        if(orgConflicts.containsKey(org.getId())) {
+            setOrgConflict(org, orgConflicts.get(org.getId()));
+        }
+        for(Calling calling: org.getCallings()) {
+            if(callingConflicts.containsKey(calling.getCallingId())) {
+                calling.setConflictCause(callingConflicts.get(calling.getCallingId()));
+            }
+        }
+        for(Org subOrg: org.getChildren()) {
+            restoreOrgConflicts(subOrg);
+        }
     }
 
     public List<Org> getOrgs() {
@@ -417,6 +439,7 @@ public class CallingData {
                             if (!matchFound) {
                                 if (hasProposedData(cwfOrg)) {
                                     setOrgConflict(cwfOrg, ConflictCause.LDS_EQUIVALENT_DELETED);
+                                    orgConflicts.put(cwfOrg.getId(), cwfOrg.getConflictCause());
                                     cwfOrgsToAdd.add(cwfOrg);
                                 } else {
                                     baseOrgsToRemove.add(cwfOrg);
@@ -465,6 +488,7 @@ public class CallingData {
                     //org exists in cwf but not lcr, if it has proposed data flag and add to list
                     if(hasProposedData(cwfSubOrg)) {
                         setOrgConflict(cwfSubOrg, ConflictCause.LDS_EQUIVALENT_DELETED);
+                        orgConflicts.put(cwfSubOrg.getId(), cwfSubOrg.getConflictCause());
                         lcrOrg.getChildren().add(cwfSubOrg);
                     } else { //if it doesn't have proposed data don't add it and add org to the save list to remove missing subOrg from google drive
                         orgsToSave.add(lcrOrg);
@@ -539,9 +563,11 @@ public class CallingData {
                         //if neither of those is true then discard and set the org to be saved without it
                         if (potentialMatchesActual) {
                             cwfCalling.setConflictCause(ConflictCause.EQUIVALENT_POTENTIAL_AND_ACTUAL);
+                            callingConflicts.put(cwfCalling.getCallingId(), cwfCalling.getConflictCause());
                             lcrCallings.add(cwfCalling);
                         } else if(hasPotentialInfo) {
                             cwfCalling.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
+                            callingConflicts.put(cwfCalling.getCallingId(), cwfCalling.getConflictCause());
                             lcrCallings.add(cwfCalling);
                         } else {
                             orgsToSave.add(lcrOrg);
@@ -607,6 +633,7 @@ public class CallingData {
             } else {
                 Calling calling = cwfVacantCallings.get(i);
                 calling.setConflictCause(ConflictCause.LDS_EQUIVALENT_DELETED);
+                callingConflicts.put(calling.getCallingId(), calling.getConflictCause());
                 lcrOrg.getCallings().add(calling);
             }
         }
@@ -781,7 +808,6 @@ public class CallingData {
                                         googleCalling.setActiveDate(null);
                                         googleCalling.setActiveDateTime(null);
                                         googleCalling.setMemberId(null);
-                                        googleCalling.setConflictCause(null);
                                         googleDriveService.saveOrgFile(latestGoogleDriveOrg)
                                             .addOnSuccessListener(new OnSuccessListener<Boolean>() {
                                             @Override
@@ -846,7 +872,6 @@ public class CallingData {
                                     googleCalling.setActiveDateTime(DateTime.now());
                                     googleCalling.setCwfId("");
                                     googleCalling.setMemberId(jsonObject.getLong("memberId"));
-                                    googleCalling.setConflictCause(null);
                                     if (googleCalling.isCwfOnly()) {
                                         googleCalling.setCwfOnly(false);
                                     }
