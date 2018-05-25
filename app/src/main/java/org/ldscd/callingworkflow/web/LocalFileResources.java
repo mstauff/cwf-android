@@ -77,10 +77,11 @@ public class LocalFileResources implements IWebResources {
                             configCallback.onResponse(configInfo);
                         }
                     },
-                    new Response.Listener<WebException>() {
+                    new Response.ErrorListener() {
                         @Override
-                        public void onResponse(WebException response) {
-                            errorCallback.onResponse(response);
+                        public void onErrorResponse(VolleyError error) {
+                            Log.e(TAG, "load config error");
+                            error.printStackTrace();
                         }
                     }
             );
@@ -222,11 +223,11 @@ public class LocalFileResources implements IWebResources {
                             }
                         }
                     },
-                    new Response.Listener<WebException>() {
+                    new Response.ErrorListener() {
                         @Override
-                        public void onResponse(WebException response) {
-                            Log.e("Network", response.getMessage());
-                            errorCallback.onResponse(response);
+                        public void onErrorResponse(VolleyError error) {
+                            Log.e(TAG, "load config error");
+                            error.printStackTrace();
                         }
                     }
             );

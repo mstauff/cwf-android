@@ -117,25 +117,27 @@ public class WebResources implements IWebResources {
             configCallback.onResponse(configInfo);
         } else if(isDataConnected()) {
             GsonRequest<ConfigInfo> configRequest = new GsonRequest<>(
-                    Request.Method.GET,
-                    CONFIG_URL,
-                    ConfigInfo.class,
-                    null,
-                    null,
-                    new Response.Listener<ConfigInfo>() {
-                        @Override
-                        public void onResponse(ConfigInfo response) {
-                            Log.i(TAG, "config call successful");
-                            configInfo = response;
-                            configCallback.onResponse(configInfo);
-                        }
-                    },
-                    new Response.Listener<WebException>() {
-                        @Override
-                        public void onResponse(WebException response) {
-                            errorCallback.onResponse(response);
-                        }
+                Request.Method.GET,
+                CONFIG_URL,
+                ConfigInfo.class,
+                null,
+                null,
+                new Response.Listener<ConfigInfo>() {
+                    @Override
+                    public void onResponse(ConfigInfo response) {
+                        Log.i(TAG, "config call successful");
+                        configInfo = response;
+                        configCallback.onResponse(configInfo);
                     }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e(TAG, "load config error");
+                        error.printStackTrace();
+                        getLocalConfigInfo(configCallback, errorCallback);
+                    }
+                }
             );
             configRequest.setRetryPolicy(getRetryPolicy());
             requestQueue.add(configRequest);
