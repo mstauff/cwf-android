@@ -172,10 +172,10 @@ public class DataManagerImpl implements DataManager {
     }
     @Override
     public void loadOrgs(Response.Listener<Boolean> listener, Response.Listener<WebException> errorCallback, ProgressBar progressBar, Activity activity) {
-        if (currentUser != null) {
+        if (currentUser != null && permissionManager.hasPermission(currentUser.getUnitRoles(), Permission.ORG_INFO_READ)) {
             callingData.loadOrgs(listener, errorCallback, progressBar, activity, currentUser);
         } else {
-            errorCallback.onResponse(new WebException(ExceptionType.LDS_AUTH_REQUIRED));
+            errorCallback.onResponse(new WebException(currentUser == null ? ExceptionType.LDS_AUTH_REQUIRED : ExceptionType.NO_PERMISSIONS));
         }
     }
     @Override

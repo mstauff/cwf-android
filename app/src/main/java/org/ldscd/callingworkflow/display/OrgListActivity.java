@@ -208,6 +208,15 @@ public class OrgListActivity extends AppCompatActivity
                 case UNKOWN_GOOGLE_EXCEPTION:
                     messageView.setText(R.string.error_google_drive);
                     break;
+                case NO_PERMISSIONS:
+                    messageView.setText("You do not have permissions to run this application");
+                    dialogBuilder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialogInterface) {
+
+                        }
+                    });
+                    break;
                 default:
                     messageView.setText(R.string.error_generic_web);
 
