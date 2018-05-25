@@ -1,5 +1,6 @@
 package org.ldscd.callingworkflow.web;
 
+import com.android.volley.Header;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -46,11 +47,10 @@ public class AuthenticationRequest extends Request<String> {
             return Response.error(new WebException(ExceptionType.SERVER_UNAVAILABLE, response));
         }
         String sessionCookie = null;
-        if(response.headers.containsKey("Set-Cookie")) {
-            String[] cookies = response.headers.get("Set-Cookie").split(";");
-            for(String cookie: cookies) {
-                if(cookie.startsWith(cookieKey)) {
-                    sessionCookie = cookie;
+        for(Header header : response.allHeaders) {
+            if (header.getName().contains("Set-Cookie")) {
+                if (header.getValue().startsWith(cookieKey)) {
+                    sessionCookie = header.getValue();
                     break;
                 }
             }

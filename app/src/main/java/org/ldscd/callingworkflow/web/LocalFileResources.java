@@ -59,7 +59,7 @@ public class LocalFileResources implements IWebResources {
     }
 
     @Override
-    public void getConfigInfo(final Response.Listener<ConfigInfo> configCallback, Response.Listener<WebException> errorCallback) {
+    public void getConfigInfo(final Response.Listener<ConfigInfo> configCallback, final Response.Listener<WebException> errorCallback) {
         if(configInfo != null) {
             configCallback.onResponse(configInfo);
         } else {
@@ -77,11 +77,10 @@ public class LocalFileResources implements IWebResources {
                             configCallback.onResponse(configInfo);
                         }
                     },
-                    new Response.ErrorListener() {
+                    new Response.Listener<WebException>() {
                         @Override
-                        public void onErrorResponse(VolleyError error) {
-                            Log.e(TAG, "load config error");
-                            error.printStackTrace();
+                        public void onResponse(WebException response) {
+                            errorCallback.onResponse(response);
                         }
                     }
             );
@@ -120,6 +119,10 @@ public class LocalFileResources implements IWebResources {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    public void signOut(final Response.Listener<Boolean> authCallback, final Response.Listener<WebException> errorCallback) {
+        authCallback.onResponse(true);
     }
 
     public void getOrgs(boolean getCleanCopy, Response.Listener<List<Org>> orgsCallback, Response.Listener<WebException> errorCallback) {
@@ -173,7 +176,7 @@ public class LocalFileResources implements IWebResources {
         return json;
     }
 
-    public void updateCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback, Response.Listener<WebException> errorCallback) {
+    public void updateCalling(Calling calling, Long unitNumber, int orgTypeId, final Response.Listener<JSONObject> callback, final Response.Listener<WebException> errorCallback) {
         /*
         json: {
          "unitNumber": 56030,
@@ -219,10 +222,11 @@ public class LocalFileResources implements IWebResources {
                             }
                         }
                     },
-                    new Response.ErrorListener() {
+                    new Response.Listener<WebException>() {
                         @Override
-                        public void onErrorResponse(VolleyError error) {
-                            Log.e("Network", error.getMessage());
+                        public void onResponse(WebException response) {
+                            Log.e("Network", response.getMessage());
+                            errorCallback.onResponse(response);
                         }
                     }
             );

@@ -15,11 +15,8 @@ import com.google.android.gms.tasks.TaskCompletionSource;
 import com.google.android.gms.tasks.Tasks;
 
 import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.ldscd.callingworkflow.constants.CallingStatus;
 import org.ldscd.callingworkflow.constants.ClassAssignment;
-import org.ldscd.callingworkflow.constants.Operation;
 import org.ldscd.callingworkflow.constants.UnitLevelOrgType;
 import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.model.LdsUser;
@@ -40,9 +37,7 @@ import org.ldscd.callingworkflow.web.OrgCallingBuilder;
 import org.ldscd.callingworkflow.web.WebException;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class DataManagerImpl implements DataManager {
     private static final String TAG = "DataManager";
@@ -78,19 +73,19 @@ public class DataManagerImpl implements DataManager {
     @Override
     public void getUserInfo(String userName, String password, boolean hasChanges, final Response.Listener<LdsUser> userListener, Response.Listener<WebException> errorCallback) {
 
-        if(currentUser == null || hasChanges) {
-            if(hasChanges) {
+        if (currentUser == null || hasChanges) {
+            if (hasChanges) {
                 webResources.setCredentials(userName, password);
             }
             webResources.getUserInfo(hasChanges, new Response.Listener<LdsUser>() {
                 @Override
                 public void onResponse(LdsUser ldsUser) {
                     currentUser = ldsUser;
-                    if(currentUser != null &&
-                            (currentUser.getUnitRoles() == null ||
-                                    (currentUser.getUnitRoles() == null || currentUser.getUnitRoles().size() == 0))) {
-                        currentUser.setUnitRoles(permissionManager.createUnitRoles(currentUser.getPositions(),
-                                currentUser.getUnitNumber()));
+                    if (currentUser != null &&
+                        (currentUser.getUnitRoles() == null ||
+                         (currentUser.getUnitRoles() == null || currentUser.getUnitRoles().size() == 0)))
+                    {
+                        currentUser.setUnitRoles(permissionManager.createUnitRoles(currentUser.getPositions(), currentUser.getUnitNumber()));
                     }
                     userListener.onResponse(currentUser);
                 }
@@ -98,6 +93,11 @@ public class DataManagerImpl implements DataManager {
         } else {
             userListener.onResponse(currentUser);
         }
+    }
+    @Override
+    public void signOut(final Response.Listener<Boolean> authCallback, final Response.Listener<WebException> errorCallback) {
+        webResources.signOut(authCallback, errorCallback);
+        currentUser = null;
     }
     @Override
     public void getSharedPreferences(Response.Listener<SharedPreferences> listener) {
@@ -129,8 +129,8 @@ public class DataManagerImpl implements DataManager {
     public Task<Boolean> deleteOrg(final Org org) {
         final Org baseOrg = callingData.getBaseOrg(org.getId());
         final boolean isParentOrg = baseOrg != null && baseOrg.equals(org);
-        Task<Boolean> task = null;
-        if(isParentOrg) {
+        Task<Boolean> task;
+        if (isParentOrg) {
             /* Remove it from database/google drive */
             task = googleDataService.deleteOrg(org);
         } else {
@@ -140,8 +140,8 @@ public class DataManagerImpl implements DataManager {
         task.addOnSuccessListener(new OnSuccessListener<Boolean>() {
             @Override
             public void onSuccess(Boolean result) {
-                if(result) {
-                    if(isParentOrg) {
+                if (result) {
+                    if (isParentOrg) {
                         /* If it's a base org just remove it from cache once it's been deleted in the db */
                         callingData.removeOrg(baseOrg);
                     } else {
@@ -156,7 +156,7 @@ public class DataManagerImpl implements DataManager {
     }
     @Override
     public void refreshGoogleDriveOrgs(List<Long> orgIds, Response.Listener<Boolean> listener, Response.Listener<WebException> errorCallback) {
-        if(currentUser != null && !orgIds.isEmpty()) {
+        if (currentUser != null && !orgIds.isEmpty()) {
             callingData.refreshGoogleDriveOrgs(listener, errorCallback, currentUser, orgIds);
         } else {
             listener.onResponse(false);
@@ -164,7 +164,7 @@ public class DataManagerImpl implements DataManager {
     }
     @Override
     public void refreshLCROrgs(Response.Listener<Boolean> listener, Response.Listener<WebException> errorCallback) {
-        if(currentUser != null) {
+        if (currentUser != null) {
             callingData.refreshLCROrgs(listener, errorCallback, currentUser);
         } else {
             listener.onResponse(false);
@@ -172,7 +172,7 @@ public class DataManagerImpl implements DataManager {
     }
     @Override
     public void loadOrgs(Response.Listener<Boolean> listener, Response.Listener<WebException> errorCallback, ProgressBar progressBar, Activity activity) {
-        if(currentUser != null) {
+        if (currentUser != null) {
             callingData.loadOrgs(listener, errorCallback, progressBar, activity, currentUser);
         } else {
             errorCallback.onResponse(new WebException(ExceptionType.LDS_AUTH_REQUIRED));
@@ -249,20 +249,22 @@ public class DataManagerImpl implements DataManager {
     }
     @Override
     public void loadMembers(Response.Listener<Boolean> listener, Response.Listener<WebException> errorCallback, ProgressBar progressBar) {
-        if(permissionManager.hasPermission(currentUser.getUnitRoles(), Permission.ORG_INFO_READ)) {
+        if (permissionManager.hasPermission(currentUser.getUnitRoles(), Permission.ORG_INFO_READ)) {
             memberData.loadMembers(listener, errorCallback, progressBar);
+        } else {
+            errorCallback.onResponse(new WebException(ExceptionType.NO_PERMISSIONS));
         }
     }
     @Override
     public void loadClassMemberAssignments(final Response.Listener<Boolean> listener, final Response.Listener<WebException> errorCallback, final ProgressBar progressBar, final Activity activity) {
         List<Org> orgs = getOrgs();
-        if(orgs == null || orgs.size() == 0) {
+        if (orgs == null || orgs.size() == 0) {
             webResources.getOrgHierarchy()
                 .addOnSuccessListener(new OnSuccessListener<JSONArray>() {
                     @Override
                     public void onSuccess(JSONArray jsonArray) {
                         List<Org> orgHierarchyList = new OrgCallingBuilder().extractOrgs(jsonArray, true);
-                        if(orgHierarchyList != null) {
+                        if (orgHierarchyList != null) {
                             getClassAssignments(orgHierarchyList, true)
                                 .addOnSuccessListener(new OnSuccessListener<List<Org>>() {
                                     @Override
@@ -297,8 +299,8 @@ public class DataManagerImpl implements DataManager {
     private Task<List<Org>> getClassAssignments(List<Org> orgs, boolean getAllOrgs) {
         final TaskCompletionSource<List<Org>> taskClassMemberAssignment = new TaskCompletionSource<>();
         final List<Task<List<Org>>> tasks = new ArrayList<>();
-        for(Org org : orgs) {
-            if(getAllOrgs) {
+        for (Org org : orgs) {
+            if (getAllOrgs) {
                 tasks.add(webResources.getOrgWithMembers(org.getId()));
             } else {
                 for (ClassAssignment classAssignment : ClassAssignment.values()) {
@@ -314,7 +316,7 @@ public class DataManagerImpl implements DataManager {
             .addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
                 public void onSuccess(Void aVoid) {
-                    for(Task<List<Org>> item : tasks) {
+                    for (Task<List<Org>> item : tasks) {
                         taskClassMemberAssignment.setResult(item.getResult());
                     }
                 }
@@ -333,7 +335,7 @@ public class DataManagerImpl implements DataManager {
     @Override
     public void addCalling(Response.Listener<Boolean> listener, Response.Listener<WebException> errorListener, Calling calling) {
         Org baseOrg = callingData.getBaseOrg(calling.getParentOrg());
-        if(permissionManager.isAuthorized(currentUser.getUnitRoles(),
+        if (permissionManager.isAuthorized(currentUser.getUnitRoles(),
                 Permission.POTENTIAL_CALLING_CREATE,
                 new AuthorizableOrg(baseOrg.getUnitNumber(), UnitLevelOrgType.get(baseOrg.getOrgTypeId()), baseOrg.getOrgTypeId())))
         {
@@ -345,7 +347,7 @@ public class DataManagerImpl implements DataManager {
     @Override
     public void updateCalling(Response.Listener<Boolean> listener, Response.Listener<WebException> errorListener, Calling calling) {
         Org baseOrg = callingData.getBaseOrg(calling.getParentOrg());
-        if(permissionManager.isAuthorized(currentUser.getUnitRoles(),
+        if (permissionManager.isAuthorized(currentUser.getUnitRoles(),
                 Permission.POTENTIAL_CALLING_UPDATE,
                 new AuthorizableOrg(baseOrg.getUnitNumber(), UnitLevelOrgType.get(baseOrg.getOrgTypeId()), baseOrg.getOrgTypeId()))) {
             callingData.updateCalling(listener, errorListener, calling, baseOrg, currentUser);
@@ -354,28 +356,26 @@ public class DataManagerImpl implements DataManager {
     @Override
     public void deleteCalling(final Calling calling, final Response.Listener<Boolean> listener, final Response.Listener<WebException> errorListener) {
         final Org org = callingData.getBaseOrg(calling.getParentOrg());
-        if(permissionManager.isAuthorized(currentUser.getUnitRoles(),
+        if (permissionManager.isAuthorized(currentUser.getUnitRoles(),
                 Permission.POTENTIAL_CALLING_DELETE,
                 new AuthorizableOrg(org.getUnitNumber(), UnitLevelOrgType.get(org.getOrgTypeId()), org.getOrgTypeId()))) {
-            if(canDeleteCalling(calling, org)) {
+            if (canDeleteCalling(calling, org)) {
                 /* Get the latest file from google drive. */
-                final Task<Org> getOrgDataTask = googleDataService.getOrgData(org);
-                getOrgDataTask
+                googleDataService.getOrgData(org)
                     .addOnSuccessListener(new OnSuccessListener<Org>() {
                         @Override
                         public void onSuccess(final Org newOrg) {
-                            if(newOrg != null) {
+                            if (newOrg != null) {
                                 /* Get's the subOrg within the main org(ie. instructors subOrg in the EQ Org) */
                                 Org newParentOrg = callingData.findSubOrg(newOrg, calling.getParentOrg());
                                 /* Removes the calling from within the new org */
                                 newParentOrg.removeCalling(calling);
                                 /* Save the changes back to google drive */
-                                Task<Boolean> saveOrgFileTask = googleDataService.saveOrgFile(newOrg);
-                                saveOrgFileTask
+                                googleDataService.saveOrgFile(newOrg)
                                     .addOnSuccessListener(new OnSuccessListener<Boolean>() {
                                         @Override
                                         public void onSuccess(Boolean response) {
-                                            if(response) {
+                                            if (response) {
                                                 callingData.replaceOrg(newOrg, currentUser);
                                             }
                                             listener.onResponse(response);
@@ -436,7 +436,7 @@ public class DataManagerImpl implements DataManager {
             .addOnCompleteListener(new OnCompleteListener<Boolean>() {
                 @Override
                 public void onComplete(@NonNull Task<Boolean> task) {
-                    if(task.isSuccessful()) {
+                    if (task.isSuccessful()) {
                         listener.onResponse(task.getResult());
                     } else {
                         errorListener.onResponse(ensureWebException(task.getException()));

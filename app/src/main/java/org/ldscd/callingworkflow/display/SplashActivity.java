@@ -10,6 +10,7 @@ import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Response;
 import org.ldscd.callingworkflow.R;
@@ -35,7 +36,7 @@ public class SplashActivity extends AppCompatActivity {
         activity = this;
         ((CWFApplication)getApplication()).getNetComponent().inject(this);
         setContentView(R.layout.activity_splash);
-         pb = (ProgressBar) findViewById(R.id.progress_bar_splash);
+         pb = findViewById(R.id.progress_bar_splash);
         pb.setProgress(10);
         dataManager.getUserInfo(null, null, false, new Response.Listener<LdsUser>() {
             @Override
@@ -83,6 +84,7 @@ public class SplashActivity extends AppCompatActivity {
                 memberDataFinished = true;
                 if(dataManager.isGoogleDriveAuthenticated(getApplicationContext())) {
                     dataManager.loadOrgs(orgListener, webErrorListener, pb, activity);
+                    //dataManager.loadClassMemberAssignments(orgListener, webErrorListener, pb, activity);
                 } else {
                     Intent intent = new Intent(SplashActivity.this, GoogleDriveOptionsActivity.class);
                     intent.putExtra("activity", SPLASH_ACTIVITY);
@@ -91,7 +93,10 @@ public class SplashActivity extends AppCompatActivity {
                 if(orgDataFinished) {
                     startApplication();
                 }
+            } else {
+
             }
+
         }
     };
 
@@ -145,6 +150,15 @@ public class SplashActivity extends AppCompatActivity {
                     break;
                 case UNKOWN_GOOGLE_EXCEPTION:
                     messageView.setText(R.string.error_google_drive);
+                    dialogBuilder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialogInterface) {
+                            startApplication();
+                        }
+                    });
+                    break;
+                case NO_PERMISSIONS:
+                    messageView.setText("You do not have permissions to run this application");
                     dialogBuilder.setOnDismissListener(new DialogInterface.OnDismissListener() {
                         @Override
                         public void onDismiss(DialogInterface dialogInterface) {

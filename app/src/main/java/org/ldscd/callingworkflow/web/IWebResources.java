@@ -30,6 +30,8 @@ public interface IWebResources {
 
     void getUserInfo(boolean getClean, Response.Listener<LdsUser> userCallback, Response.Listener<WebException> errorCallback);
 
+    void signOut(final Response.Listener<Boolean> authCallback, final Response.Listener<WebException> errorCallback);
+
     void getOrgs(boolean getCleanCopy, Response.Listener<List<Org>> orgsCallback, Response.Listener<WebException> errorCallback);
 
     Task<List<Org>> getOrgWithMembers(Long subOrgId);

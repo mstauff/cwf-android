@@ -12,6 +12,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.RetryPolicy;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskCompletionSource;
 import com.google.gson.Gson;
@@ -39,14 +40,13 @@ import java.net.HttpCookie;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class WebResources implements IWebResources {
     private static final String TAG = "WebResourcesLog";
-    private static final String CONFIG_URL = BuildConfig.appConfigUrl; // "http://dev-config-server-ldscd.7e14.starter-us-west-2.openshiftapps.com/cwf/config?env=stage";
+    private static final String CONFIG_URL = BuildConfig.appConfigUrl;
     private static final String prefUsername = "username";
     private static final String prefPassword = "password";
 
@@ -117,27 +117,25 @@ public class WebResources implements IWebResources {
             configCallback.onResponse(configInfo);
         } else if(isDataConnected()) {
             GsonRequest<ConfigInfo> configRequest = new GsonRequest<>(
-                Request.Method.GET,
-                CONFIG_URL,
-                ConfigInfo.class,
-                null,
-                null,
-                new Response.Listener<ConfigInfo>() {
-                    @Override
-                    public void onResponse(ConfigInfo response) {
-                        Log.i(TAG, "config call successful");
-                        configInfo = response;
-                        configCallback.onResponse(configInfo);
+                    Request.Method.GET,
+                    CONFIG_URL,
+                    ConfigInfo.class,
+                    null,
+                    null,
+                    new Response.Listener<ConfigInfo>() {
+                        @Override
+                        public void onResponse(ConfigInfo response) {
+                            Log.i(TAG, "config call successful");
+                            configInfo = response;
+                            configCallback.onResponse(configInfo);
+                        }
+                    },
+                    new Response.Listener<WebException>() {
+                        @Override
+                        public void onResponse(WebException response) {
+                            errorCallback.onResponse(response);
+                        }
                     }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.e(TAG, "load config error");
-                        error.printStackTrace();
-                        getLocalConfigInfo(configCallback, errorCallback);
-                    }
-                }
             );
             configRequest.setRetryPolicy(getRetryPolicy());
             requestQueue.add(configRequest);
@@ -177,7 +175,7 @@ public class WebResources implements IWebResources {
                         errorCallback.onResponse(new WebException(ExceptionType.LDS_AUTH_REQUIRED));
                     } else {
                         /* get the cookie because it has the information for the rest headers */
-                        getAuthCookie(new Response.Listener<String>() {
+                        getAuthCookie(getClean, new Response.Listener<String>() {
                             @Override
                             public void onResponse(final String authCookie) {
                                 /* Make the rest call to get the current users information. */
@@ -210,9 +208,9 @@ public class WebResources implements IWebResources {
         }
     }
 
-    private void getAuthCookie(final Response.Listener<String> authCallback, final Response.Listener<WebException> errorCallback) {
+    private void getAuthCookie(boolean getFreshCopy, final Response.Listener<String> authCallback, final Response.Listener<WebException> errorCallback) {
         /* Capture the cookie info stored in preferences as well check to verify it's not expired. */
-        if(preferences.contains("Cookie") && httpCookie != null && !httpCookie.hasExpired()) {
+        if(preferences.contains("Cookie") && httpCookie != null && !httpCookie.hasExpired() && !getFreshCopy) {
             authCookie = preferences.getString("Cookie", null);
             //TODO: Not sure if the httpCookie needs to be refreshed when kept active or it does it automagically
             authCallback.onResponse(authCookie);
@@ -256,9 +254,84 @@ public class WebResources implements IWebResources {
         }
     }
 
+    public void signOut(final Response.Listener<Boolean> authCallback, final Response.Listener<WebException> errorCallback) {
+        /* Authentication Request to the LDS church. */
+        StringRequest authRequest = new StringRequest(Request.Method.GET, configInfo.getEndpointUrl("SIGN_OUT"),
+                new Response.Listener<String>()
+                {
+                    @Override
+                    public void onResponse(String response) {
+                        Log.d("Response", response);
+                        httpCookie = null;
+                        userInfo = null;
+                        SharedPreferences.Editor editor = preferences.edit();
+                        editor.remove(prefUsername);
+                        editor.remove(prefPassword);
+                        editor.remove("Cookie");
+                        editor.commit();
+
+                        authCallback.onResponse(true);
+                    }
+                },
+                new Response.ErrorListener()
+                {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // error
+                        Log.d("Error.Response", error.getMessage());
+                        httpCookie = null;
+                        userInfo = null;
+                        SharedPreferences.Editor editor = preferences.edit();
+                        editor.remove(prefUsername);
+                        editor.remove(prefPassword);
+                        editor.remove("Cookie");
+                        editor.commit();
+
+                        authCallback.onResponse(true);
+                    }
+                }
+        ) {
+            @Override
+            protected Map<String, String> getParams()
+            {
+                Map<String, String>  params = new HashMap<>();
+
+                return params;
+            }
+        };
+        /*GsonRequest<String> authRequest = new GsonRequest<>(Request.Method.GET, configInfo.getEndpointUrl("SIGN_OUT"), String.class, null, null,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        Log.i(TAG, "auth call successful");
+                        *//* Sets the cookie, username and password in long term storage.
+                         * This is only accessible through this application.  *//*
+                        httpCookie = null;
+                        SharedPreferences.Editor editor = preferences.edit();
+                        editor.remove(prefUsername);
+                        editor.remove(prefPassword);
+                        editor.remove("Cookie");
+                        editor.apply();
+
+                        authCallback.onResponse(true);
+                    }
+                },
+                new Response.Listener<WebException>() {
+                    @Override
+                    public void onResponse(WebException error) {
+                        Log.e(TAG, "log");
+                        error.printStackTrace();
+                        errorCallback.onResponse(error);
+                    }
+                }
+        );*/
+        authRequest.setRetryPolicy(getRetryPolicy());
+        requestQueue.add(authRequest);
+    }
+
     private void getUser(final String authCookie, final Response.Listener<Boolean> userCallback, final Response.Listener<WebException> errorCallback) {
         // Create a list of calling(s)/Positions(s) for the current user.
-        final List<Position> positions = new ArrayList<Position>();
+        final List<Position> positions = new ArrayList<>();
 //        Position position = new Position("Bishop", 4, false, false, 1L, 56030L);
 //        userInfo = new LdsUser(222222222L, Collections.singletonList(position));
 //        unitNumber = "56030";
@@ -279,16 +352,21 @@ public class WebResources implements IWebResources {
                         Log.i(TAG, json.toString());
                         try {
                             // Parse out the returned json to capture the positions occupied by this person.
-                            JSONArray assignments = json.getJSONArray("memberAssignments");
-                            OrgCallingBuilder builder = new OrgCallingBuilder();
-                            for(int i = 0; i < assignments.length(); i++) {
-                                positions.add(builder.extractPosition((JSONObject) assignments.get(i)));
+                            if(json.has("memberAssignments")) {
+                                JSONArray assignments = json.getJSONArray("memberAssignments");
+                                OrgCallingBuilder builder = new OrgCallingBuilder();
+                                for (int i = 0; i < assignments.length(); i++) {
+                                    positions.add(builder.extractPosition((JSONObject) assignments.get(i)));
+                                }
+                                unitNumber = json.getJSONArray("memberAssignments").getJSONObject(0).getString("unitNo");
                             }
                             /* Gets the Unit Number for this person by way of the position they hold.
                             *  Currently we are only storing the unit number for the first calling we get.
                             *  If they have callings in multiple units this will not be supported.
                             */
-                            unitNumber = json.getJSONArray("memberAssignments").getJSONObject(0).getString("unitNo");
+                            if(unitNumber == null) {
+                                unitNumber = json.get("homeUnitNbr").toString();
+                            }
                             long individualId = json.getLong("individualId");
                             user = new LdsUser(individualId, positions);
                         } catch (JSONException e) {
@@ -358,7 +436,7 @@ public class WebResources implements IWebResources {
     @Override
     public Task<List<Org>> getOrgWithMembers(final Long subOrgId) {
         final TaskCompletionSource<List<Org>> completionSource = new TaskCompletionSource<>();
-        Map<String, String> headers = new HashMap<String, String>();
+        Map<String, String> headers = new HashMap<>();
         headers.put("Cookie", authCookie);
         headers.put("Content-type", "application/json");
         headers.put("Accept", "application/json");
@@ -448,7 +526,7 @@ public class WebResources implements IWebResources {
     }
 
     private String getJSONFromAssets(String fileName) {
-        String json = null;
+        String json;
         try {
             InputStream is = context.getAssets().open(fileName);
             int size = is.available();
@@ -496,7 +574,7 @@ public class WebResources implements IWebResources {
                     positionIds.put(calling.getId());
                     json.put("releasePositionIds", positionIds);
                 }
-                Map<String, String> headers = new HashMap<String, String>();
+                Map<String, String> headers = new HashMap<>();
                 headers.put("Cookie", authCookie);
                 headers.put("Accept", "application/json");
                 LcrJsonRequest updateCallingRequest = new LcrJsonRequest(
@@ -520,7 +598,7 @@ public class WebResources implements IWebResources {
                         if (error.getExceptionType() == ExceptionType.SESSION_EXPIRED && attemptSessionRefresh) {
                             httpCookie = null;
                             attemptSessionRefresh = false;
-                            getAuthCookie(new Response.Listener<String>() {
+                            getAuthCookie(false, new Response.Listener<String>() {
                                 @Override
                                 public void onResponse(String response) {
                                     updateCalling(calling, unitNumber, orgTypeId, callback, errorCallback);
@@ -572,7 +650,7 @@ public class WebResources implements IWebResources {
                 DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
                 json.put("releaseDate", date.toString(fmt));
 
-                Map<String, String> headers = new HashMap<String, String>();
+                Map<String, String> headers = new HashMap<>();
                 headers.put("Cookie", authCookie);
                 headers.put("Accept", "application/json");
                 LcrJsonRequest releaseCallingRequest = new LcrJsonRequest(
@@ -596,7 +674,7 @@ public class WebResources implements IWebResources {
                         if (error.getExceptionType() == ExceptionType.SESSION_EXPIRED && attemptSessionRefresh) {
                             httpCookie = null;
                             attemptSessionRefresh = false;
-                            getAuthCookie(new Response.Listener<String>() {
+                            getAuthCookie(false, new Response.Listener<String>() {
                                 @Override
                                 public void onResponse(String response) {
                                     releaseCalling(calling, unitNumber, orgTypeId, callback, errorCallback);
@@ -661,7 +739,7 @@ public class WebResources implements IWebResources {
 
                 json.put("hidden", true);
 
-                Map<String, String> headers = new HashMap<String, String>();
+                Map<String, String> headers = new HashMap<>();
                 headers.put("Cookie", authCookie);
                 headers.put("Accept", "application/json");
                 LcrJsonRequest deleteCallingRequest = new LcrJsonRequest(
@@ -681,7 +759,7 @@ public class WebResources implements IWebResources {
                         if (error.getExceptionType() == ExceptionType.SESSION_EXPIRED && attemptSessionRefresh) {
                             httpCookie = null;
                             attemptSessionRefresh = false;
-                            getAuthCookie(new Response.Listener<String>() {
+                            getAuthCookie(false, new Response.Listener<String>() {
                                 @Override
                                 public void onResponse(String response) {
                                     deleteCalling(calling, unitNumber, orgTypeId, callback, errorCallback);
