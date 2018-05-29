@@ -1,6 +1,8 @@
 package org.ldscd.callingworkflow.display;
 
 import android.app.Application;
+import android.content.Intent;
+import android.util.Log;
 
 import org.ldscd.callingworkflow.dependencies.ApplicationContextModule;
 import org.ldscd.callingworkflow.dependencies.DaggerNetComponent;
@@ -16,9 +18,31 @@ public class CWFApplication extends Application {
         netComponent = DaggerNetComponent.builder()
                 .applicationContextModule(new ApplicationContextModule(this))
                 .build();
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+
+            @Override
+            public void uncaughtException(Thread thread, Throwable ex) {
+                handleUncaughtException(thread, ex);
+            }
+        });
+
     }
 
     public NetComponent getNetComponent() {
         return netComponent;
     }
+
+    public void handleUncaughtException (Thread thread, Throwable e)
+    {
+        String stackTrace = Log.getStackTraceString(e);
+        String message = e.getMessage();
+        Intent intent = new Intent (Intent.ACTION_SEND);
+        intent.setType("message/rfc822");
+        intent.putExtra (Intent.EXTRA_EMAIL, new String[] {"lds.community.dev@email.com"});
+        intent.putExtra (Intent.EXTRA_SUBJECT, "CWF Crash log file");
+        intent.putExtra (Intent.EXTRA_TEXT, stackTrace);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // required when starting from Application
+        startActivity(intent);
+    }
+
 }
