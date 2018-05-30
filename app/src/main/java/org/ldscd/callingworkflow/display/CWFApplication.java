@@ -38,9 +38,9 @@ public class CWFApplication extends Application {
         String message = e.getMessage();
         Intent intent = new Intent (Intent.ACTION_SEND);
         intent.setType("message/rfc822");
-        intent.putExtra (Intent.EXTRA_EMAIL, new String[] {"lds.community.dev@email.com"});
+        intent.putExtra (Intent.EXTRA_EMAIL, new String[] {"lds.community.dev@gmail.com"});
         intent.putExtra (Intent.EXTRA_SUBJECT, "CWF Crash log file");
-        intent.putExtra (Intent.EXTRA_TEXT, stackTrace);
+        intent.putExtra (Intent.EXTRA_TEXT, message + "\n\n\n" + stackTrace);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // required when starting from Application
         startActivity(intent);
     }
