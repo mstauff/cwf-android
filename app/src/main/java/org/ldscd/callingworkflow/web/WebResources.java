@@ -12,7 +12,9 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.RetryPolicy;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.HurlStack;
 import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskCompletionSource;
 import com.google.gson.Gson;
@@ -37,8 +39,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.CookieManager;
 import java.net.HttpCookie;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,6 +55,7 @@ public class WebResources implements IWebResources {
     private static final String prefPassword = "password";
 
     private RequestQueue requestQueue;
+    private RequestQueue authRequestQueue;
     private SharedPreferences preferences;
     private NetworkInfo networkInfo;
 
@@ -79,6 +84,15 @@ public class WebResources implements IWebResources {
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
+        authRequestQueue = Volley.newRequestQueue(context.getApplicationContext(), new HurlStack() {
+            @Override
+            protected HttpURLConnection createConnection(URL url) throws IOException {
+                HttpURLConnection connection = super.createConnection(url);
+                connection.setInstanceFollowRedirects(false);
+
+                return connection;
+            }
+        });
     }
 
     private boolean isDataConnected() {
@@ -245,7 +259,7 @@ public class WebResources implements IWebResources {
                     }
             );
             authRequest.setRetryPolicy(getRetryPolicy());
-            requestQueue.add(authRequest);
+            authRequestQueue.add(authRequest);
         }
     }
 

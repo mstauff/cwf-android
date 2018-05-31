@@ -45,15 +45,7 @@ public class NetModule {
     @Singleton
     RequestQueue providesRequestQueue(Context applicationContext, CookieManager cookieManager) {
         CookieHandler.setDefault(cookieManager);
-        return Volley.newRequestQueue(applicationContext, new HurlStack() {
-            @Override
-            protected HttpURLConnection createConnection(URL url) throws IOException {
-                HttpURLConnection connection = super.createConnection(url);
-                connection.setInstanceFollowRedirects(false);
-
-                return connection;
-            }
-        });
+        return Volley.newRequestQueue(applicationContext);
     }
 
     @Provides
