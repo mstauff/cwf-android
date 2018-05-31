@@ -3,6 +3,7 @@ package org.ldscd.callingworkflow.dependencies;
 import android.content.Context;
 import android.content.SharedPreferences;
 import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.HurlStack;
 import com.android.volley.toolbox.Volley;
 import dagger.Module;
 import dagger.Provides;
@@ -20,9 +21,12 @@ import org.ldscd.callingworkflow.web.CallingData;
 import org.ldscd.callingworkflow.web.MemberData;
 import org.ldscd.callingworkflow.web.WebResources;
 
+import java.io.IOException;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 import javax.inject.Singleton;
 
@@ -41,7 +45,15 @@ public class NetModule {
     @Singleton
     RequestQueue providesRequestQueue(Context applicationContext, CookieManager cookieManager) {
         CookieHandler.setDefault(cookieManager);
-        return Volley.newRequestQueue(applicationContext);
+        return Volley.newRequestQueue(applicationContext, new HurlStack() {
+            @Override
+            protected HttpURLConnection createConnection(URL url) throws IOException {
+                HttpURLConnection connection = super.createConnection(url);
+                connection.setInstanceFollowRedirects(false);
+
+                return connection;
+            }
+        });
     }
 
     @Provides
