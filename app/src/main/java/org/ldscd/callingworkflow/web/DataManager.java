@@ -26,7 +26,7 @@ public interface DataManager {
     boolean isGoogleDriveAuthenticated(Context context);
     /* User data */
     LdsUser getCurrentUser();
-    void getUserInfo(String userName, String password, boolean hasChanges, Response.Listener<LdsUser> userListener, Response.Listener<WebException> errorCallback);
+    void getUserInfo(String userName, String password, Response.Listener<LdsUser> userListener, Response.Listener<WebException> errorCallback);
     void signOut(final Response.Listener<Boolean> authCallback, final Response.Listener<WebException> errorCallback);
     void getSharedPreferences(Response.Listener<SharedPreferences> listener);
     /* Calling data. */

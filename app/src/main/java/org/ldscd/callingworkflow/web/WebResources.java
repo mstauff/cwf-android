@@ -157,8 +157,8 @@ public class WebResources implements IWebResources {
     }
 
     @Override
-    public void getUserInfo(final boolean getClean, final Response.Listener<LdsUser> userCallback, final Response.Listener<WebException> errorCallback) {
-        if(userInfo != null && !getClean) {
+    public void getUserInfo(final Response.Listener<LdsUser> userCallback, final Response.Listener<WebException> errorCallback) {
+        if(userInfo != null) {
             userCallback.onResponse(userInfo);
         } else if(isDataConnected()) {
             /* Get config info because it has the URL strings */
@@ -169,14 +169,12 @@ public class WebResources implements IWebResources {
                     if (userName == null || password == null) {
                       loadCredentials();
                     }
-//                    userName = "ngiwb1";
-//                    password = "password1";
                     /* re-check credentials.  If invalid return null LdsUser. */
                     if(userName == null || userName.length() == 0 || password == null || password.length() == 0) {
                         errorCallback.onResponse(new WebException(ExceptionType.LDS_AUTH_REQUIRED));
                     } else {
                         /* get the cookie because it has the information for the rest headers */
-                        getAuthCookie(getClean, new Response.Listener<Boolean>() {
+                        getAuthCookie(new Response.Listener<Boolean>() {
                             @Override
                             public void onResponse(final Boolean success) {
                                 /* Make the rest call to get the current users information. */
@@ -193,7 +191,7 @@ public class WebResources implements IWebResources {
                                         if(error.getExceptionType() == ExceptionType.SESSION_EXPIRED && attemptSessionRefresh) {
                                             httpCookie = null;
                                             attemptSessionRefresh = false;
-                                            getUserInfo(getClean, userCallback, errorCallback);
+                                            getUserInfo(userCallback, errorCallback);
                                         } else {
                                             errorCallback.onResponse(error);
                                         }
@@ -209,10 +207,9 @@ public class WebResources implements IWebResources {
         }
     }
 
-    private void getAuthCookie(boolean getFreshCopy, final Response.Listener<Boolean> authCallback, final Response.Listener<WebException> errorCallback) {
+    private void getAuthCookie(final Response.Listener<Boolean> authCallback, final Response.Listener<WebException> errorCallback) {
         /* Capture the cookie info stored in preferences as well check to verify it's not expired. */
-        if(httpCookie != null && !httpCookie.hasExpired() && !getFreshCopy) {
-            //TODO: Not sure if the httpCookie needs to be refreshed when kept active or it does it automagically
+        if(httpCookie != null && !httpCookie.hasExpired()) {
             authCallback.onResponse(true);
         } else {
             /* Authentication Request to the LDS church. */
@@ -262,6 +259,8 @@ public class WebResources implements IWebResources {
                         Log.d("Response", response);
                         httpCookie = null;
                         userInfo = null;
+                        userName = null;
+                        password = null;
                         SharedPreferences.Editor editor = preferences.edit();
                         editor.remove(prefUsername);
                         editor.remove(prefPassword);
@@ -276,9 +275,11 @@ public class WebResources implements IWebResources {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         // error
-                        Log.d("Error.Response", error.getMessage());
+                        Log.e("Error.Response", error.networkResponse.statusCode + "");
                         httpCookie = null;
                         userInfo = null;
+                        userName = null;
+                        password = null;
                         SharedPreferences.Editor editor = preferences.edit();
                         editor.remove(prefUsername);
                         editor.remove(prefPassword);
@@ -297,32 +298,6 @@ public class WebResources implements IWebResources {
                 return params;
             }
         };
-        /*GsonRequest<String> authRequest = new GsonRequest<>(Request.Method.GET, configInfo.getEndpointUrl("SIGN_OUT"), String.class, null, null,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        Log.i(TAG, "auth call successful");
-                        *//* Sets the cookie, username and password in long term storage.
-                         * This is only accessible through this application.  *//*
-                        httpCookie = null;
-                        SharedPreferences.Editor editor = preferences.edit();
-                        editor.remove(prefUsername);
-                        editor.remove(prefPassword);
-                        editor.remove("Cookie");
-                        editor.apply();
-
-                        authCallback.onResponse(true);
-                    }
-                },
-                new Response.Listener<WebException>() {
-                    @Override
-                    public void onResponse(WebException error) {
-                        Log.e(TAG, "log");
-                        error.printStackTrace();
-                        errorCallback.onResponse(error);
-                    }
-                }
-        );*/
         authRequest.setRetryPolicy(getRetryPolicy());
         requestQueue.add(authRequest);
     }
@@ -384,7 +359,7 @@ public class WebResources implements IWebResources {
         if(orgsInfo != null && !getCleanCopy) {
             orgsCallback.onResponse(orgsInfo);
         } else if(isDataConnected()) {
-            getUserInfo(false, new Response.Listener<LdsUser>() {
+            getUserInfo(new Response.Listener<LdsUser>() {
                 @Override
                 public void onResponse(LdsUser ldsUser) {
                     if(BuildConfig.DEBUG) {
@@ -476,7 +451,7 @@ public class WebResources implements IWebResources {
         if(wardMemberList != null) {
             wardCallback.onResponse(wardMemberList);
         } else if(isDataConnected()) {
-            getUserInfo(false, new Response.Listener<LdsUser>() {
+            getUserInfo(new Response.Listener<LdsUser>() {
                 @Override
                 public void onResponse(LdsUser ldsUser) {
                     MemberListRequest wardListRequest = new MemberListRequest(
@@ -588,7 +563,7 @@ public class WebResources implements IWebResources {
                         if (error.getExceptionType() == ExceptionType.SESSION_EXPIRED && attemptSessionRefresh) {
                             httpCookie = null;
                             attemptSessionRefresh = false;
-                            getAuthCookie(false, new Response.Listener<Boolean>() {
+                            getAuthCookie(new Response.Listener<Boolean>() {
                                 @Override
                                 public void onResponse(Boolean success) {
                                     updateCalling(calling, unitNumber, orgTypeId, callback, errorCallback);
@@ -660,7 +635,7 @@ public class WebResources implements IWebResources {
                         if (error.getExceptionType() == ExceptionType.SESSION_EXPIRED && attemptSessionRefresh) {
                             httpCookie = null;
                             attemptSessionRefresh = false;
-                            getAuthCookie(false, new Response.Listener<Boolean>() {
+                            getAuthCookie(new Response.Listener<Boolean>() {
                                 @Override
                                 public void onResponse(Boolean response) {
                                     releaseCalling(calling, unitNumber, orgTypeId, callback, errorCallback);
@@ -741,7 +716,7 @@ public class WebResources implements IWebResources {
                         if (error.getExceptionType() == ExceptionType.SESSION_EXPIRED && attemptSessionRefresh) {
                             httpCookie = null;
                             attemptSessionRefresh = false;
-                            getAuthCookie(false, new Response.Listener<Boolean>() {
+                            getAuthCookie(new Response.Listener<Boolean>() {
                                 @Override
                                 public void onResponse(Boolean response) {
                                     deleteCalling(calling, unitNumber, orgTypeId, callback, errorCallback);
@@ -772,7 +747,7 @@ public class WebResources implements IWebResources {
     public Task<JSONArray> getOrgHierarchy() {
         final TaskCompletionSource<JSONArray> taskCompletionSource = new TaskCompletionSource<>();
         if(isDataConnected()) {
-            getUserInfo(false, new Response.Listener<LdsUser>() {
+            getUserInfo(new Response.Listener<LdsUser>() {
                 @Override
                 public void onResponse(LdsUser ldsUser) {
                     JSONArrayRequest orgsRequest = new JSONArrayRequest(

@@ -38,7 +38,7 @@ public class SplashActivity extends AppCompatActivity {
         setContentView(R.layout.activity_splash);
          pb = findViewById(R.id.progress_bar_splash);
         pb.setProgress(10);
-        dataManager.getUserInfo(null, null, false, new Response.Listener<LdsUser>() {
+        dataManager.getUserInfo(null, null, new Response.Listener<LdsUser>() {
             @Override
             public void onResponse(LdsUser ldsUser) {
                 if(ldsUser != null && ldsUser.getIndividualId() > 0) {

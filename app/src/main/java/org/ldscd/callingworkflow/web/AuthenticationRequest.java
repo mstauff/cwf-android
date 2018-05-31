@@ -48,7 +48,7 @@ public class AuthenticationRequest extends Request<Boolean> {
         if(response.statusCode == 200) {
             return Response.success(true, HttpHeaderParser.parseCacheHeaders(response));
         } else {
-            return Response.error(new WebException(ExceptionType.UNKNOWN_EXCEPTION, response));
+            return Response.error(new WebException(ExceptionType.UNAUTHORIZED, response));
         }
     }
 

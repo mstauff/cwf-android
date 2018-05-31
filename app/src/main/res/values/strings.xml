@@ -128,7 +128,8 @@
     <string name="action_signed_in_err">"Error: please try again."</string>
     <string name="error_invalid_email">This username is invalid</string>
     <string name="error_invalid_password">This password is too short</string>
-    <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_incorrect_password">Please check the password</string>
+    <string name="error_incorrect_username">Please check the username</string>
     <string name="error_field_required">This field is required</string>
     <string name="permission_rationale">"Permissions are needed for this app to function correctly</string>
     <string name="title_activity_settings">Settings</string>
@@ -168,4 +169,5 @@
     <string name="error_generic_web">An unexpected error has occurred while attempting to retrieve your data. Please try again later.</string>
     <string name="login_before_refresh">Please login before trying to refresh your data.</string>
     <string name="action_failed">Action Failed: %1$s</string>
+    <string name="lds_account_failed_login">Failed to login.  Please check that your username and password are correct.</string>
 </resources>

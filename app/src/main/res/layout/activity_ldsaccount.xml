@@ -46,55 +46,89 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <AutoCompleteTextView
-                android:id="@+id/userName"
+            <LinearLayout
+                android:id="@+id/lds_credentials_login_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/roboto"
-                android:hint="@string/prompt_username"
-                android:inputType="text"
-                android:maxLines="1"
-                android:singleLine="true"/>
+                android:orientation="vertical">
 
-            <EditText
-                android:id="@+id/password"
+                <EditText
+                    android:id="@+id/userName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/roboto"
+                    android:hint="@string/prompt_username"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:singleLine="true"/>
+
+                <EditText
+                    android:id="@+id/password"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/roboto"
+                    android:hint="@string/prompt_password"
+                    android:imeOptions="actionUnspecified"
+                    android:inputType="textPassword"
+                    android:maxLines="1"
+                    android:singleLine="true"/>
+
+                <Button
+                    android:id="@+id/lds_credentials_sign_in_button"
+                    style="?android:textAppearanceSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:fontFamily="@font/roboto"
+                    android:textSize="@dimen/text_size_medium"
+                    android:text="@string/action_sign_in_short" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/lds_credentials_logged_in_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/roboto"
-                android:hint="@string/prompt_password"
-                android:imeOptions="actionUnspecified"
-                android:inputType="textPassword"
-                android:maxLines="1"
-                android:singleLine="true"/>
+                android:orientation="vertical"
+                android:visibility="gone">
 
-            <Button
-                android:id="@+id/lds_credentials_sign_in_button"
-                style="?android:textAppearanceSmall"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:fontFamily="@font/roboto"
-                android:textSize="@dimen/text_size_medium"
-                android:text="@string/action_sign_in" />
+                <TextView
+                    android:id="@+id/lds_credentials_logged_in_status_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:textColor="@color/ldstools_black"
+                    android:textSize="16sp"/>
 
-            <View
-                android:layout_marginTop="20dp"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/ldstools_gray_very_light"/>
+                <Button
+                    android:id="@+id/lds_credentials_sign_out_button"
+                    style="?android:textAppearanceSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:fontFamily="@font/roboto"
+                    android:textSize="@dimen/text_size_medium"
+                    android:text="@string/action_sign_out_short" />
 
-            <Button
-                android:text="@string/resync_data"
-                android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:layout_marginTop="30dp"
-                android:fontFamily="@font/roboto"
-                android:id="@+id/button_data_sync"
-                android:background="@color/app_theme_color"
-                android:textSize="@dimen/text_size_medium"
-                android:textColor="@color/white"
-                style="?android:textAppearanceSmall" />
+                <View
+                    android:layout_marginTop="20dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/ldstools_gray_very_light"/>
 
+                <Button
+                    android:text="@string/resync_data"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="30dp"
+                    android:fontFamily="@font/roboto"
+                    android:id="@+id/button_data_sync"
+                    android:background="@color/app_theme_color"
+                    android:textSize="@dimen/text_size_medium"
+                    android:textColor="@color/white"
+                    style="?android:textAppearanceSmall" />
+
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

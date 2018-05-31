@@ -8,15 +8,14 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,15 +23,13 @@ import com.android.volley.Response;
 
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.model.LdsUser;
+import org.ldscd.callingworkflow.model.permissions.PermissionManager;
+import org.ldscd.callingworkflow.model.permissions.constants.Permission;
 import org.ldscd.callingworkflow.utils.SecurityUtil;
 import org.ldscd.callingworkflow.web.DataManager;
 import org.ldscd.callingworkflow.web.ExceptionType;
 import org.ldscd.callingworkflow.web.UI.Spinner;
 import org.ldscd.callingworkflow.web.WebException;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 
 import javax.inject.Inject;
 
@@ -47,13 +44,14 @@ public class LDSAccountActivity extends AppCompatActivity {
     private UserLoginTask mAuthTask = null;
 
     /* UI references. */
-    private AutoCompleteTextView userNameView;
+    private EditText userNameView;
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
     @Inject
     DataManager dataManager;
     SharedPreferences sharedPreferences;
+    private LdsUser currentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,24 +94,42 @@ public class LDSAccountActivity extends AppCompatActivity {
             }
         });
 
+        findViewById(R.id.lds_credentials_sign_out_button)
+            .setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    logOut();
+                }
+            });
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
 
-        LdsUser user = dataManager.getCurrentUser();
-        setRefreshButton(user != null);
+        currentUser = dataManager.getCurrentUser();
+        toggleView();
     }
 
-    private void setRefreshButton(boolean canUpdate) {
+    private void toggleView() {
         Button refreshDataButton = findViewById(R.id.button_data_sync);
-        if(canUpdate) {
-            refreshDataButton.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    AlertDialog dialog = getAlertDialog();
-                    dialog.show();
-                }
-            });
+        TextView loggedInLabel = findViewById(R.id.lds_credentials_logged_in_status_label);
+        LinearLayout loggedInContainer = findViewById(R.id.lds_credentials_login_container);
+        LinearLayout loggedOutContainer = findViewById(R.id.lds_credentials_logged_in_container);
+        if(currentUser != null && currentUser.getIndividualId() > 0) {
+            loggedInLabel.setText(getString(R.string.action_signed_in_format, userNameView.getText().toString()));
+            loggedInContainer.setVisibility(View.GONE);
+            loggedOutContainer.setVisibility(View.VISIBLE);
+            if(new PermissionManager().hasPermission(currentUser.getUnitRoles(), Permission.ORG_INFO_READ)) {
+                refreshDataButton.setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        AlertDialog dialog = getAlertDialog();
+                        dialog.show();
+                    }
+                });
+            }
         } else {
+            loggedInLabel.setText(getString(R.string.action_signed_in_format, ""));
+            loggedInContainer.setVisibility(View.VISIBLE);
+            loggedOutContainer.setVisibility(View.GONE);
             refreshDataButton.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -162,19 +178,15 @@ public class LDSAccountActivity extends AppCompatActivity {
         View focusView = null;
 
         /* Check for a valid password, if the user entered one. */
-        if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
+        if (!isPasswordValid(password)) {
             mPasswordView.setError(getString(R.string.error_invalid_password));
             focusView = mPasswordView;
             cancel = true;
         }
 
         /* Check for a valid email userName. */
-        if (TextUtils.isEmpty(userName)) {
+        if (!isUserNameValid(userName)) {
             userNameView.setError(getString(R.string.error_field_required));
-            focusView = userNameView;
-            cancel = true;
-        } else if (!isUserNameValid(userName)) {
-            userNameView.setError(getString(R.string.error_invalid_email));
             focusView = userNameView;
             cancel = true;
         }
@@ -190,12 +202,38 @@ public class LDSAccountActivity extends AppCompatActivity {
         }
     }
 
+    private void logOut() {
+        dataManager.signOut(
+            new Response.Listener<Boolean>() {
+                @Override
+                public void onResponse(Boolean response) {
+                    userNameView.setText("");
+                    mPasswordView.setText("");
+                    findViewById(R.id.lds_credentials_logged_in_container).setVisibility(View.GONE);
+                    findViewById(R.id.lds_credentials_login_container).setVisibility(View.VISIBLE);
+                    dataManager.clearLocalOrgData();
+                }
+            },
+            new Response.Listener<WebException>() {
+                @Override
+                public void onResponse(WebException response) {
+                    if (isTaskRoot()) {
+                        /* Transition to splash screen or directory view depending on which view invoiced this page. */
+                        Intent intent = new Intent(LDSAccountActivity.this, SplashActivity.class);
+                        startActivity(intent);
+                    } else {
+                        finish();
+                    }
+                }
+            });
+    }
+
     private boolean isUserNameValid(String userName) {
-        return userName.length() > 3;
+        return userName != null && userName.length() > 0;
     }
 
     private boolean isPasswordValid(String password) {
-        return password.length() > 4;
+        return password != null && password.length() > 0;
     }
 
     /**
@@ -213,23 +251,20 @@ public class LDSAccountActivity extends AppCompatActivity {
         }
 
         private void doInBackground() {
-            final List<Boolean> success = new ArrayList<>();
-            success.add(0, false);
-            boolean hasChanges = !Objects.equals(SecurityUtil.decrypt(getApplicationContext(), sharedPreferences.getString("username", null)), mUserName) ||
-                    !Objects.equals(SecurityUtil.decrypt(getApplicationContext(), sharedPreferences.getString("password", null)), mPassword);
-            dataManager.getUserInfo(mUserName, mPassword, hasChanges, new Response.Listener<LdsUser>() {
+            dataManager.getUserInfo(mUserName, mPassword, new Response.Listener<LdsUser>() {
                 @Override
                 public void onResponse(LdsUser ldsUser) {
-                    onPostExecute(ldsUser != null && ldsUser.getIndividualId() > 0);
+                    currentUser = ldsUser;
+                    onPostExecute();
                 }
             }, loginErrorListener);
         }
 
-        private void onPostExecute(final Boolean success) {
+        private void onPostExecute() {
             mAuthTask = null;
             Spinner.showProgress(false, mLoginFormView, mProgressView, getResources());
-            setRefreshButton(success);
-            if (success) {
+            toggleView();
+            if (currentUser != null && currentUser.getIndividualId() > 0) {
                 if (isTaskRoot()) {
                 /* Transition to splash screen or directory view depending on which view invoiced this page. */
                     Intent intent = new Intent(LDSAccountActivity.this, SplashActivity.class);
@@ -238,8 +273,8 @@ public class LDSAccountActivity extends AppCompatActivity {
                     finish();
                 }
             } else {
+                userNameView.setError(getString(R.string.error_incorrect_username));
                 mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
             }
         }
 
@@ -253,7 +288,8 @@ public class LDSAccountActivity extends AppCompatActivity {
             @Override
             public void onResponse(WebException error) {
                 if(error.getExceptionType() == ExceptionType.LDS_AUTH_REQUIRED) {
-                    onPostExecute(false);
+                    currentUser = null;
+                    onPostExecute();
                 } else {
                     View dialogView = getLayoutInflater().inflate(R.layout.warning_dialog_text, null);
                     TextView messageView = dialogView.findViewById(R.id.warning_message);
@@ -265,6 +301,11 @@ public class LDSAccountActivity extends AppCompatActivity {
                             break;
                         case SERVER_UNAVAILABLE:
                             messageView.setText(R.string.error_lds_server_unavailable);
+                            break;
+                        case UNAUTHORIZED:
+                            messageView.setText(R.string.lds_account_failed_login);
+                            currentUser = null;
+                            onPostExecute();
                             break;
                         default:
                             messageView.setText(R.string.error_generic_web);
@@ -318,6 +359,9 @@ public class LDSAccountActivity extends AppCompatActivity {
                     break;
                 case SERVER_UNAVAILABLE:
                     messageView.setText(R.string.error_lds_server_unavailable);
+                    break;
+                case UNAUTHORIZED:
+                    messageView.setText(R.string.lds_account_failed_login);
                     break;
                 default:
                     messageView.setText(R.string.error_generic_web);

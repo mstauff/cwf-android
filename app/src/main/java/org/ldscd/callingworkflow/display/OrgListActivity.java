@@ -103,7 +103,7 @@ public class OrgListActivity extends AppCompatActivity
                 progressBar = findViewById(R.id.org_list_reload_data_progress);
                 progressBar.setVisibility(View.VISIBLE);
                 if(dataManager.isGoogleDriveAuthenticated(getApplicationContext())) {
-                    dataManager.getUserInfo(null, null, false, new Response.Listener<LdsUser>() {
+                    dataManager.getUserInfo(null, null, new Response.Listener<LdsUser>() {
                         @Override
                         public void onResponse(LdsUser response) {
                             dataManager.loadOrgs(new Response.Listener<Boolean>() {

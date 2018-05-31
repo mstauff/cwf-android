@@ -71,13 +71,11 @@ public class DataManagerImpl implements DataManager {
     @Override
     public LdsUser getCurrentUser() { return currentUser; }
     @Override
-    public void getUserInfo(String userName, String password, boolean hasChanges, final Response.Listener<LdsUser> userListener, Response.Listener<WebException> errorCallback) {
+    public void getUserInfo(String userName, String password, final Response.Listener<LdsUser> userListener, Response.Listener<WebException> errorCallback) {
 
-        if (currentUser == null || hasChanges) {
-            if (hasChanges) {
+        if (currentUser == null) {
                 webResources.setCredentials(userName, password);
-            }
-            webResources.getUserInfo(hasChanges, new Response.Listener<LdsUser>() {
+            webResources.getUserInfo(new Response.Listener<LdsUser>() {
                 @Override
                 public void onResponse(LdsUser ldsUser) {
                     currentUser = ldsUser;

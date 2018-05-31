@@ -28,7 +28,7 @@ public interface IWebResources {
 
     void getConfigInfo(Response.Listener<ConfigInfo> configCallback, Response.Listener<WebException> errorCallback);
 
-    void getUserInfo(boolean getClean, Response.Listener<LdsUser> userCallback, Response.Listener<WebException> errorCallback);
+    void getUserInfo(Response.Listener<LdsUser> userCallback, Response.Listener<WebException> errorCallback);
 
     void signOut(final Response.Listener<Boolean> authCallback, final Response.Listener<WebException> errorCallback);
 

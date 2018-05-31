@@ -89,7 +89,7 @@ public class LocalFileResources implements IWebResources {
         }
     }
 
-    public void getUserInfo(boolean getClean, Response.Listener<LdsUser> userCallback, Response.Listener<WebException> errorCallback) {
+    public void getUserInfo(Response.Listener<LdsUser> userCallback, Response.Listener<WebException> errorCallback) {
         try {
             if(configInfo == null) {
                 getConfigInfo(new Response.Listener<ConfigInfo>() {
