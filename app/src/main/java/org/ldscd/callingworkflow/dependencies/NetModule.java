@@ -20,6 +20,10 @@ import org.ldscd.callingworkflow.web.CallingData;
 import org.ldscd.callingworkflow.web.MemberData;
 import org.ldscd.callingworkflow.web.WebResources;
 
+import java.net.CookieHandler;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
+
 import javax.inject.Singleton;
 
 @Module(includes = {ApplicationContextModule.class, StorageModule.class})
@@ -27,14 +31,23 @@ public class NetModule {
 
     @Provides
     @Singleton
-    RequestQueue providesRequestQueue(Context applicationContext) {
+    CookieManager providesCookieManager() {
+        CookieManager cookieManager = new CookieManager();
+        cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ORIGINAL_SERVER);
+        return cookieManager;
+    }
+
+    @Provides
+    @Singleton
+    RequestQueue providesRequestQueue(Context applicationContext, CookieManager cookieManager) {
+        CookieHandler.setDefault(cookieManager);
         return Volley.newRequestQueue(applicationContext);
     }
 
     @Provides
     @Singleton
-    IWebResources providesWebResources(Context context, RequestQueue requestQueue, SharedPreferences preferences) {
-        return BuildConfig.useLDSOrgData ? new WebResources(context, requestQueue, preferences) : new LocalFileResources(context, requestQueue);
+    IWebResources providesWebResources(Context context, RequestQueue requestQueue, SharedPreferences preferences, CookieManager cookieManager) {
+        return BuildConfig.useLDSOrgData ? new WebResources(context, requestQueue, preferences, cookieManager) : new LocalFileResources(context, requestQueue);
     }
 
     @Provides

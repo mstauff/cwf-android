@@ -9,6 +9,7 @@ import com.android.volley.toolbox.HttpHeaderParser;
 import org.json.JSONArray;
 import org.ldscd.callingworkflow.model.Org;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,9 +17,8 @@ public class OrgsListRequest extends Request<List<Org>> {
     private static final String TAG = "OrgsListRequest";
 
     private final Response.Listener<List<Org>> listener;
-    private Map<String, String> headers;
 
-    public OrgsListRequest(String url, Map<String, String> headers, Response.Listener<List<Org>> listener, final Response.Listener<WebException> errorListener) {
+    public OrgsListRequest(String url, Response.Listener<List<Org>> listener, final Response.Listener<WebException> errorListener) {
         super(Request.Method.GET, url, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
@@ -26,13 +26,7 @@ public class OrgsListRequest extends Request<List<Org>> {
                 errorListener.onResponse((WebException)error);
             }
         });
-        this.headers = headers;
         this.listener = listener;
-    }
-
-    @Override
-    public Map<String, String> getHeaders() throws AuthFailureError {
-        return headers != null ? headers : super.getHeaders();
     }
 
     @Override

@@ -45,9 +45,8 @@ public class MemberListRequest extends Request<List<Member>> {
     private static final int minimumChildAge = 11;
 
     private final Response.Listener<List<Member>> listener;
-    private Map<String, String> headers;
 
-    public MemberListRequest(String url, Map<String, String> headers, Response.Listener<List<Member>> listener, final Response.Listener<WebException> errorListener) {
+    public MemberListRequest(String url, Response.Listener<List<Member>> listener, final Response.Listener<WebException> errorListener) {
         super(Request.Method.GET, url, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
@@ -55,13 +54,7 @@ public class MemberListRequest extends Request<List<Member>> {
                 errorListener.onResponse((WebException)error);
             }
         });
-        this.headers = headers;
         this.listener = listener;
-    }
-
-    @Override
-    public Map<String, String> getHeaders() throws AuthFailureError {
-        return headers != null ? headers : super.getHeaders();
     }
 
     @Override

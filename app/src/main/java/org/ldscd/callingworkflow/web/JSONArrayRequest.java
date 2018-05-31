@@ -18,9 +18,8 @@ import java.util.Map;
 
 public class JSONArrayRequest  extends JsonArrayRequest {
     private static String TAG = "LcrJsonRequest";
-    private Map<String, String> headers;
 
-    public JSONArrayRequest(int method, String url, Map<String, String> headers, JSONArray jsonRequest, Response.Listener<JSONArray> listener, final Response.Listener<WebException> errorListener) {
+    public JSONArrayRequest(int method, String url, JSONArray jsonRequest, Response.Listener<JSONArray> listener, final Response.Listener<WebException> errorListener) {
         super(method, url, jsonRequest, listener, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
@@ -32,12 +31,6 @@ public class JSONArrayRequest  extends JsonArrayRequest {
                 }
             }
         });
-        this.headers = headers;
-    }
-
-    @Override
-    public Map<String, String> getHeaders() throws AuthFailureError {
-        return headers != null ? headers : super.getHeaders();
     }
 
     @Override

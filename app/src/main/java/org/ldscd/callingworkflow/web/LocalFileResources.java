@@ -146,7 +146,7 @@ public class LocalFileResources implements IWebResources {
     }
 
     public void getWardList(Response.Listener<List<Member>> wardCallback, Response.Listener<WebException> errorCallback) {
-        MemberListRequest memberListRequest = new MemberListRequest(null, null, null, null);
+        MemberListRequest memberListRequest = new MemberListRequest(null, null, null);
         List<Member> allMembers = memberListRequest.getMembers(getJSONFromAssets("member-objects.json"));
         List<Member> members = new ArrayList<>();
         for(Member member : allMembers) {

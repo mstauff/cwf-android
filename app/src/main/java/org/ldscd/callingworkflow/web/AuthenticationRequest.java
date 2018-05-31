@@ -10,13 +10,12 @@ import com.android.volley.toolbox.HttpHeaderParser;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AuthenticationRequest extends Request<String> {
-    private static final String cookieKey = "ObSSOCookie";
-    private final Response.Listener<String> listener;
+public class AuthenticationRequest extends Request<Boolean> {
+    private final Response.Listener<Boolean> listener;
     private Map<String, String> params;
 
 
-    public AuthenticationRequest(String userName, String password, String url, Response.Listener<String> listener, final Response.Listener<WebException> errorListener) {
+    public AuthenticationRequest(String userName, String password, String url, Response.Listener<Boolean> listener, final Response.Listener<WebException> errorListener) {
         super(Method.POST, url, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
@@ -37,26 +36,17 @@ public class AuthenticationRequest extends Request<String> {
     }
 
     @Override
-    protected void deliverResponse(String response) {
+    protected void deliverResponse(Boolean response) {
         listener.onResponse(response);
     }
 
     @Override
-    protected Response<String> parseNetworkResponse(NetworkResponse response) {
+    protected Response<Boolean> parseNetworkResponse(NetworkResponse response) {
         if(WebException.isWebsiteDownResponse(getUrl())) {
             return Response.error(new WebException(ExceptionType.SERVER_UNAVAILABLE, response));
         }
-        String sessionCookie = null;
-        for(Header header : response.allHeaders) {
-            if (header.getName().contains("Set-Cookie")) {
-                if (header.getValue().startsWith(cookieKey)) {
-                    sessionCookie = header.getValue();
-                    break;
-                }
-            }
-        }
-        if(sessionCookie != null) {
-            return Response.success(sessionCookie, HttpHeaderParser.parseCacheHeaders(response));
+        if(response.statusCode == 200) {
+            return Response.success(true, HttpHeaderParser.parseCacheHeaders(response));
         } else {
             return Response.error(new WebException(ExceptionType.UNKNOWN_EXCEPTION, response));
         }
