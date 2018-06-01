@@ -274,7 +274,7 @@ public class WebResources implements IWebResources {
                     @Override
                     public void onResponse(String response) {
                         Log.d("Response", response);
-                        clearCachItems();
+                        clearAuthCache();
                         authCallback.onResponse(true);
                     }
                 },
@@ -284,7 +284,7 @@ public class WebResources implements IWebResources {
                     public void onErrorResponse(VolleyError error) {
                         // error
                         Log.e("Error.Response", error.networkResponse.statusCode + "");
-                         clearCachItems();
+                        clearAuthCache();
                         authCallback.onResponse(true);
                     }
                 }
@@ -301,7 +301,7 @@ public class WebResources implements IWebResources {
         requestQueue.add(authRequest);
     }
 
-    private void clearCachItems() {
+    private void clearAuthCache() {
         httpCookie = null;
         userInfo = null;
         userName = null;
