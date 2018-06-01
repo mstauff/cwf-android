@@ -305,6 +305,7 @@ public class LDSAccountActivity extends AppCompatActivity {
                         case UNAUTHORIZED:
                             messageView.setText(R.string.lds_account_failed_login);
                             currentUser = null;
+                            mPasswordView.setText("");
                             onPostExecute();
                             break;
                         default:
@@ -362,6 +363,8 @@ public class LDSAccountActivity extends AppCompatActivity {
                     break;
                 case UNAUTHORIZED:
                     messageView.setText(R.string.lds_account_failed_login);
+                    currentUser = null;
+                    mPasswordView.setText("");
                     break;
                 default:
                     messageView.setText(R.string.error_generic_web);

@@ -271,16 +271,7 @@ public class WebResources implements IWebResources {
                     @Override
                     public void onResponse(String response) {
                         Log.d("Response", response);
-                        httpCookie = null;
-                        userInfo = null;
-                        userName = null;
-                        password = null;
-                        SharedPreferences.Editor editor = preferences.edit();
-                        editor.remove(prefUsername);
-                        editor.remove(prefPassword);
-                        editor.remove("Cookie");
-                        editor.commit();
-
+                        clearCachItems();
                         authCallback.onResponse(true);
                     }
                 },
@@ -290,16 +281,7 @@ public class WebResources implements IWebResources {
                     public void onErrorResponse(VolleyError error) {
                         // error
                         Log.e("Error.Response", error.networkResponse.statusCode + "");
-                        httpCookie = null;
-                        userInfo = null;
-                        userName = null;
-                        password = null;
-                        SharedPreferences.Editor editor = preferences.edit();
-                        editor.remove(prefUsername);
-                        editor.remove(prefPassword);
-                        editor.remove("Cookie");
-                        editor.commit();
-
+                         clearCachItems();
                         authCallback.onResponse(true);
                     }
                 }
@@ -314,6 +296,19 @@ public class WebResources implements IWebResources {
         };
         authRequest.setRetryPolicy(getRetryPolicy());
         requestQueue.add(authRequest);
+    }
+
+    private void clearCachItems() {
+        httpCookie = null;
+        userInfo = null;
+        userName = null;
+        password = null;
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.remove(prefUsername);
+        editor.remove(prefPassword);
+        editor.remove("Cookie");
+        editor.commit();
+        cookieManager.getCookieStore().removeAll();
     }
 
     private void getUser(final Response.Listener<Boolean> userCallback, final Response.Listener<WebException> errorCallback) {
