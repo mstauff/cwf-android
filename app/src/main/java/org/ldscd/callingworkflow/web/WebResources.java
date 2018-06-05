@@ -84,6 +84,9 @@ public class WebResources implements IWebResources {
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
+        /* We are creating a separate queue which doesn't automatically follow redirects for the login call
+        since it results in endless redirects for a failed login attempt. Following redirects is useful for
+        the other calls where language url-params are being added through a redirect */
         authRequestQueue = Volley.newRequestQueue(context.getApplicationContext(), new HurlStack() {
             @Override
             protected HttpURLConnection createConnection(URL url) throws IOException {
