@@ -313,30 +313,40 @@ public class CallingData {
     }
 
     /* Removes and replaces the data in google drive with the latest data from LCR.  All pending callings will be removed. */
-    public void refreshGoogleDriveOrgs(final Response.Listener<Boolean> listener, final Response.Listener<WebException> errorListener, final LdsUser currentUser, List<Long> orgIds) {
-       /* Reset all cached items. */
-       List<Org> orgList = new ArrayList<>(orgIds.size());
-       for(Long orgId : orgIds) {
-           Org org = getOrg(orgId);
-           if(org != null) {
-               orgList.add(org);
+    public void refreshGoogleDriveOrgs(final Response.Listener<Boolean> listener, final Response.Listener<WebException> errorListener, final LdsUser currentUser, final List<Long> orgIds) {
+       webResources.getOrgs(true, new Response.Listener<List<Org>>() {
+           @Override
+           public void onResponse(final List<Org> orgs) {
+               if(orgs != null) {
+                   List<Task<Boolean>> tasks = new ArrayList<>(orgIds.size());
+                   for(Org org : orgs) {
+                       if(orgIds.contains(org.getId())) {
+                           tasks.add(googleDriveService.saveOrgFile(org));
+                       }
+                   }
+                   Tasks.whenAll(tasks)
+                       .addOnSuccessListener(new OnSuccessListener<Void>() {
+                           @Override
+                           public void onSuccess(Void aVoid) {
+                               for(Org org : orgs) {
+                                   if(orgIds.contains(org.getId())) {
+                                       replaceOrg(org, currentUser);
+                                   }
+                               }
+                               listener.onResponse(true);
+                           }
+                       })
+                       .addOnFailureListener(new OnFailureListener() {
+                           @Override
+                           public void onFailure(@NonNull Exception e) {
+                               errorListener.onResponse(ensureWebException(new WebException(ExceptionType.UNKOWN_GOOGLE_EXCEPTION)));
+                           }
+                       });
+               } else {
+                   errorListener.onResponse(ensureWebException(new WebException(ExceptionType.UNKNOWN_EXCEPTION)));
+               }
            }
-       }
-        List<Org> organizations = getAuthorizableOrgs(orgList, currentUser);
-        googleDriveService.deleteOrgs(organizations)
-                .addOnCompleteListener(new OnCompleteListener<Boolean>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Boolean> task) {
-                        if(task.isSuccessful()) {
-                            if (task.getResult()) {
-                                memberData.removeAllMemberCallings();
-                                refreshLCROrgs(listener, errorListener, currentUser);
-                            }
-                        } else {
-                            errorListener.onResponse(ensureWebException(task.getException()));
-                        }
-                    }
-                });
+       }, errorListener);
     }
 
     /* Get's the latest data stored in google drive and refreshes the data on the device. */
