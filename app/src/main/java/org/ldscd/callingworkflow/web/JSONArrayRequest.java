@@ -1,8 +1,6 @@
 package org.ldscd.callingworkflow.web;
 
 import android.util.Log;
-
-import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -14,9 +12,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
-import java.util.Map;
 
 public class JSONArrayRequest  extends JsonArrayRequest {
+    private static final String ERRORS = "errors";
+    private static final String MEMBER_ID = "memberId";
     private static String TAG = "LcrJsonRequest";
 
     public JSONArrayRequest(int method, String url, JSONArray jsonRequest, Response.Listener<JSONArray> listener, final Response.Listener<WebException> errorListener) {
@@ -60,11 +59,11 @@ public class JSONArrayRequest  extends JsonArrayRequest {
                 String serverErrorMsg = null;
                 Response<JSONArray> response = super.parseNetworkResponse(volleyError.networkResponse);
                 try {
-                    if(response.result != null && response.result.getJSONObject(0).has("errors")) {
+                    if(response.result != null && response.result.getJSONObject(0).has(ERRORS)) {
                         try {
-                            JSONObject errors = response.result.getJSONObject(0).getJSONObject("errors");
-                            if(errors.has("memberId")) {
-                                JSONArray messages = errors.getJSONArray("memberId");
+                            JSONObject errors = response.result.getJSONObject(0).getJSONObject(ERRORS);
+                            if(errors.has(MEMBER_ID)) {
+                                JSONArray messages = errors.getJSONArray(MEMBER_ID);
                                 if(messages != null && messages.length() > 0) {
                                     serverErrorMsg = messages.getString(0);
                                 }

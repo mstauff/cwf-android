@@ -9,8 +9,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import com.android.volley.Response;
-
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.model.LdsUser;
 import org.ldscd.callingworkflow.model.permissions.PermissionManager;
@@ -49,13 +47,6 @@ public class SettingsActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == android.R.id.home) {
-            // This ID represents the Home or Up button. In the case of this
-            // activity, the Up button is shown. For
-            // more details, see the Navigation pattern on Android Design:
-            //
-            // http://developer.android.com/design/patterns/navigation.html#up-vs-back
-            //
-            //navigateUpTo(new Intent(this, ExpandableOrgsListActivity.class));
             finish();
             return true;
         }
@@ -63,7 +54,7 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void wireUpToolbar() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.settings_toolbar);
+        Toolbar toolbar = findViewById(R.id.settings_toolbar);
         setSupportActionBar(toolbar);
 
         // Show the Up button in the action bar.
@@ -74,7 +65,7 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void wireupLinks() {
-        TextView ldsCredentialsLink = (TextView) findViewById(R.id.settings_lds_credentials_link);
+        TextView ldsCredentialsLink = findViewById(R.id.settings_lds_credentials_link);
         ldsCredentialsLink.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -82,7 +73,7 @@ public class SettingsActivity extends AppCompatActivity {
                 getApplicationContext().startActivity(intent);
             }
         });
-        TextView googleDriveLink = (TextView) findViewById(R.id.settings_google_drive_link);
+        TextView googleDriveLink = findViewById(R.id.settings_google_drive_link);
         googleDriveLink.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -90,7 +81,7 @@ public class SettingsActivity extends AppCompatActivity {
                 getApplicationContext().startActivity(intent);
             }
         });
-        TextView editCallingStatusLink = (TextView) findViewById(R.id.settings_edit_calling_status_link);
+        TextView editCallingStatusLink = findViewById(R.id.settings_edit_calling_status_link);
         /* If the current user is not a Unit Admin they cannot edit the statuses */
         if(currentUser != null && permissionManager.hasPermission(currentUser.getUnitRoles(), Permission.UNIT_GOOGLE_ACCOUNT_CREATE)) {
             editCallingStatusLink.setOnClickListener(new View.OnClickListener() {

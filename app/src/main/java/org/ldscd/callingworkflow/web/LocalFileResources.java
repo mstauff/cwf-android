@@ -39,6 +39,24 @@ import java.util.Map;
  */
 public class LocalFileResources implements IWebResources {
     private static final String TAG = "LocalFileResourcesLog";
+    private static final String USER_INFO_JSON = "user-info.json";
+    private static final String MEMBER_ASSIGNMENTS = "memberAssignments";
+    private static final String INDIVIDUAL_ID = "individualId";
+    private static final String ORG_CALLINGS_JSON = "org-callings.json";
+    private static final String MEMBER_OBJECTS_JSON = "member-objects.json";
+    private static final String POSITION_METADATA_JSON = "position-metadata.json";
+    private static final String UTF_8 = "UTF-8";
+    private static final String UNIT_NUMBER = "unitNumber";
+    private static final String SUB_ORG_TYPE_ID = "subOrgTypeId";
+    private static final String SUB_ORG_ID = "subOrgId";
+    private static final String POSITION_TYPE_ID = "positionTypeId";
+    private static final String POSITION = "position";
+    private static final String MEMBER_ID = "memberId";
+    private static final String YYYY_MD = "yyyyMd";
+    private static final String RELEASE_DATE = "releaseDate";
+    private static final String RELEASE_POSITION_IDS = "releasePositionIds";
+    private static final String CONTENT_TYPE = "Content-Type";
+    private static final String APPLICATION_JSON = "application/json";
     private Context context;
     private RequestQueue requestQueue;
     private static final String CONFIG_URL = BuildConfig.appConfigUrl;// "http://dev-config-server-ldscd.7e14.starter-us-west-2.openshiftapps.com/cwf/config?env=test";
@@ -99,18 +117,18 @@ public class LocalFileResources implements IWebResources {
                     }
                 }, errorCallback);
             }
-            JSONObject json = new JSONObject(getJSONFromAssets("user-info.json"));
+            JSONObject json = new JSONObject(getJSONFromAssets(USER_INFO_JSON));
             Log.i(TAG, "User call successful");
             Log.i(TAG, json.toString());
             LdsUser user = null;
             try {
-                JSONArray assignments = json.getJSONArray("memberAssignments");
+                JSONArray assignments = json.getJSONArray(MEMBER_ASSIGNMENTS);
                 OrgCallingBuilder builder = new OrgCallingBuilder();
                 List<Position> positions = new ArrayList<>();
                 for(int i = 0; i < assignments.length(); i++) {
                     positions.add(builder.extractPosition((JSONObject) assignments.get(i)));
                 }
-                long individualId = json.getLong("individualId");
+                long individualId = json.getLong(INDIVIDUAL_ID);
                 user = new LdsUser(individualId, positions);
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -130,7 +148,7 @@ public class LocalFileResources implements IWebResources {
         OrgCallingBuilder orgCallingBuilder = new OrgCallingBuilder();
         List<Org> orgs = new ArrayList<>();
         try {
-            String json = getJSONFromAssets("org-callings.json");
+            String json = getJSONFromAssets(ORG_CALLINGS_JSON);
             JSONArray jsonArray = new JSONArray(json);
             orgs = orgCallingBuilder.extractOrgs(jsonArray, false);
         } catch (JSONException e) {
@@ -147,7 +165,7 @@ public class LocalFileResources implements IWebResources {
 
     public void getWardList(Response.Listener<List<Member>> wardCallback, Response.Listener<WebException> errorCallback) {
         MemberListRequest memberListRequest = new MemberListRequest(null, null, null);
-        List<Member> allMembers = memberListRequest.getMembers(getJSONFromAssets("member-objects.json"));
+        List<Member> allMembers = memberListRequest.getMembers(getJSONFromAssets(MEMBER_OBJECTS_JSON));
         List<Member> members = new ArrayList<>();
         for(Member member : allMembers) {
             if(member.getIndividualId() > 0) {
@@ -158,7 +176,7 @@ public class LocalFileResources implements IWebResources {
     }
 
     public void getPositionMetaData(Response.Listener<String> callback) {
-        callback.onResponse(getJSONFromAssets("position-metadata.json"));
+        callback.onResponse(getJSONFromAssets(POSITION_METADATA_JSON));
     }
 
     private String getJSONFromAssets(String fileName) {
@@ -169,7 +187,7 @@ public class LocalFileResources implements IWebResources {
             byte[] buffer = new byte[size];
             is.read(buffer);
             is.close();
-            json = new String(buffer, "UTF-8");
+            json = new String(buffer, UTF_8);
         } catch (IOException ex) {
             ex.printStackTrace();
             return null;
@@ -193,20 +211,20 @@ public class LocalFileResources implements IWebResources {
          */
         org.json.JSONObject json = new org.json.JSONObject();
         try {
-            json.put("unitNumber", unitNumber);
-            json.put("subOrgTypeId", orgTypeId);
-            json.put("subOrgId", calling.getParentOrg());
-            json.put("positionTypeId", calling.getPosition().getPositionTypeId());
-            json.put("position", calling.getPosition().getName());
-            json.put("memberId", calling.getProposedIndId());
+            json.put(UNIT_NUMBER, unitNumber);
+            json.put(SUB_ORG_TYPE_ID, orgTypeId);
+            json.put(SUB_ORG_ID, calling.getParentOrg());
+            json.put(POSITION_TYPE_ID, calling.getPosition().getPositionTypeId());
+            json.put(POSITION, calling.getPosition().getName());
+            json.put(MEMBER_ID, calling.getProposedIndId());
             LocalDate date = LocalDate.now();
-            DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMd");
-            json.put("releaseDate", date.toString(fmt));
+            DateTimeFormatter fmt = DateTimeFormat.forPattern(YYYY_MD);
+            json.put(RELEASE_DATE, date.toString(fmt));
             JSONArray positionIds = new JSONArray();
             positionIds.put(calling.getId());
-            json.put("releasePositionIds", positionIds);
+            json.put(RELEASE_POSITION_IDS, positionIds);
             Map<String, String> header = new HashMap<String, String>();
-            header.put("Content-Type", "application/json");
+            header.put(CONTENT_TYPE, APPLICATION_JSON);
             GsonRequest<String> gsonRequest = new GsonRequest<String>(
                     Request.Method.POST,
                     configInfo.getUpdateCallingUrl(),
@@ -256,18 +274,18 @@ public class LocalFileResources implements IWebResources {
 
     private JSONObject createJsonObject(Long unitNumber, Calling calling) throws JSONException {
         org.json.JSONObject jsonObject = new org.json.JSONObject();
-        jsonObject.put("unitNumber", unitNumber);
+        jsonObject.put(UNIT_NUMBER, unitNumber);
         //jsonObject.put("subOrgTypeId", unitLevelOrgType.getOrgTypeId());
-        jsonObject.put("subOrgId", calling.getParentOrg());
-        jsonObject.put("positionTypeId", calling.getPosition().getPositionTypeId());
-        jsonObject.put("position", calling.getPosition().getName());
-        jsonObject.put("memberId", calling.getProposedIndId());
+        jsonObject.put(SUB_ORG_ID, calling.getParentOrg());
+        jsonObject.put(POSITION_TYPE_ID, calling.getPosition().getPositionTypeId());
+        jsonObject.put(POSITION, calling.getPosition().getName());
+        jsonObject.put(MEMBER_ID, calling.getProposedIndId());
         LocalDate date = LocalDate.now();
-        DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMd");
-        jsonObject.put("releaseDate", date.toString(fmt));
+        DateTimeFormatter fmt = DateTimeFormat.forPattern(YYYY_MD);
+        jsonObject.put(RELEASE_DATE, date.toString(fmt));
         JSONArray positionIds = new JSONArray();
         positionIds.put(calling.getId());
-        jsonObject.put("releasePositionIds", positionIds);
+        jsonObject.put(RELEASE_POSITION_IDS, positionIds);
         return jsonObject;
     }
 

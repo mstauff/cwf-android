@@ -31,7 +31,7 @@ public class PositionArrayAdapter<T> extends ArrayAdapter<Position> {
             convertView = LayoutInflater.from(this.getContext()).inflate(R.layout.position_list_layout, parent, false);
         }
         Position item = getItem(position);
-        TextView itemView = (TextView) convertView.findViewById(R.id.create_calling_position_name);
+        TextView itemView = convertView.findViewById(R.id.create_calling_position_name);
         itemView.setText(item.getName());
         return convertView;
     }
@@ -43,7 +43,7 @@ public class PositionArrayAdapter<T> extends ArrayAdapter<Position> {
                     .inflate(R.layout.position_list_layout, parent, false);
 
             viewHolder = new ViewHolder();
-            viewHolder.itemView = (TextView) convertView.findViewById(R.id.create_calling_position_name);
+            viewHolder.itemView = convertView.findViewById(R.id.create_calling_position_name);
 
             convertView.setTag(viewHolder);
         } else {

@@ -10,7 +10,6 @@ import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.android.volley.Response;
 import org.ldscd.callingworkflow.R;
@@ -96,7 +95,6 @@ public class SplashActivity extends AppCompatActivity {
             } else {
 
             }
-
         }
     };
 

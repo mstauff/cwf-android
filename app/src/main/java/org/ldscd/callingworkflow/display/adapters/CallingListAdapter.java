@@ -2,7 +2,6 @@ package org.ldscd.callingworkflow.display.adapters;
 
 import android.content.Context;
 import android.content.Intent;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,8 +24,6 @@ import java.util.List;
 public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.ViewHolder>
         implements  CallingFiltersAdapter {
 
-    private FragmentManager fragmentManager;
-    private boolean twoPane;
     private DataManager dataManager;
 
     private List<Calling> allValues;
@@ -34,12 +31,10 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
     private List<CallingStatus> statusFilters;
     private List<Org> orgFilters;
 
-    public CallingListAdapter(List<Calling> items, DataManager dataManager, boolean twoPane, FragmentManager fragmentManager) {
+    public CallingListAdapter(List<Calling> items, DataManager dataManager) {
         allValues = items;
         displayValues = items;
         this.dataManager = dataManager;
-        this.twoPane = twoPane;
-        this.fragmentManager = fragmentManager;
         statusFilters = new ArrayList<>();
         orgFilters = new ArrayList<>();
     }
@@ -96,21 +91,11 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
         holder.view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                /*if (twoPane) {
-                    Bundle arguments = new Bundle();
-                    arguments.putString(CallingDetailFragment.CALLING_ID, holder.orgItem.id);
-                    CallingDetailFragment fragment = new CallingDetailFragment();
-                    fragment.setArguments(arguments);
-                    fragmentManager.beginTransaction()
-                            .replace(R.id.calling_detail_container, fragment)
-                            .commit();
-                } else {*/
                 Context context = v.getContext();
                 Intent intent = new Intent(context, CallingDetailActivity.class);
                 intent.putExtra(CallingDetailFragment.CALLING_ID, holder.callingItem.getCallingId());
                 intent.putExtra(ExpandableOrgsListActivity.ARG_ORG_ID, holder.callingItem.getParentOrg());
                 context.startActivity(intent);
-                //}
             }
         });
     }
@@ -130,9 +115,9 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
         public ViewHolder(View view) {
             super(view);
             this.view = view;
-            callingTitleView = (TextView) view.findViewById(R.id.calling_item_title);
-            currentCalledView = (TextView) view.findViewById(R.id.calling_item_current);
-            proposedMemberView = (TextView) view.findViewById(R.id.calling_item_proposed);
+            callingTitleView = view.findViewById(R.id.calling_item_title);
+            currentCalledView = view.findViewById(R.id.calling_item_current);
+            proposedMemberView = view.findViewById(R.id.calling_item_proposed);
         }
     }
 

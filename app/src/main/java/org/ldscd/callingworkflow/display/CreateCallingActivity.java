@@ -16,7 +16,6 @@ import com.android.volley.Response;
 
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.model.Calling;
-import org.ldscd.callingworkflow.model.Org;
 import org.ldscd.callingworkflow.web.DataManager;
 import org.ldscd.callingworkflow.web.WebException;
 
@@ -41,7 +40,7 @@ public class CreateCallingActivity extends AppCompatActivity implements CreateCa
         setContentView(R.layout.activity_create_calling);
         long parentOrgId = getIntent().getLongExtra(PARENT_ORG_ID, 0);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);

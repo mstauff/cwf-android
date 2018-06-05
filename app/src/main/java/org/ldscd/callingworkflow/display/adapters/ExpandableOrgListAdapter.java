@@ -2,7 +2,6 @@ package org.ldscd.callingworkflow.display.adapters;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.PorterDuff;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
@@ -10,7 +9,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.ldscd.callingworkflow.R;
@@ -35,16 +33,14 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
     private List<Calling> callings;
     private DataManager dataManager;
 
-    private boolean twoPane;
     private final FragmentManager fragmentManager;
 
-    public ExpandableOrgListAdapter(Org org, DataManager dataManager, boolean twoPane, FragmentManager fragmentManager, Context ctx) {
+    public ExpandableOrgListAdapter(Org org, DataManager dataManager, FragmentManager fragmentManager, Context ctx) {
         this.org = org;
         subOrgs = org.getChildren();
         callings = org.getCallings();
         this.dataManager = dataManager;
         this.ctx = ctx;
-        this.twoPane = twoPane;
         this.fragmentManager = fragmentManager;
     }
 
@@ -118,7 +114,7 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
     public View getGroupView(int index, boolean isExpanded, View convertView, ViewGroup parentView) {
         if(index < subOrgs.size()) {
             Org org = (Org) getGroup(index);
-            return getOrgView(org, isExpanded, convertView, parentView, false);
+            return getOrgView(org, convertView, parentView, false);
         } else {
             Calling calling = (Calling) getGroup(index);
             return getCallingView(calling, convertView, parentView, false);
@@ -131,14 +127,14 @@ public class ExpandableOrgListAdapter extends BaseExpandableListAdapter {
         List<Org> subOrgChildren = subOrg.getChildren();
         if(subIndex < subOrgChildren.size()) {
             Org childSubOrg = subOrgChildren.get(subIndex);
-            return getOrgView(childSubOrg, false, convertView, parentView, true);
+            return getOrgView(childSubOrg, convertView, parentView, true);
         } else {
             Calling calling = subOrg.getCallings().get(subIndex - subOrgChildren.size());
             return getCallingView(calling, convertView, parentView, true);
         }
     }
 
-    private View getOrgView(final Org groupOrg, boolean isExpanded, View convertView, ViewGroup parentView, boolean childView) {
+    private View getOrgView(final Org groupOrg, View convertView, ViewGroup parentView, boolean childView) {
         //initialize
         if(convertView == null || convertView.getId() != R.id.list_org_item) {
             convertView = LayoutInflater.from(parentView.getContext())

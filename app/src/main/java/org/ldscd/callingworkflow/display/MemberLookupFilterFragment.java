@@ -131,7 +131,7 @@ public class MemberLookupFilterFragment extends DialogFragment {
         if(filterOption.getNumberCallings() == null) {
             filterOption.setNumberCallings(new boolean[] {false, false, false, false });
         }
-        final TextView zero = (TextView)view.findViewById(R.id.member_lookup_filter_calling_zero);
+        final TextView zero = view.findViewById(R.id.member_lookup_filter_calling_zero);
         setToggleButtonColor(zero, filterOption.getNumberCallings() != null && filterOption.getNumberCallings()[0]);
 
         zero.setOnClickListener(new View.OnClickListener() {
@@ -141,7 +141,7 @@ public class MemberLookupFilterFragment extends DialogFragment {
                 setToggleButtonColor(zero, filterOption.getNumberCallings()[0]);
             }
         });
-        final TextView one = (TextView)view.findViewById(R.id.member_lookup_filter_calling_one);
+        final TextView one = view.findViewById(R.id.member_lookup_filter_calling_one);
         setToggleButtonColor(one, filterOption.getNumberCallings() != null && filterOption.getNumberCallings()[1]);
 
         one.setOnClickListener(new View.OnClickListener() {
@@ -151,7 +151,7 @@ public class MemberLookupFilterFragment extends DialogFragment {
                 setToggleButtonColor(one, filterOption.getNumberCallings()[1]);
             }
         });
-        final TextView two = (TextView)view.findViewById(R.id.member_lookup_filter_calling_two);
+        final TextView two = view.findViewById(R.id.member_lookup_filter_calling_two);
         setToggleButtonColor(two, filterOption.getNumberCallings() != null && filterOption.getNumberCallings()[2]);
         two.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -160,7 +160,7 @@ public class MemberLookupFilterFragment extends DialogFragment {
                 setToggleButtonColor(two, filterOption.getNumberCallings()[2]);
             }
         });
-        final TextView threePlus = (TextView)view.findViewById(R.id.member_lookup_filter_calling_three_plus);
+        final TextView threePlus = view.findViewById(R.id.member_lookup_filter_calling_three_plus);
         setToggleButtonColor(threePlus, filterOption.getNumberCallings() != null && filterOption.getNumberCallings()[3]);
         threePlus.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -170,7 +170,7 @@ public class MemberLookupFilterFragment extends DialogFragment {
             }
         });
         /* Years in Callings. */
-        SeekBar seekBar = (SeekBar) view.findViewById(R.id.member_lookup_filter_years_in_calling);
+        SeekBar seekBar = view.findViewById(R.id.member_lookup_filter_years_in_calling);
         seekBar.setProgress(filterOption.getTimeInCalling());
         setTimeInCallingLabel(filterOption.getTimeInCalling());
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -187,10 +187,10 @@ public class MemberLookupFilterFragment extends DialogFragment {
             public void onStopTrackingTouch(SeekBar seekBar) { }
         });
         /* Twelve to Eighteen. */
-        final TextView twelveEighteenButton = (TextView)view.findViewById(R.id.member_lookup_filter_twelve_to_seventeen);
+        final TextView twelveEighteenButton = view.findViewById(R.id.member_lookup_filter_twelve_to_seventeen);
         setToggleButtonColor(twelveEighteenButton, filterOption.isTwelveSeventeen());
         /* Eighteen Plus. */
-        final TextView eighteenPlusButton = (TextView)view.findViewById(R.id.member_lookup_filter_eighteen_plus);
+        final TextView eighteenPlusButton = view.findViewById(R.id.member_lookup_filter_eighteen_plus);
         setToggleButtonColor(eighteenPlusButton, filterOption.isEighteenPlus());
         eighteenPlusButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -210,7 +210,7 @@ public class MemberLookupFilterFragment extends DialogFragment {
 
         /* Priesthood section */
         /* High Priest */
-        final TextView highPriestButton = (TextView)view.findViewById(R.id.member_lookup_filter_high_priest);
+        final TextView highPriestButton = view.findViewById(R.id.member_lookup_filter_high_priest);
         setToggleButtonColor(highPriestButton, filterOption.isHighPriest());
         highPriestButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -220,7 +220,7 @@ public class MemberLookupFilterFragment extends DialogFragment {
             }
         });
         /* Elders */
-        final TextView eldersButton = (TextView)view.findViewById(R.id.member_lookup_filter_elder);
+        final TextView eldersButton = view.findViewById(R.id.member_lookup_filter_elder);
         setToggleButtonColor(eldersButton,filterOption.isElders());
         eldersButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -230,7 +230,7 @@ public class MemberLookupFilterFragment extends DialogFragment {
             }
         });
         /* Priests */
-        final TextView priestButton = (TextView)view.findViewById(R.id.member_lookup_filter_priest);
+        final TextView priestButton = view.findViewById(R.id.member_lookup_filter_priest);
         setToggleButtonColor(priestButton, filterOption.isPriests());
         priestButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -240,7 +240,7 @@ public class MemberLookupFilterFragment extends DialogFragment {
             }
         });
         /* Teachers */
-        final TextView teacherButton = (TextView)view.findViewById(R.id.member_lookup_filter_teacher);
+        final TextView teacherButton = view.findViewById(R.id.member_lookup_filter_teacher);
         setToggleButtonColor(teacherButton, filterOption.isTeachers());
         teacherButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -250,7 +250,7 @@ public class MemberLookupFilterFragment extends DialogFragment {
             }
         });
         /* Deacon */
-        final TextView deaconButton = (TextView)view.findViewById(R.id.member_lookup_filter_deacon);
+        final TextView deaconButton = view.findViewById(R.id.member_lookup_filter_deacon);
         setToggleButtonColor(deaconButton, filterOption.isDeacons());
         deaconButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -260,7 +260,7 @@ public class MemberLookupFilterFragment extends DialogFragment {
             }
         });
         /* Relief Society */
-        final TextView reliefSocietyButton = (TextView)view.findViewById(R.id.member_lookup_filter_relief_society);
+        final TextView reliefSocietyButton = view.findViewById(R.id.member_lookup_filter_relief_society);
         setToggleButtonColor(reliefSocietyButton, filterOption.isReliefSociety());
         reliefSocietyButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -270,7 +270,7 @@ public class MemberLookupFilterFragment extends DialogFragment {
             }
         });
         /* Laurels */
-        final TextView laurelButton = (TextView)view.findViewById(R.id.member_lookup_filter_laurel);
+        final TextView laurelButton = view.findViewById(R.id.member_lookup_filter_laurel);
         setToggleButtonColor(laurelButton, filterOption.isLaurel());
         laurelButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -280,7 +280,7 @@ public class MemberLookupFilterFragment extends DialogFragment {
             }
         });
         /* Mia Maids */
-        final TextView miaMaidButton = (TextView)view.findViewById(R.id.member_lookup_filter_mia_maid);
+        final TextView miaMaidButton = view.findViewById(R.id.member_lookup_filter_mia_maid);
         setToggleButtonColor(miaMaidButton, filterOption.isMiaMaid());
         miaMaidButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -290,7 +290,7 @@ public class MemberLookupFilterFragment extends DialogFragment {
             }
         });
         /* Beehives */
-        final TextView beehiveButton = (TextView)view.findViewById(R.id.member_lookup_filter_beehive);
+        final TextView beehiveButton = view.findViewById(R.id.member_lookup_filter_beehive);
         setToggleButtonColor(beehiveButton, filterOption.isBeehive());
         beehiveButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -300,10 +300,10 @@ public class MemberLookupFilterFragment extends DialogFragment {
             }
         });
          /* Male. */
-        final TextView maleButton = (TextView)view.findViewById(R.id.member_lookup_filter_male);
+        final TextView maleButton = view.findViewById(R.id.member_lookup_filter_male);
         setToggleButtonColor(maleButton, filterOption.isMale());
         /* Female. */
-        final TextView femaleButton = (TextView)view.findViewById(R.id.member_lookup_filter_female);
+        final TextView femaleButton = view.findViewById(R.id.member_lookup_filter_female);
         setToggleButtonColor(femaleButton, filterOption.isFemale());
         femaleButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -341,7 +341,7 @@ public class MemberLookupFilterFragment extends DialogFragment {
                 reliefSocietyButton, laurelButton, miaMaidButton, beehiveButton);
 
         /* Done Button */
-        Button doneButton = (Button)view.findViewById(R.id.member_lookup_filter_done_button);
+        Button doneButton = view.findViewById(R.id.member_lookup_filter_done_button);
         doneButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -362,7 +362,7 @@ public class MemberLookupFilterFragment extends DialogFragment {
     }
 
     private void setTimeInCallingLabel(int progress) {
-        TextView timeInCallingLabel = (TextView) view.findViewById(R.id.member_lookup_filter_years_in_calling_label);
+        TextView timeInCallingLabel =  view.findViewById(R.id.member_lookup_filter_years_in_calling_label);
         double timeInCalling = progress*.5;
         String display = timeInCalling % 1 == 0
                 ? (int)timeInCalling + getString(R.string.plus_years)
@@ -391,10 +391,10 @@ public class MemberLookupFilterFragment extends DialogFragment {
             filterOption.setMiaMaid(false);
             filterOption.setBeehive(false);
             if(filterOption.isCanViewPriesthood()) {
-                maleLayout = (TableLayout) view.findViewById(R.id.member_lookup_filter_priesthood_container);
+                maleLayout = view.findViewById(R.id.member_lookup_filter_priesthood_container);
                 maleLayout.setVisibility(VISIBLE);
             }
-            femaleLayout = (TableLayout)view.findViewById(R.id.member_lookup_filter_relief_society_container);
+            femaleLayout = view.findViewById(R.id.member_lookup_filter_relief_society_container);
             femaleLayout.setVisibility(GONE);
         } else if(female) {
             setToggleButtonColor(femaleButton, true);
@@ -410,9 +410,9 @@ public class MemberLookupFilterFragment extends DialogFragment {
             filterOption.setPriests(false);
             filterOption.setTeachers(false);
             filterOption.setDeacons(false);
-            maleLayout = (TableLayout)view.findViewById(R.id.member_lookup_filter_priesthood_container);
+            maleLayout = view.findViewById(R.id.member_lookup_filter_priesthood_container);
             maleLayout.setVisibility(GONE);
-            femaleLayout = (TableLayout)view.findViewById(R.id.member_lookup_filter_relief_society_container);
+            femaleLayout = view.findViewById(R.id.member_lookup_filter_relief_society_container);
             femaleLayout.setVisibility(VISIBLE);
         } else {
             setToggleButtonColor(femaleButton, false);
@@ -439,9 +439,9 @@ public class MemberLookupFilterFragment extends DialogFragment {
             filterOption.setLaurel(false);
             filterOption.setMiaMaid(false);
             filterOption.setBeehive(false);
-            maleLayout = (TableLayout)view.findViewById(R.id.member_lookup_filter_priesthood_container);
+            maleLayout = view.findViewById(R.id.member_lookup_filter_priesthood_container);
             maleLayout.setVisibility(GONE);
-            femaleLayout = (TableLayout)view.findViewById(R.id.member_lookup_filter_relief_society_container);
+            femaleLayout = view.findViewById(R.id.member_lookup_filter_relief_society_container);
             femaleLayout.setVisibility(GONE);
         }
     }

@@ -15,18 +15,19 @@ import org.ldscd.callingworkflow.model.Position;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Exchanger;
 
 public class OrgCallingBuilder {
     /* Fields */
     private static final String unitNumberFieldName = "unitNumber";
+    private static final String unitNoFieldName = "unitNo";
     private static final String orgIdFieldName = "subOrgId";
+    private static final String orgTypeIdFieldName = "orgTypeId";
     private static final String positionCwfIdFieldName = "cwfId";
     private static final String cwfOnlyFieldName = "cwfOnly";
     private static final String defaultOrgNameFieldName = "defaultOrgName";
     private static final String defaultNameFieldName = "name";
     private static final String customOrgNameFieldName = "customOrgName";
-    private static final String orgTypeIdFieldName = "firstOrgTypeId";
+    private static final String firstOrgTypeIdFieldName = "firstOrgTypeId";
     private static final String firstTypeIdFieldName = "firstTypeId";
     private static final String displayOrderFieldName = "displayOrder";
     private static final String childrenArrayName = "children";
@@ -43,6 +44,8 @@ public class OrgCallingBuilder {
     private static final String positionFieldName = "position";
     private static final String positionDisplayOrderFieldName = "positionDisplayOrder";
     private static final String multiplesAllowedFieldName = "allowMultiple";
+    private static final String stringNull = "null";
+    private static final String membersString = "members";
 
     DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
     /* Constructor */
@@ -83,12 +86,12 @@ public class OrgCallingBuilder {
                 name = orgJson.getString(defaultNameFieldName);
             }
             int typeId = 0;
-            if(orgJson.has(orgTypeIdFieldName)) {
-                typeId = orgJson.getInt(orgTypeIdFieldName);
+            if(orgJson.has(firstOrgTypeIdFieldName)) {
+                typeId = orgJson.getInt(firstOrgTypeIdFieldName);
             } else if(orgJson.has(firstTypeIdFieldName)) {
                 typeId = orgJson.getInt(firstTypeIdFieldName);
-            } else if(orgJson.has("orgTypeId")) {
-                typeId = orgJson.getInt("orgTypeId");
+            } else if(orgJson.has(orgTypeIdFieldName)) {
+                typeId = orgJson.getInt(orgTypeIdFieldName);
             }
             int order = 0;
             if(orgJson.has(displayOrderFieldName)) {
@@ -100,7 +103,7 @@ public class OrgCallingBuilder {
                 childOrgsJson = orgJson.getJSONArray(childrenArrayName);
             }
             List<Long> members = new ArrayList();
-            if(includeMemberAssignments && orgJson.has("members")) {
+            if(includeMemberAssignments && orgJson.has(membersString)) {
 
             }
             List<Org> childOrgs = extractOrgs(childOrgsJson, false);
@@ -143,16 +146,16 @@ public class OrgCallingBuilder {
             cwfOnly = json.getBoolean(cwfOnlyFieldName);
         }
         String existingStatus = json.has(existingStatusFieldName) ? json.getString(existingStatusFieldName) : null;
-        if(existingStatus != null && existingStatus.equals("null")) {
+        if(existingStatus != null && existingStatus.equals(stringNull)) {
             existingStatus = null;
         }
         DateTime activeDate = null;
-        if(json.has(activeDateFieldName) && !json.get(activeDateFieldName).equals("null") && !json.get(activeDateFieldName).equals(null) && !json.get(activeDateFieldName).equals("")) {
+        if(json.has(activeDateFieldName) && !json.get(activeDateFieldName).equals(stringNull) && !json.get(activeDateFieldName).equals(null) && !json.get(activeDateFieldName).equals("")) {
             activeDate = fmt.parseDateTime(json.getString(activeDateFieldName));
         }
         CallingStatus proposedStatus = CallingStatus.NONE;
         String proposedStatusString = json.has(proposedStatusFieldName) ? json.getString(proposedStatusFieldName) : null;
-        if(proposedStatusString != null && !proposedStatusString.equals("null")) {
+        if(proposedStatusString != null && !proposedStatusString.equals(stringNull)) {
             proposedStatus = CallingStatus.get(proposedStatusString);
         }
         long proposedIndId = 0;
@@ -160,7 +163,7 @@ public class OrgCallingBuilder {
             proposedIndId = json.getLong(proposedIndIdFieldName);
         }
         String notes = json.has(notesFieldName) ? json.getString(notesFieldName) : null;
-        if(notes != null && notes.equals("null")) {
+        if(notes != null && notes.equals(stringNull)) {
             notes = null;
         }
 
@@ -177,7 +180,7 @@ public class OrgCallingBuilder {
             if (json.has(positionFieldName) && !json.isNull(positionFieldName)) {
                 position.setName(json.getString(positionFieldName));
             }
-            if(position.getName() != null && position.getName().equals("null")) {
+            if(position.getName() != null && position.getName().equals(stringNull)) {
                 position.setName(null);
             }
             if (!json.isNull(multiplesAllowedFieldName)) {
@@ -191,8 +194,8 @@ public class OrgCallingBuilder {
             if (json.has(positionDisplayOrderFieldName)) {
                 position.setPositionDisplayOrder(json.optLong(positionDisplayOrderFieldName));
             }
-            if(json.has("unitNo")) {
-                position.setUnitNumber(json.getLong("unitNo"));
+            if(json.has(unitNoFieldName)) {
+                position.setUnitNumber(json.getLong(unitNoFieldName));
             }
         }
         return position;

@@ -15,7 +15,6 @@ import org.ldscd.callingworkflow.model.Org;
 
 import javax.inject.Singleton;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Interface to WebResources.  Only because we are implementing the same interface on LocalFileResources.

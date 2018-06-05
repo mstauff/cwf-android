@@ -22,11 +22,9 @@ public class OrgListAdapter extends RecyclerView.Adapter<OrgListAdapter.ViewHold
 
     private FragmentManager fragmentManager;
     private final List<Org> mValues;
-    private boolean twoPane;
 
-    public OrgListAdapter(List<Org> items, boolean twoPane, FragmentManager fragmentManager) {
+    public OrgListAdapter(List<Org> items, FragmentManager fragmentManager) {
         mValues = items;
-        this.twoPane = twoPane;
         this.fragmentManager = fragmentManager;
     }
 
@@ -50,7 +48,6 @@ public class OrgListAdapter extends RecyclerView.Adapter<OrgListAdapter.ViewHold
                 intent.putExtra(ExpandableOrgsListActivity.ARG_ORG_ID, holder.orgItem.getId());
                 intent.putExtra(ExpandableOrgsListActivity.GET_DATA, true);
                 context.startActivity(intent);
-                //}
             }
         });
         if(holder.orgItem.getConflictCause() != null && holder.orgItem.getConflictCause().getConflictCause() != null && holder.orgItem.getConflictCause().getConflictCause().length() > 0 ) {
@@ -76,12 +73,12 @@ public class OrgListAdapter extends RecyclerView.Adapter<OrgListAdapter.ViewHold
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         public final View view;
-        public final TextView orgTitleView;
+        private final TextView orgTitleView;
         public Org orgItem;
-        public ImageButton conflictButton;
-        public View conflictContainer;
+        private ImageButton conflictButton;
+        private View conflictContainer;
 
-        public ViewHolder(View view) {
+        private ViewHolder(View view) {
             super(view);
             this.view = view;
             orgTitleView = view.findViewById(R.id.org_list_name);

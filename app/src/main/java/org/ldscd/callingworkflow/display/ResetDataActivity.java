@@ -29,7 +29,6 @@ import java.util.List;
 import javax.inject.Inject;
 
 public class ResetDataActivity extends AppCompatActivity {
-
     @Inject
     GoogleDriveService googleDataService;
     @Inject
@@ -74,24 +73,24 @@ public class ResetDataActivity extends AppCompatActivity {
                     TextView messageView = dialogView.findViewById(R.id.warning_message);
                     messageView.setText(R.string.confirm_reset_warning);
                     new AlertDialog.Builder(activity)
-                            .setView(dialogView)
-                            .setPositiveButton(R.string.reset_data, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                    Spinner.showProgress(true, resetDataContainer, progressBar, getResources());
-                                    List<Long> selectedOrgIds = adapter.getSelectedOrgIds();
-                                    dataManager.refreshGoogleDriveOrgs(selectedOrgIds, new Response.Listener<Boolean>() {
-                                        @Override
-                                        public void onResponse(Boolean response) {
-                                            Spinner.showProgress(false, resetDataContainer, progressBar, getResources());
-                                            if(response)
-                                                finish();
-                                        }
-                                    }, webErrorListener);
-                                }
-                            })
-                            .setNegativeButton(R.string.cancel, null)
-                            .show();
+                        .setView(dialogView)
+                        .setPositiveButton(R.string.reset_data, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                Spinner.showProgress(true, resetDataContainer, progressBar, getResources());
+                                List<Long> selectedOrgIds = adapter.getSelectedOrgIds();
+                                dataManager.refreshGoogleDriveOrgs(selectedOrgIds, new Response.Listener<Boolean>() {
+                                    @Override
+                                    public void onResponse(Boolean response) {
+                                        Spinner.showProgress(false, resetDataContainer, progressBar, getResources());
+                                        if(response)
+                                            finish();
+                                    }
+                                }, webErrorListener);
+                            }
+                        })
+                        .setNegativeButton(R.string.cancel, null)
+                        .show();
                 }
             }
         });

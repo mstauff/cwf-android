@@ -64,7 +64,7 @@ public class StatusEditActivity extends AppCompatActivity {
     }
 
     private void wireUpStatus() {
-        FlexboxLayout statusLayout = (FlexboxLayout) findViewById(R.id.status_list);
+        FlexboxLayout statusLayout = findViewById(R.id.status_list);
         selectedStatus = unitSettings.getDisabledStatuses();
         for (final CallingStatus status : CallingStatus.values()) {
             if (!status.equals(CallingStatus.NONE)) {
@@ -128,7 +128,7 @@ public class StatusEditActivity extends AppCompatActivity {
         return true;
     }
     private void wireUpToolbar() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.edit_status_toolbar);
+        Toolbar toolbar = findViewById(R.id.edit_status_toolbar);
         setSupportActionBar(toolbar);
 
         // Show the Up button in the action bar.
@@ -137,7 +137,6 @@ public class StatusEditActivity extends AppCompatActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
     }
-
     private void giveSelectedAppearance(TextView view) {
         view.setTextColor(getResources().getColor(R.color.default_text_light));
         view.setBackground(getResources().getDrawable(R.drawable.selected_filter_background));
@@ -146,7 +145,6 @@ public class StatusEditActivity extends AppCompatActivity {
         view.setTextColor(getResources().getColor(R.color.ldstools_gray_dark));
         view.setBackground(null);
     }
-
     private Response.Listener<WebException> webErrorListener = new Response.Listener<WebException>() {
         @Override
         public void onResponse(WebException error) {
@@ -163,7 +161,6 @@ public class StatusEditActivity extends AppCompatActivity {
                     break;
                 default:
                     messageView.setText(R.string.error_generic_web);
-
             }
             dialogBuilder.setView(dialogView);
             dialogBuilder.setPositiveButton(R.string.ok, null);

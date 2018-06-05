@@ -52,7 +52,7 @@ public class MemberLookupButtonFragment extends Fragment  {
         View view = inflater.inflate(R.layout.fragment_member_lookup_button, container, false);
 
 
-        ImageButton searchButton = (ImageButton) view.findViewById(R.id.member_lookup_button);
+        ImageButton searchButton = view.findViewById(R.id.member_lookup_button);
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

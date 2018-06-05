@@ -1,8 +1,6 @@
 package org.ldscd.callingworkflow.web;
 
 import android.util.Log;
-
-import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -22,7 +20,6 @@ import org.ldscd.callingworkflow.model.Member;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class MemberListRequest extends Request<List<Member>> {
     private static final String TAG = "WardListRequest";
@@ -43,6 +40,14 @@ public class MemberListRequest extends Request<List<Member>> {
 
     private static final DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     private static final int minimumChildAge = 11;
+    private static final String MALE = "MALE";
+    private static final String FEMALE = "FEMALE";
+    private static final String DEACON = "DEACON";
+    private static final String TEACHER = "TEACHER";
+    private static final String PRIEST = "PRIEST";
+    private static final String ELDER = "ELDER";
+    private static final String HIGH_PRIEST = "HIGH_PRIEST";
+    private static final String SEVENTY = "SEVENTY";
 
     private final Response.Listener<List<Member>> listener;
 
@@ -143,10 +148,10 @@ public class MemberListRequest extends Request<List<Member>> {
         String genderString = json.getString(genderFieldName);
         Gender gender;
         switch (genderString) {
-            case "MALE":
+            case MALE:
                 gender = Gender.MALE;
                 break;
-            case "FEMALE":
+            case FEMALE:
                 gender = Gender.FEMALE;
                 break;
             default:
@@ -157,22 +162,22 @@ public class MemberListRequest extends Request<List<Member>> {
         String priesthoodString = json.getString(priesthoodFieldName);
         Priesthood priesthood;
         switch (priesthoodString) {
-            case "DEACON":
+            case DEACON:
                 priesthood = Priesthood.DEACON;
                 break;
-            case "TEACHER":
+            case TEACHER:
                 priesthood = Priesthood.TEACHER;
                 break;
-            case "PRIEST":
+            case PRIEST:
                 priesthood = Priesthood.PRIEST;
                 break;
-            case "ELDER":
+            case ELDER:
                 priesthood = Priesthood.ELDER;
                 break;
-            case "HIGH_PRIEST":
+            case HIGH_PRIEST:
                 priesthood = Priesthood.HIGH_PRIEST;
                 break;
-            case "SEVENTY":
+            case SEVENTY:
                 priesthood = Priesthood.SEVENTY;
                 break;
             default:

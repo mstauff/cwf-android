@@ -278,12 +278,6 @@ public class LDSAccountActivity extends AppCompatActivity {
             }
         }
 
-        /* Implement this if a cancel button is provided in the future. */
-        /*protected void onCancelled() {
-            mAuthTask = null;
-            Spinner.showProgress(false, mLoginFormView, mProgressView, getResources());
-        }*/
-
         private Response.Listener<WebException> loginErrorListener = new Response.Listener<WebException>() {
             @Override
             public void onResponse(WebException error) {

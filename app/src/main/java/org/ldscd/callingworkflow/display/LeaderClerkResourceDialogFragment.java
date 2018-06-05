@@ -88,7 +88,7 @@ public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment
 
     private void wireupButtons(final View v) {
         final LeaderClerkResourceListener tempListener = mListener;
-        TextView releaseButton = (TextView)v.findViewById(R.id.button_release_current_in_lcr);
+        TextView releaseButton = v.findViewById(R.id.button_release_current_in_lcr);
         releaseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -115,7 +115,7 @@ public class LeaderClerkResourceDialogFragment extends BottomSheetDialogFragment
             releaseButton.setVisibility(View.GONE);
         }
 
-        TextView updateButton = (TextView)v.findViewById(R.id.button_update_calling_in_lcr);
+        TextView updateButton = v.findViewById(R.id.button_update_calling_in_lcr);
         updateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

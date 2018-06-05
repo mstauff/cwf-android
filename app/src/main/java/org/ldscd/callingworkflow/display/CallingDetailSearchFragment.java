@@ -2,7 +2,6 @@ package org.ldscd.callingworkflow.display;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.v7.widget.SearchView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,15 +13,10 @@ import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.display.adapters.MemberSearchAdapter;
 import org.ldscd.callingworkflow.model.Member;
 import org.ldscd.callingworkflow.web.DataManager;
-import org.ldscd.callingworkflow.web.IWebResources;
-import org.ldscd.callingworkflow.web.MemberData;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
-
-import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
-
 
 /**
  *
@@ -39,7 +33,6 @@ public class CallingDetailSearchFragment extends android.support.v4.app.Fragment
     private View v;
     ListView list;
     MemberSearchAdapter adapter;
-    SearchView memberSearch;
     List<Member> members;
     AutoCompleteTextView memberLookup;
 
@@ -105,7 +98,7 @@ public class CallingDetailSearchFragment extends android.support.v4.app.Fragment
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnFragmentInteractionListener {
-        public void onFragmentInteraction(Long individualId);
+        void onFragmentInteraction(Long individualId);
     }
 
     private void init() {
@@ -122,7 +115,7 @@ public class CallingDetailSearchFragment extends android.support.v4.app.Fragment
             });
 
             adapter = new MemberSearchAdapter(getActivity(), android.R.layout.simple_dropdown_item_1line, memberList);
-            memberLookup = (AutoCompleteTextView) v.findViewById(R.id.autocomplete_calling_detail_member_lookup);
+            memberLookup = v.findViewById(R.id.autocomplete_calling_detail_member_lookup);
             memberLookup.setAdapter(adapter);
             memberLookup.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override

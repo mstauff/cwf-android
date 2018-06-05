@@ -144,15 +144,15 @@ public class DirectoryAdapter extends RecyclerView.Adapter<DirectoryAdapter.View
         public ViewHolder(View view) {
             super(view);
             this.view = view;
-            memberNameView = (TextView) view.findViewById(R.id.member_item_name);
+            memberNameView = view.findViewById(R.id.member_item_name);
             currentCallingViews = new TextView[3];
-            currentCallingViews[0] = ((TextView) view.findViewById(R.id.member_item_current1));
-            currentCallingViews[1] = ((TextView) view.findViewById(R.id.member_item_current2));
-            currentCallingViews[2] = ((TextView) view.findViewById(R.id.member_item_current3));
+            currentCallingViews[0] = view.findViewById(R.id.member_item_current1);
+            currentCallingViews[1] = view.findViewById(R.id.member_item_current2);
+            currentCallingViews[2] = view.findViewById(R.id.member_item_current3);
             proposedCallingViews = new TextView[3];
-            proposedCallingViews[0] = ((TextView) view.findViewById(R.id.member_item_proposed1));
-            proposedCallingViews[1] = ((TextView) view.findViewById(R.id.member_item_proposed2));
-            proposedCallingViews[2] = ((TextView) view.findViewById(R.id.member_item_proposed3));
+            proposedCallingViews[0] = view.findViewById(R.id.member_item_proposed1);
+            proposedCallingViews[1] = view.findViewById(R.id.member_item_proposed2);
+            proposedCallingViews[2] = view.findViewById(R.id.member_item_proposed3);
         }
 
         @Override

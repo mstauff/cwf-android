@@ -22,7 +22,7 @@ public class CWFApplication extends Application {
 
             @Override
             public void uncaughtException(Thread thread, Throwable ex) {
-                handleUncaughtException(thread, ex);
+                handleUncaughtException(ex);
             }
         });
 
@@ -32,8 +32,12 @@ public class CWFApplication extends Application {
         return netComponent;
     }
 
-    public void handleUncaughtException (Thread thread, Throwable e)
+    public void handleUncaughtException(Throwable e)
     {
+        /* Any uncaught error in the application will logged and an option from the
+           devices interface will be prompted to send an email with the stacktrace to our dev
+           google email account.
+         */
         String stackTrace = Log.getStackTraceString(e);
         String message = e.getMessage();
         Intent intent = new Intent (Intent.ACTION_SEND);
@@ -44,5 +48,4 @@ public class CWFApplication extends Application {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // required when starting from Application
         startActivity(intent);
     }
-
 }

@@ -33,8 +33,8 @@ public class ResetOrgsListAdapter extends ArrayAdapter<Org>{
                     .inflate(R.layout.reset_org_list_content, parent, false);
         }
 
-        TextView nameView = (TextView) convertView.findViewById(R.id.org_list_name);
-        final ImageView checkboxView = (ImageView) convertView.findViewById(R.id.checkbox_icon);
+        TextView nameView = convertView.findViewById(R.id.org_list_name);
+        final ImageView checkboxView = convertView.findViewById(R.id.checkbox_icon);
         final Org org = getItem(position);
         nameView.setText(org.getDefaultOrgName());
         if(selectedOrgIds.contains(org)) {

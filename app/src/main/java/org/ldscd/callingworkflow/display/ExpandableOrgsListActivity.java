@@ -7,18 +7,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -35,8 +31,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.inject.Inject;
-
-import static android.view.View.GONE;
 
 /**
  * An activity representing a list of Callings. This activity
@@ -153,7 +147,7 @@ public class ExpandableOrgsListActivity extends AppCompatActivity {
 
     private void setupListView(@NonNull final ExpandableListView callingListView, final Org org) {
         FragmentManager fragmentManager = getSupportFragmentManager();
-        adapter = new ExpandableOrgListAdapter(org, dataManager, twoPane, fragmentManager, activity);
+        adapter = new ExpandableOrgListAdapter(org, dataManager, fragmentManager, activity);
         callingListView.setAdapter(adapter);
 
         //expand subOrg if expandId was provided
@@ -235,17 +229,6 @@ public class ExpandableOrgsListActivity extends AppCompatActivity {
     public void onSaveInstanceState(Bundle outState) {
         outState.putLong(ARG_ORG_ID, getIntent().getLongExtra(ARG_ORG_ID, 0));
         super.onSaveInstanceState(outState);
-    }
-
-    //TODO: possibly remove this method as it doesn't look like it is getting used.
-    public void wireUpIndividualInformationFragments(Long individualId) {
-        if (individualId != null) {
-            IndividualInformationFragment member_information_fragment = new IndividualInformationFragment();
-            Bundle args = new Bundle();
-            args.putLong(CallingDetailSearchFragment.INDIVIDUAL_ID, individualId);
-            member_information_fragment.setArguments(args);
-            member_information_fragment.show(getSupportFragmentManager(), null);
-        }
     }
 
     private Response.Listener<WebException> webErrorListener = new Response.Listener<WebException>() {

@@ -1,6 +1,5 @@
 package org.ldscd.callingworkflow.web;
 
-
 public enum ExceptionType {
     NO_DATA_CONNECTION,
     LDS_AUTH_REQUIRED,

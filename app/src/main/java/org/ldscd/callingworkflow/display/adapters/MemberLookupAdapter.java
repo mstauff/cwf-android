@@ -75,10 +75,10 @@ public class MemberLookupAdapter extends ArrayAdapter<Member> implements Filtera
             if (view == null) {
                 holder = new MemberLookupAdapter.ViewHolder();
                 view = inflater.inflate(R.layout.fragment_member_lookup_list_layout, null);
-                holder.name = (TextView) view.findViewById(R.id.member_lookup_list_layout_name);
-                holder.calling = (TextView) view.findViewById(R.id.member_lookup_list_layout_current_calling);
-                holder.proposedCalling = (TextView) view.findViewById(R.id.member_lookup_list_layout_proposed_calling);
-                holder.contact_info = (ImageView) view.findViewById(R.id.member_lookup_list_layout_contact_info);
+                holder.name = view.findViewById(R.id.member_lookup_list_layout_name);
+                holder.calling = view.findViewById(R.id.member_lookup_list_layout_current_calling);
+                holder.proposedCalling = view.findViewById(R.id.member_lookup_list_layout_proposed_calling);
+                holder.contact_info = view.findViewById(R.id.member_lookup_list_layout_contact_info);
                 view.setTag(holder);
             } else {
                 holder = (MemberLookupAdapter.ViewHolder) view.getTag();

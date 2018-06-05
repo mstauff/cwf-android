@@ -87,7 +87,7 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
     }
 
     private void wireUpFilterButton(View v) {
-        final ImageButton filterButton = (ImageButton) v.findViewById(R.id.member_lookup_filter_button);
+        final ImageButton filterButton = v.findViewById(R.id.member_lookup_filter_button);
         filterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -138,8 +138,8 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
     }
 
     private void init() {
-        TableRow removeSelection = (TableRow) view.findViewById(R.id.member_lookup_clear_selection_button_container);
-        final TextView currentSelectionLabel = (TextView) view.findViewById(R.id.member_lookup_current_selection_label);
+        TableRow removeSelection = view.findViewById(R.id.member_lookup_clear_selection_button_container);
+        final TextView currentSelectionLabel = view.findViewById(R.id.member_lookup_current_selection_label);
         Bundle bundle = this.getArguments();
         if (bundle != null && !bundle.isEmpty()) {
             Long individualId = bundle.getLong(INDIVIDUAL_ID, 0);
@@ -160,7 +160,7 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
                 getFragmentManager().popBackStack();
             }
         });
-        listView = (ListView) view.findViewById(R.id.member_lookup_member_list);
+        listView = view.findViewById(R.id.member_lookup_member_list);
         if(adapter == null) {
             setAdapter();
         }
@@ -173,7 +173,7 @@ public class MemberLookupFragment extends Fragment implements MemberLookupFilter
                 getFragmentManager().popBackStack();
             }
         });
-        EditText editText = (EditText)view.findViewById(R.id.member_lookup_search_box);
+        EditText editText = view.findViewById(R.id.member_lookup_search_box);
         editText.addTextChangedListener(textWatcherSearchListener);
     }
 

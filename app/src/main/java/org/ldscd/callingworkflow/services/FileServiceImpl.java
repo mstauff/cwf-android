@@ -18,6 +18,8 @@ import java.io.OutputStreamWriter;
 
 public class FileServiceImpl implements FileService {
 
+    public static final String CONFIG_TXT = "config.txt";
+
     /* Member Assignments */
     @Override
     public Task<String> GetCachedMemberAssignments(Context context) {
@@ -34,7 +36,7 @@ public class FileServiceImpl implements FileService {
     /* File CRUD core methods. */
     private void writeToFile(String data, Context context) {
         try {
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput("config.txt", Context.MODE_PRIVATE));
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput(CONFIG_TXT, Context.MODE_PRIVATE));
             outputStreamWriter.write(SecurityUtil.encrypt(context, data));
             outputStreamWriter.close();
         }
@@ -46,8 +48,8 @@ public class FileServiceImpl implements FileService {
     private String readFromFile(Context context) {
         String value = "";
         try {
-            InputStream inputStream = context.openFileInput("config.txt");
-            File file = context.getFileStreamPath("config.txt");
+            InputStream inputStream = context.openFileInput(CONFIG_TXT);
+            File file = context.getFileStreamPath(CONFIG_TXT);
 
             if (inputStream != null) {
                 InputStreamReader inputStreamReader = new InputStreamReader(inputStream);

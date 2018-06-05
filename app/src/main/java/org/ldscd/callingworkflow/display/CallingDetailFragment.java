@@ -3,8 +3,6 @@ package org.ldscd.callingworkflow.display;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -26,7 +24,6 @@ import android.widget.Toast;
 
 import com.android.volley.Response;
 
-import org.json.JSONException;
 import org.ldscd.callingworkflow.R;
 import org.ldscd.callingworkflow.constants.CallingStatus;
 import org.ldscd.callingworkflow.constants.Operation;
@@ -119,7 +116,7 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
     }
 
     @Override
-    public void onLeaderClerkResourceFragmentInteraction(Operation operation) throws JSONException {
+    public void onLeaderClerkResourceFragmentInteraction(Operation operation) {
         progressDialog = new ProgressDialog(getContext());
         progressDialog.setMessage("Please Wait...");
         progressDialog.setCancelable(false);
@@ -364,7 +361,7 @@ public class CallingDetailFragment extends Fragment implements MemberLookupFragm
                         statusList.remove(CallingStatus.UNKNOWN);
                     }
 
-                    ArrayAdapter adapter = new ArrayAdapter<CallingStatus>(getContext(), android.R.layout.simple_list_item_1, statusList);
+                    ArrayAdapter adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, statusList);
                     statusDropdown.setAdapter(adapter);
                     if (calling != null && calling.getProposedStatus() != null) {
                         statusDropdown.setSelection(adapter.getPosition(calling.getProposedStatus()));

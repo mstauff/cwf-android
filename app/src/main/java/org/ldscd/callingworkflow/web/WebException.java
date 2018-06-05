@@ -1,10 +1,11 @@
 package org.ldscd.callingworkflow.web;
 
-
 import com.android.volley.NetworkResponse;
 import com.android.volley.VolleyError;
 
 public class WebException extends VolleyError {
+    private static final String SSO_UI_LOGIN = "sso/UI/Login";
+    private static final String OUTOFSERVICE_LDS_ORG = "outofservice.lds.org";
     private ExceptionType exceptionType;
     private Exception exception;
 
@@ -41,7 +42,7 @@ public class WebException extends VolleyError {
 
     public static boolean isSessionExpiredResponse(String responseBody) {
         boolean result = false;
-        if(responseBody.contains("sso/UI/Login")) {
+        if(responseBody.contains(SSO_UI_LOGIN)) {
             result = true;
         }
         return result;
@@ -49,7 +50,7 @@ public class WebException extends VolleyError {
 
     public static boolean isWebsiteDownResponse(String responseBody) {
         boolean result = false;
-        if(responseBody.contains("outofservice.lds.org")) {
+        if(responseBody.contains(OUTOFSERVICE_LDS_ORG)) {
             result = true;
         }
         return result;

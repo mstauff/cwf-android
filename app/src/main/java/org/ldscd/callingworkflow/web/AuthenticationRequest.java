@@ -1,6 +1,5 @@
 package org.ldscd.callingworkflow.web;
 
-import com.android.volley.Header;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -11,6 +10,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class AuthenticationRequest extends Request<Boolean> {
+    private static final String LOCATION = "Location";
+    private static final String AUTHFAILED = "authfailed";
+    private static final String USERNAME = "username";
+    private static final String PASSWORD = "password";
     private final Response.Listener<Boolean> listener;
     private Map<String, String> params;
 
@@ -24,8 +27,8 @@ public class AuthenticationRequest extends Request<Boolean> {
             }
         });
         this.params = new HashMap<>(2);
-        this.params.put("username", userName);
-        this.params.put("password", password);
+        this.params.put(USERNAME, userName);
+        this.params.put(PASSWORD, password);
         this.listener = listener;
         this.setShouldCache(false);
     }
@@ -58,7 +61,7 @@ public class AuthenticationRequest extends Request<Boolean> {
             if(volleyError.networkResponse.statusCode == 403) {
                 return new WebException(ExceptionType.LDS_AUTH_REQUIRED, volleyError.networkResponse);
             } else if(volleyError.networkResponse.statusCode == 302  &&
-                      volleyError.networkResponse.headers.get("Location").contains("authfailed")) {
+                      volleyError.networkResponse.headers.get(LOCATION).contains(AUTHFAILED)) {
                 return new WebException(ExceptionType.UNAUTHORIZED, volleyError.networkResponse);
             }
         }

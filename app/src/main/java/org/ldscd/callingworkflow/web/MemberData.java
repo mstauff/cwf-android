@@ -1,6 +1,5 @@
 package org.ldscd.callingworkflow.web;
 
-
 import android.content.Context;
 import android.widget.ProgressBar;
 

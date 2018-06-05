@@ -47,7 +47,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 public class CallingData {
     private static final String TAG = "CallingData";
@@ -60,6 +59,9 @@ public class CallingData {
     private static final String SHORT_NAME = "shortName";
     private static final String MEDIUM_NAME = "mediumName";
     private static final String REQUIREMENTS = "requirements";
+    public static final String ERRORS = "errors";
+    public static final String POSITION_ID = "positionId";
+    public static final String MEMBER_ID = "memberId";
 
     private IWebResources webResources;
     private GoogleDriveService googleDriveService;
@@ -797,7 +799,7 @@ public class CallingData {
             @Override
             public void onResponse(JSONObject jsonObject) {
                 try {
-                    if (jsonObject.has("errors") && jsonObject.getJSONObject("errors").length() > 0) {
+                    if (jsonObject.has(ERRORS) && jsonObject.getJSONObject(ERRORS).length() > 0) {
                         taskCompletionSource.setException(hydrateErrorListener(jsonObject, Operation.RELEASE));
                     } else {
                         googleDriveService.getOrgData(getBaseOrg(calling.getParentOrg()))
@@ -852,7 +854,7 @@ public class CallingData {
             @Override
             public void onResponse(final JSONObject jsonObject) {
                 try {
-                    if (jsonObject.has("errors") && jsonObject.getJSONObject("errors").length() > 0) {
+                    if (jsonObject.has(ERRORS) && jsonObject.getJSONObject(ERRORS).length() > 0) {
                         taskCompletionSource.setException(hydrateErrorListener(jsonObject, Operation.UPDATE));
                     } else {
                         googleDriveService.getOrgData(getBaseOrg(calling.getParentOrg()))
@@ -861,8 +863,8 @@ public class CallingData {
                             public void onSuccess(final Org latestGoogleDriveOrg) {
                                 try {
                                     Calling googleCalling = latestGoogleDriveOrg.getCallingById(calling.getCallingId());
-                                    if (jsonObject.has("positionId")) {
-                                        googleCalling.setId(jsonObject.getLong("positionId"));
+                                    if (jsonObject.has(POSITION_ID)) {
+                                        googleCalling.setId(jsonObject.getLong(POSITION_ID));
                                     }
                                     googleCalling.setNotes("");
                                     googleCalling.setExistingStatus(null);
@@ -871,7 +873,7 @@ public class CallingData {
                                     googleCalling.setActiveDate(DateTime.now());
                                     googleCalling.setActiveDateTime(DateTime.now());
                                     googleCalling.setCwfId("");
-                                    googleCalling.setMemberId(jsonObject.getLong("memberId"));
+                                    googleCalling.setMemberId(jsonObject.getLong(MEMBER_ID));
                                     if (googleCalling.isCwfOnly()) {
                                         googleCalling.setCwfOnly(false);
                                     }
@@ -924,7 +926,7 @@ public class CallingData {
             @Override
             public void onResponse(JSONObject jsonObject) {
                 try {
-                    if(jsonObject != null && jsonObject.has("errors") && jsonObject.getJSONObject("errors").length() > 0) {
+                    if(jsonObject != null && jsonObject.has(ERRORS) && jsonObject.getJSONObject(ERRORS).length() > 0) {
                         errorListener.onResponse(hydrateErrorListener(jsonObject, Operation.DELETE));
                     } else {
                         /* Get Latest org changes from google drive. */
@@ -976,8 +978,8 @@ public class CallingData {
                     break;
                 case UPDATE:
                     VolleyError volleyError = null;
-                    if(json.getJSONObject("errors").has("memberId")) {
-                        volleyError = new VolleyError(json.getJSONObject("errors").getString("memberId").replace("[", "").replace("]", ""));
+                    if(json.getJSONObject(ERRORS).has(MEMBER_ID)) {
+                        volleyError = new VolleyError(json.getJSONObject(ERRORS).getString(MEMBER_ID).replace("[", "").replace("]", ""));
                     }
                     error.setException(new WebException(ExceptionType.UNKNOWN_EXCEPTION, volleyError));
                     break;

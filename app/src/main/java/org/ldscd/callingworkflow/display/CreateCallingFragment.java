@@ -1,8 +1,6 @@
 package org.ldscd.callingworkflow.display;
 
 import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -130,7 +128,7 @@ public class CreateCallingFragment extends Fragment implements MemberLookupFragm
                 if(statusOptions != null) {
                     statusOptions.remove(CallingStatus.UNKNOWN);
                     statusDropdown = view.findViewById(R.id.new_calling_status_dropdown);
-                    ArrayAdapter statusAdapter = new ArrayAdapter<CallingStatus>(getActivity(), android.R.layout.simple_list_item_1, statusOptions);
+                    ArrayAdapter statusAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, statusOptions);
                     statusDropdown.setAdapter(statusAdapter);
                     statusDropdown.setSelection(1);
                 }
@@ -161,7 +159,6 @@ public class CreateCallingFragment extends Fragment implements MemberLookupFragm
         }
 
         return view;
-
     }
 
     private void checkPositionRequirements() {

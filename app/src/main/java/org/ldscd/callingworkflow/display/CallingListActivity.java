@@ -14,16 +14,9 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-
-import com.android.volley.Response;
-
 import org.ldscd.callingworkflow.R;
-import org.ldscd.callingworkflow.display.adapters.CallingFiltersAdapter;
 import org.ldscd.callingworkflow.display.adapters.CallingListAdapter;
-import org.ldscd.callingworkflow.model.Calling;
 import org.ldscd.callingworkflow.web.DataManager;
-
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -76,8 +69,7 @@ public class CallingListActivity extends AppCompatActivity
     }
 
     private void setupRecyclerView(@NonNull final RecyclerView recyclerView) {
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        adapter = new CallingListAdapter(dataManager.getUnfinalizedCallings(), dataManager, twoPane, fragmentManager);
+        adapter = new CallingListAdapter(dataManager.getUnfinalizedCallings(), dataManager);
         recyclerView.setAdapter(adapter);
     }
 

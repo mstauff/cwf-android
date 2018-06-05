@@ -147,7 +147,7 @@ public class CallingDetailActivity
 
     private void wireUpToolbar() {
         /* Once the calling is found we can then set the title of the Toolbar and initialize it. */
-        Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
+        Toolbar toolbar = findViewById(R.id.detail_toolbar);
         toolbar.setTitle(org.getDefaultOrgName());
         setSupportActionBar(toolbar);
 

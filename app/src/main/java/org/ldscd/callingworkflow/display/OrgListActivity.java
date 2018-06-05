@@ -85,7 +85,7 @@ public class OrgListActivity extends AppCompatActivity
 
     private void setupRecyclerView() {
         List<Org> orgs = dataManager.getOrgs();
-        recyclerView.setAdapter(new OrgListAdapter(orgs, twoPane, fragmentManager));
+        recyclerView.setAdapter(new OrgListAdapter(orgs, fragmentManager));
         if(orgs == null || orgs.isEmpty()) {
             reloadData();
         }
@@ -219,7 +219,6 @@ public class OrgListActivity extends AppCompatActivity
                     break;
                 default:
                     messageView.setText(R.string.error_generic_web);
-
             }
             dialogBuilder.setView(dialogView);
             dialogBuilder.setPositiveButton(R.string.ok, null);

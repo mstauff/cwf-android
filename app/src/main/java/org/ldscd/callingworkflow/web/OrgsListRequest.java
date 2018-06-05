@@ -1,6 +1,5 @@
 package org.ldscd.callingworkflow.web;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -8,14 +7,10 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.HttpHeaderParser;
 import org.json.JSONArray;
 import org.ldscd.callingworkflow.model.Org;
-
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class OrgsListRequest extends Request<List<Org>> {
     private static final String TAG = "OrgsListRequest";
-
     private final Response.Listener<List<Org>> listener;
 
     public OrgsListRequest(String url, Response.Listener<List<Org>> listener, final Response.Listener<WebException> errorListener) {

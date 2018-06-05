@@ -44,15 +44,31 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class WebResources implements IWebResources {
     private static final String TAG = "WebResourcesLog";
     private static final String CONFIG_URL = BuildConfig.appConfigUrl;
     private static final String prefUsername = "username";
     private static final String prefPassword = "password";
+    private static final String UNIT_NUMBER = "unitNumber";
+    private static final String SUB_ORG_TYPE_ID = "subOrgTypeId";
+    private static final String SUB_ORG_ID = "subOrgId";
+    private static final String POSITION = "position";
+    private static final String POSITION_ID = "positionId";
+    private static final String YYYY_M_MDD = "yyyyMMdd";
+    private static final String RELEASE_DATE = "releaseDate";
+    private static final String POSITION_TYPE_ID = "positionTypeId";
+    private static final String HIDDEN = "hidden";
+    private static final String MEMBER_ID = "memberId";
+    private static final String RELEASE_POSITION_IDS = "releasePositionIds";
+    private static final String UTF_8 = "UTF-8";
+    private static final String HOME_UNIT_NBR = "homeUnitNbr";
+    private static final String INDIVIDUAL_ID = "individualId";
+    private static final String MEMBER_ASSIGNMENTS = "memberAssignments";
+    private static final String UNIT_NO = "unitNo";
+    private static final String COOKIE = "Cookie";
+    private static final String CWF = "cwf";
 
     private RequestQueue requestQueue;
     private RequestQueue authRequestQueue;
@@ -231,35 +247,35 @@ public class WebResources implements IWebResources {
         } else {
             /* Authentication Request to the LDS church. */
             final AuthenticationRequest authRequest = new AuthenticationRequest(userName, password, configInfo.getSignInUrl(),
-                    new Response.Listener<Boolean>() {
-                        @Override
-                        public void onResponse(Boolean response) {
-                            if(response) {
-                                Log.i(TAG, "auth call successful");
-                                attemptSessionRefresh = true;
-                                httpCookie = new HttpCookie("cwf", "true");
+                new Response.Listener<Boolean>() {
+                    @Override
+                    public void onResponse(Boolean response) {
+                        if(response) {
+                            Log.i(TAG, "auth call successful");
+                            attemptSessionRefresh = true;
+                            httpCookie = new HttpCookie(CWF, "true");
 
-                                /* Sets the maximum age of the cookie in seconds. */
-                                httpCookie.setMaxAge(1500);
-                                /* Sets the username and password in long term storage.
-                                 * This is only accessible through this application.  */
-                                SharedPreferences.Editor editor = preferences.edit();
-                                editor.putString(prefUsername, SecurityUtil.encrypt(context, userName));
-                                editor.putString(prefPassword, SecurityUtil.encrypt(context, password));
-                                editor.apply();
+                            /* Sets the maximum age of the cookie in seconds. */
+                            httpCookie.setMaxAge(1500);
+                            /* Sets the username and password in long term storage.
+                             * This is only accessible through this application.  */
+                            SharedPreferences.Editor editor = preferences.edit();
+                            editor.putString(prefUsername, SecurityUtil.encrypt(context, userName));
+                            editor.putString(prefPassword, SecurityUtil.encrypt(context, password));
+                            editor.apply();
 
-                                authCallback.onResponse(true);
-                            }
-                        }
-                    },
-                    new Response.Listener<WebException>() {
-                        @Override
-                        public void onResponse(WebException error) {
-                            Log.e(TAG, "auth error");
-                            error.printStackTrace();
-                            errorCallback.onResponse(error);
+                            authCallback.onResponse(true);
                         }
                     }
+                },
+                new Response.Listener<WebException>() {
+                    @Override
+                    public void onResponse(WebException error) {
+                        Log.e(TAG, "auth error");
+                        error.printStackTrace();
+                        errorCallback.onResponse(error);
+                    }
+                }
             );
             authRequest.setRetryPolicy(getRetryPolicy());
             authRequestQueue.add(authRequest);
@@ -268,35 +284,27 @@ public class WebResources implements IWebResources {
 
     public void signOut(final Response.Listener<Boolean> authCallback, final Response.Listener<WebException> errorCallback) {
         /* Authentication Request to the LDS church. */
-        StringRequest authRequest = new StringRequest(Request.Method.GET, configInfo.getEndpointUrl("SIGN_OUT"),
-                new Response.Listener<String>()
-                {
-                    @Override
-                    public void onResponse(String response) {
-                        Log.d("Response", response);
-                        clearAuthCache();
-                        authCallback.onResponse(true);
-                    }
-                },
-                new Response.ErrorListener()
-                {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        // error
-                        Log.e("Error.Response", error.networkResponse.statusCode + "");
-                        clearAuthCache();
-                        authCallback.onResponse(true);
-                    }
-                }
-        ) {
-            @Override
-            protected Map<String, String> getParams()
+        StringRequest authRequest = new StringRequest(Request.Method.GET, configInfo.getSignOutUrl(),
+            new Response.Listener<String>()
             {
-                Map<String, String>  params = new HashMap<>();
-
-                return params;
+                @Override
+                public void onResponse(String response) {
+                    Log.d("Response", response);
+                    clearAuthCache();
+                    authCallback.onResponse(true);
+                }
+            },
+            new Response.ErrorListener()
+            {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    // error
+                    Log.e("Error.Response", error.networkResponse.statusCode + "");
+                    clearAuthCache();
+                    authCallback.onResponse(true);
+                }
             }
-        };
+        );
         authRequest.setRetryPolicy(getRetryPolicy());
         requestQueue.add(authRequest);
     }
@@ -309,7 +317,7 @@ public class WebResources implements IWebResources {
         SharedPreferences.Editor editor = preferences.edit();
         editor.remove(prefUsername);
         editor.remove(prefPassword);
-        editor.remove("Cookie");
+        editor.remove(COOKIE);
         editor.commit();
         cookieManager.getCookieStore().removeAll();
     }
@@ -334,22 +342,22 @@ public class WebResources implements IWebResources {
                         Log.i(TAG, json.toString());
                         try {
                             // Parse out the returned json to capture the positions occupied by this person.
-                            if(json.has("memberAssignments")) {
-                                JSONArray assignments = json.getJSONArray("memberAssignments");
+                            if(json.has(MEMBER_ASSIGNMENTS)) {
+                                JSONArray assignments = json.getJSONArray(MEMBER_ASSIGNMENTS);
                                 OrgCallingBuilder builder = new OrgCallingBuilder();
                                 for (int i = 0; i < assignments.length(); i++) {
                                     positions.add(builder.extractPosition((JSONObject) assignments.get(i)));
                                 }
-                                unitNumber = json.getJSONArray("memberAssignments").getJSONObject(0).getString("unitNo");
+                                unitNumber = json.getJSONArray(MEMBER_ASSIGNMENTS).getJSONObject(0).getString(UNIT_NO);
                             }
                             /* Gets the Unit Number for this person by way of the position they hold.
                             *  Currently we are only storing the unit number for the first calling we get.
                             *  If they have callings in multiple units this will not be supported.
                             */
                             if(unitNumber == null) {
-                                unitNumber = json.get("homeUnitNbr").toString();
+                                unitNumber = json.get(HOME_UNIT_NBR).toString();
                             }
-                            long individualId = json.getLong("individualId");
+                            long individualId = json.getLong(INDIVIDUAL_ID);
                             user = new LdsUser(individualId, positions);
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -514,7 +522,7 @@ public class WebResources implements IWebResources {
             byte[] buffer = new byte[size];
             is.read(buffer);
             is.close();
-            json = new String(buffer, "UTF-8");
+            json = new String(buffer, UTF_8);
         } catch (IOException ex) {
             ex.printStackTrace();
             return null;
@@ -540,20 +548,20 @@ public class WebResources implements IWebResources {
         if(isDataConnected()) {
             org.json.JSONObject json = new org.json.JSONObject();
             try {
-                json.put("unitNumber", unitNumber);
-                json.put("subOrgTypeId", orgTypeId);
-                json.put("subOrgId", calling.getParentOrg());
-                json.put("positionTypeId", calling.getPosition().getPositionTypeId());
-                json.put("position", calling.getPosition().getName());
-                json.put("memberId", calling.getProposedIndId());
+                json.put(UNIT_NUMBER, unitNumber);
+                json.put(SUB_ORG_TYPE_ID, orgTypeId);
+                json.put(SUB_ORG_ID, calling.getParentOrg());
+                json.put(POSITION_TYPE_ID, calling.getPosition().getPositionTypeId());
+                json.put(POSITION, calling.getPosition().getName());
+                json.put(MEMBER_ID, calling.getProposedIndId());
 
                 if (calling.getId() != null && calling.getId() > 0) {
                     LocalDate date = LocalDate.now();
-                    DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
-                    json.put("releaseDate", date.toString(fmt));
+                    DateTimeFormatter fmt = DateTimeFormat.forPattern(YYYY_M_MDD);
+                    json.put(RELEASE_DATE, date.toString(fmt));
                     JSONArray positionIds = new JSONArray();
                     positionIds.put(calling.getId());
-                    json.put("releasePositionIds", positionIds);
+                    json.put(RELEASE_POSITION_IDS, positionIds);
                 }
                 LcrJsonRequest updateCallingRequest = new LcrJsonRequest(
                         Request.Method.POST,
@@ -617,15 +625,15 @@ public class WebResources implements IWebResources {
         if(isDataConnected()) {
             org.json.JSONObject json = new org.json.JSONObject();
             try {
-                json.put("unitNumber", unitNumber);
-                json.put("subOrgTypeId", orgTypeId);
-                json.put("subOrgId", calling.getParentOrg());
-                json.put("position", calling.getPosition().getName());
-                json.put("positionId", calling.getId());
-                json.put("positionTypeId", calling.getPosition().getPositionTypeId());
+                json.put(UNIT_NUMBER, unitNumber);
+                json.put(SUB_ORG_TYPE_ID, orgTypeId);
+                json.put(SUB_ORG_ID, calling.getParentOrg());
+                json.put(POSITION, calling.getPosition().getName());
+                json.put(POSITION_ID, calling.getId());
+                json.put(POSITION_TYPE_ID, calling.getPosition().getPositionTypeId());
                 LocalDate date = LocalDate.now();
-                DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
-                json.put("releaseDate", date.toString(fmt));
+                DateTimeFormatter fmt = DateTimeFormat.forPattern(YYYY_M_MDD);
+                json.put(RELEASE_DATE, date.toString(fmt));
 
                 LcrJsonRequest releaseCallingRequest = new LcrJsonRequest(
                         Request.Method.POST,
@@ -697,20 +705,20 @@ public class WebResources implements IWebResources {
         if(isDataConnected()) {
             org.json.JSONObject json = new org.json.JSONObject();
             try {
-                json.put("unitNumber", unitNumber);
-                json.put("subOrgTypeId", orgTypeId);
-                json.put("subOrgId", calling.getParentOrg());
-                json.put("position", calling.getPosition().getName());
+                json.put(UNIT_NUMBER, unitNumber);
+                json.put(SUB_ORG_TYPE_ID, orgTypeId);
+                json.put(SUB_ORG_ID, calling.getParentOrg());
+                json.put(POSITION, calling.getPosition().getName());
                 if (calling.getId() != null && calling.getId() > 0 && calling.getMemberId() > 0) {
-                    json.put("positionId", calling.getId());
+                    json.put(POSITION_ID, calling.getId());
                     LocalDate date = LocalDate.now();
-                    DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
-                    json.put("releaseDate", date.toString(fmt));
+                    DateTimeFormatter fmt = DateTimeFormat.forPattern(YYYY_M_MDD);
+                    json.put(RELEASE_DATE, date.toString(fmt));
                 } else {
-                    json.put("positionTypeId", calling.getPosition().getPositionTypeId());
+                    json.put(POSITION_TYPE_ID, calling.getPosition().getPositionTypeId());
                 }
 
-                json.put("hidden", true);
+                json.put(HIDDEN, true);
 
                 LcrJsonRequest deleteCallingRequest = new LcrJsonRequest(
                         Request.Method.POST,

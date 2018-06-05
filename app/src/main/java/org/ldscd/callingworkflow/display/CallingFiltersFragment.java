@@ -39,7 +39,7 @@ public class CallingFiltersFragment extends DialogFragment {
 
         View callingFilters = inflater.inflate(R.layout.calling_filters, container, false);
 
-        FlexboxLayout statusFilters = (FlexboxLayout) callingFilters.findViewById(R.id.status_filters);
+        FlexboxLayout statusFilters = callingFilters.findViewById(R.id.status_filters);
         for(final CallingStatus status: CallingStatus.values()) {
             TextView statusView = new TextView(statusFilters.getContext());
             statusView.setText(status.toString());
@@ -66,7 +66,7 @@ public class CallingFiltersFragment extends DialogFragment {
             statusFilters.addView(statusView);
         }
 
-        final FlexboxLayout orgFilters = (FlexboxLayout) callingFilters.findViewById(R.id.org_filters);
+        final FlexboxLayout orgFilters = callingFilters.findViewById(R.id.org_filters);
         List<Org> orgs = dataManager.getOrgs();
         for(final Org org: orgs) {
             final TextView orgView = new TextView(statusFilters.getContext());
@@ -94,7 +94,7 @@ public class CallingFiltersFragment extends DialogFragment {
             orgFilters.addView(orgView);
         }
 
-        TextView confirmButton = (TextView) callingFilters.findViewById(R.id.calling_filters_confirm);
+        TextView confirmButton = callingFilters.findViewById(R.id.calling_filters_confirm);
         confirmButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
