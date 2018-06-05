@@ -41,18 +41,10 @@ public class OrgListAdapter extends RecyclerView.Adapter<OrgListAdapter.ViewHold
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.orgItem = mValues.get(position);
         holder.orgTitleView.setText(mValues.get(position).getDefaultOrgName());
-        holder.orgTitleView.setOnClickListener(new View.OnClickListener() {
+
+        holder.view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                /*if (twoPane) {
-                    Bundle arguments = new Bundle();
-                    arguments.putString(CallingDetailFragment.CALLING_ID, holder.orgItem.id);
-                    CallingDetailFragment fragment = new CallingDetailFragment();
-                    fragment.setArguments(arguments);
-                    fragmentManager.beginTransaction()
-                            .replace(R.id.calling_detail_container, fragment)
-                            .commit();
-                } else {*/
                 Context context = v.getContext();
                 Intent intent = new Intent(context, ExpandableOrgsListActivity.class);
                 intent.putExtra(ExpandableOrgsListActivity.ARG_ORG_ID, holder.orgItem.getId());
@@ -61,7 +53,6 @@ public class OrgListAdapter extends RecyclerView.Adapter<OrgListAdapter.ViewHold
                 //}
             }
         });
-
         if(holder.orgItem.getConflictCause() != null && holder.orgItem.getConflictCause().getConflictCause() != null && holder.orgItem.getConflictCause().getConflictCause().length() > 0 ) {
             holder.conflictContainer.setVisibility(View.VISIBLE);
             holder.conflictButton.setOnClickListener(new View.OnClickListener() {
