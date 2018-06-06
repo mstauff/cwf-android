@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.ContextThemeWrapper;
@@ -71,6 +72,15 @@ public class SplashActivity extends AppCompatActivity {
             if (response) {
                 orgDataFinished = true;
                 if(memberDataFinished) {
+                    if(dataManager.isCachedClassMemberAssignmentsExpired()) {
+                        new Handler()
+                            .post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    dataManager.loadClassMemberAssignments();
+                                }
+                            });
+                    }
                     startApplication();
                 }
             }

@@ -1,9 +1,12 @@
 package org.ldscd.callingworkflow.services;
 
-import android.content.Context;
 import com.google.android.gms.tasks.Task;
+import java.util.List;
+import java.util.Map;
 
 public interface FileService {
-    Task<String> GetCachedMemberAssignments(Context context);
-    Task<Boolean> SaveMemberAssignmentsToCache(Context context, String assignments);
+    /* Member Assignments */
+    boolean isCachedMemberAssignmentsExpired();
+    Map<Long, List<Long>> getCachedMemberAssignments();
+    Task<Boolean> saveMemberAssignmentsToCache(Map<Long, List<Long>> memberAssignments);
 }

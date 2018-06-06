@@ -3,13 +3,14 @@ package org.ldscd.callingworkflow.dependencies;
 import android.content.Context;
 import android.content.SharedPreferences;
 import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.HurlStack;
 import com.android.volley.toolbox.Volley;
 import dagger.Module;
 import dagger.Provides;
 
 import org.ldscd.callingworkflow.BuildConfig;
 import org.ldscd.callingworkflow.model.permissions.PermissionManager;
+import org.ldscd.callingworkflow.services.FileService;
+import org.ldscd.callingworkflow.services.FileServiceImpl;
 import org.ldscd.callingworkflow.services.GoogleDriveService;
 import org.ldscd.callingworkflow.services.GoogleDriveServiceImpl;
 import org.ldscd.callingworkflow.web.DataManager;
@@ -21,12 +22,9 @@ import org.ldscd.callingworkflow.web.CallingData;
 import org.ldscd.callingworkflow.web.MemberData;
 import org.ldscd.callingworkflow.web.WebResources;
 
-import java.io.IOException;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 import javax.inject.Singleton;
 
@@ -74,13 +72,19 @@ public class NetModule {
 
     @Provides
     @Singleton
-    DataManager providesDataManagerService(CallingData callingData, MemberData memberData, GoogleDriveService googleDataService, IWebResources webResources, PermissionManager permissionManager) {
-        return new DataManagerImpl(callingData, memberData, googleDataService, webResources, permissionManager);
+    DataManager providesDataManagerService(CallingData callingData, MemberData memberData, GoogleDriveService googleDataService, IWebResources webResources, PermissionManager permissionManager, FileService fileService) {
+        return new DataManagerImpl(callingData, memberData, googleDataService, webResources, permissionManager, fileService);
     }
 
     @Provides
     @Singleton
     PermissionManager providesPermissionManagerService() {
         return new PermissionManager();
+    }
+
+    @Provides
+    @Singleton
+    FileService providesFileService(Context applicationContext) {
+        return new FileServiceImpl(applicationContext);
     }
 }

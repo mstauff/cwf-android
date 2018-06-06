@@ -437,7 +437,7 @@ public class WebResources implements IWebResources {
     public Task<List<Org>> getOrgWithMembers(final Long subOrgId) {
         final TaskCompletionSource<List<Org>> completionSource = new TaskCompletionSource<>();
         JSONArrayRequest getOrgMembersRequest = new JSONArrayRequest(
-                Request.Method.GET,
+                Request.Method.POST,
                 configInfo.getClassAssignments().replace(":subOrgId", subOrgId.toString()),
                 null,
                 new Response.Listener<JSONArray>() {
@@ -454,9 +454,9 @@ public class WebResources implements IWebResources {
                         if (error.getExceptionType() == ExceptionType.SESSION_EXPIRED && attemptSessionRefresh) {
                             httpCookie = null;
                             attemptSessionRefresh = false;
+                            cookieManager.getCookieStore().removeAll();
                         } else {
-                            completionSource.setResult(null);
-                            completionSource.setException(new WebException(ExceptionType.PARSING_ERROR, error));
+                            completionSource.setException(error);
                         }
                     }
                 }

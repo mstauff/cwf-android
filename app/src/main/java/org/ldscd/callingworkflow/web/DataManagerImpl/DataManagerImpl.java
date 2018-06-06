@@ -13,8 +13,6 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskCompletionSource;
 import com.google.android.gms.tasks.Tasks;
-
-import org.json.JSONArray;
 import org.ldscd.callingworkflow.constants.CallingStatus;
 import org.ldscd.callingworkflow.constants.ClassAssignment;
 import org.ldscd.callingworkflow.constants.UnitLevelOrgType;
@@ -27,17 +25,19 @@ import org.ldscd.callingworkflow.model.UnitSettings;
 import org.ldscd.callingworkflow.model.permissions.AuthorizableOrg;
 import org.ldscd.callingworkflow.model.permissions.PermissionManager;
 import org.ldscd.callingworkflow.model.permissions.constants.Permission;
+import org.ldscd.callingworkflow.services.FileService;
 import org.ldscd.callingworkflow.services.GoogleDriveService;
 import org.ldscd.callingworkflow.web.CallingData;
 import org.ldscd.callingworkflow.web.DataManager;
 import org.ldscd.callingworkflow.web.ExceptionType;
 import org.ldscd.callingworkflow.web.IWebResources;
 import org.ldscd.callingworkflow.web.MemberData;
-import org.ldscd.callingworkflow.web.OrgCallingBuilder;
 import org.ldscd.callingworkflow.web.WebException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DataManagerImpl implements DataManager {
     private static final String TAG = "DataManager";
@@ -47,15 +47,17 @@ public class DataManagerImpl implements DataManager {
     private GoogleDriveService googleDataService;
     private IWebResources webResources;
     private PermissionManager permissionManager;
+    private FileService fileService;
     private LdsUser currentUser;
 
     /* Constructor */
-    public DataManagerImpl(CallingData callingData, MemberData memberData, GoogleDriveService googleDataService, IWebResources webResources, PermissionManager permissionManager) {
+    public DataManagerImpl(CallingData callingData, MemberData memberData, GoogleDriveService googleDataService, IWebResources webResources, PermissionManager permissionManager, FileService fileService) {
         this.callingData = callingData;
         this.memberData = memberData;
         this.googleDataService = googleDataService;
         this.webResources = webResources;
         this.permissionManager = permissionManager;
+        this.fileService = fileService;
     }
     /* Methods */
     @Override
@@ -254,44 +256,45 @@ public class DataManagerImpl implements DataManager {
         }
     }
     @Override
-    public void loadClassMemberAssignments(final Response.Listener<Boolean> listener, final Response.Listener<WebException> errorCallback, final ProgressBar progressBar, final Activity activity) {
+    public  boolean isCachedClassMemberAssignmentsExpired() {
+        return fileService.isCachedMemberAssignmentsExpired();
+    }
+    @Override
+    public Task<Boolean> loadClassMemberAssignments() {
+        final TaskCompletionSource<Boolean> taskCompletionSource = new TaskCompletionSource<>();
+        final Map<Long, List<Long>> memberAssignments = new HashMap<>();
         List<Org> orgs = getOrgs();
-        if (orgs == null || orgs.size() == 0) {
-            webResources.getOrgHierarchy()
-                .addOnSuccessListener(new OnSuccessListener<JSONArray>() {
+        if (orgs == null || orgs.size() > 0) {
+            getClassAssignments(orgs, false)
+                .addOnSuccessListener(new OnSuccessListener<List<Org>>() {
                     @Override
-                    public void onSuccess(JSONArray jsonArray) {
-                        List<Org> orgHierarchyList = new OrgCallingBuilder().extractOrgs(jsonArray, true);
-                        if (orgHierarchyList != null) {
-                            getClassAssignments(orgHierarchyList, true)
-                                .addOnSuccessListener(new OnSuccessListener<List<Org>>() {
-                                    @Override
-                                    public void onSuccess(List<Org> orgs) {
-                                        callingData.loadOrgs(listener, errorCallback, progressBar, activity, currentUser);
+                    public void onSuccess(List<Org> orgs) {
+                        for(Org org : orgs) {
+                            List<Long> assignedMember = org.getAssignedMembers();
+                            if(assignedMember != null) {
+                                memberAssignments.put(org.getId(), assignedMember);
+                                for (Long memberId : assignedMember) {
+                                    Member member = memberData.getMember(memberId);
+                                    if (member != null) {
+                                        member.setClassAssignment(org.getId());
                                     }
-                                })
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        errorCallback.onResponse(new WebException(ExceptionType.UNKNOWN_EXCEPTION, e));
-                                    }
-                                });
-                        } else {
-                            listener.onResponse(false);
-                            errorCallback.onResponse(new WebException(ExceptionType.PARSING_ERROR));
+                                }
+                            }
                         }
+                        fileService.saveMemberAssignmentsToCache(memberAssignments);
+                        taskCompletionSource.setResult(true);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        errorCallback.onResponse(new WebException(ExceptionType.UNKNOWN_EXCEPTION, e));
+                        taskCompletionSource.setException(e);
                     }
                 });
         } else {
-            getClassAssignments(orgs, false);
-            loadOrgs(listener, errorCallback, progressBar, activity);
+            taskCompletionSource.setResult(true);
         }
+        return taskCompletionSource.getTask();
     }
 
     private Task<List<Org>> getClassAssignments(List<Org> orgs, boolean getAllOrgs) {
@@ -302,7 +305,7 @@ public class DataManagerImpl implements DataManager {
                 tasks.add(webResources.getOrgWithMembers(org.getId()));
             } else {
                 for (ClassAssignment classAssignment : ClassAssignment.values()) {
-                    if (org.getOrgTypeId() == UnitLevelOrgType.getOrgTypeIdByName(classAssignment.name())) {
+                    if (org.getConflictCause() == null && org.getOrgTypeId() == UnitLevelOrgType.getOrgTypeIdByName(classAssignment.name())) {
                         tasks.add(webResources.getOrgWithMembers(org.getId()));
                         break;
                     }
@@ -314,16 +317,17 @@ public class DataManagerImpl implements DataManager {
             .addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
                 public void onSuccess(Void aVoid) {
+                    List<Org> items = new ArrayList<>();
                     for (Task<List<Org>> item : tasks) {
-                        taskClassMemberAssignment.setResult(item.getResult());
+                        items.addAll(item.getResult());
                     }
+                    taskClassMemberAssignment.setResult(items);
                 }
             })
             .addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
-                    taskClassMemberAssignment.setException(new WebException(ExceptionType.UNKNOWN_EXCEPTION, e));
-                    taskClassMemberAssignment.setResult(null);
+                    taskClassMemberAssignment.setException(e);
                 }
             });
         return taskClassMemberAssignment.getTask();

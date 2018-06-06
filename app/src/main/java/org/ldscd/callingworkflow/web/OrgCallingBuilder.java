@@ -46,6 +46,7 @@ public class OrgCallingBuilder {
     private static final String multiplesAllowedFieldName = "allowMultiple";
     private static final String stringNull = "null";
     private static final String membersString = "members";
+    public static final String ID = "id";
 
     DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
     /* Constructor */
@@ -104,7 +105,11 @@ public class OrgCallingBuilder {
             }
             List<Long> members = new ArrayList();
             if(includeMemberAssignments && orgJson.has(membersString)) {
-
+                for(int i = 0; i < orgJson.getJSONArray(membersString).length(); i++) {
+                    if(orgJson.getJSONArray(membersString).getJSONObject(i).has(ID)) {
+                        members.add(orgJson.getJSONArray(membersString).getJSONObject(i).getLong(ID));
+                    }
+                }
             }
             List<Org> childOrgs = extractOrgs(childOrgsJson, false);
 

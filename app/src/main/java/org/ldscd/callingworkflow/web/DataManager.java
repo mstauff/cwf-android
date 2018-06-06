@@ -52,7 +52,8 @@ public interface DataManager {
     Member getMember(Long id);
     void getWardList(Response.Listener<List<Member>> listener);
     void loadMembers(Response.Listener<Boolean> listener, Response.Listener<WebException> errorCallback, ProgressBar progressBar);
-    void loadClassMemberAssignments(Response.Listener<Boolean> listener, Response.Listener<WebException> errorCallback, ProgressBar progressBar, Activity activity);
+    boolean isCachedClassMemberAssignmentsExpired();
+    Task<Boolean> loadClassMemberAssignments();
     /* Google data. */
     void addCalling(Response.Listener<Boolean> listener, Response.Listener<WebException> errorListener, Calling calling);
     void updateCalling(Response.Listener<Boolean> listener, Response.Listener<WebException> errorListener, Calling calling);
